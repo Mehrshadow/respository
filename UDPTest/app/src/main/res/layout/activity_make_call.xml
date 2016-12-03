@@ -8,7 +8,8 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context=".MakeCallActivity" >
+    tools:context=".MakeCallActivity"
+    android:background="@drawable/background_oncall">
 
     <TextView
         android:id="@+id/textViewCalling"
@@ -18,6 +19,26 @@
         android:text="@string/calling"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1" />
+
+    <ToggleButton
+        android:text="ToggleButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/toggleButton2"
+        android:textOff="@string/lbl_speaker_off"
+        android:textOn="@string/lbl_speaker_on"
+        android:background="@drawable/toggle_background"
+        android:layout_gravity="center" />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -26,18 +47,12 @@
 
         <Button
             android:id="@+id/buttonEndCall"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/endCall" />
+            android:text="@string/endCall"
+            android:background="@drawable/call_end_call"
+            android:padding="16dp" />
 
     </LinearLayout>
-
-    <ToggleButton
-        android:text="ToggleButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/toggleButton2"
-        android:textOff="@string/lbl_speaker_off"
-        android:textOn="@string/lbl_speaker_on" />
 
 </LinearLayout>

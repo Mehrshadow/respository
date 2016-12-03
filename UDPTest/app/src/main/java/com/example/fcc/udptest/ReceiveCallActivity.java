@@ -3,15 +3,17 @@ package com.example.fcc.udptest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+
 import android.media.AudioManager;
+
 import android.os.Bundle;
-import android.os.Vibrator;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -34,7 +36,7 @@ public class ReceiveCallActivity extends Activity {
     private boolean IN_CALL = false;
     private AudioCall call;
     AudioManager audioManager;
-    Vibrator vibrator;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,8 +44,8 @@ public class ReceiveCallActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_receive_call);
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        final LinearLayout linearLayout = (LinearLayout)findViewById(R.id.layout_call);
 
-        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
         final ToggleButton Tgl_Speaker = (ToggleButton) findViewById(R.id.tgl_speaker);
         Tgl_Speaker.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -51,15 +53,14 @@ public class ReceiveCallActivity extends Activity {
 
                 if (isChecked) {
 
-                    Log.i(LOG_TAG, "Toggle is not Checked)");
-                    audioManager.setMode(AudioManager.MODE_NORMAL);
-                    audioManager.setSpeakerphoneOn(true);
-                } else {
-
-                    Log.i(LOG_TAG, "Toggle isChecked)");
+                    Log.i(LOG_TAG,"Toggle isChecked)");
                     audioManager.setMode(AudioManager.MODE_IN_CALL);
                     audioManager.setSpeakerphoneOn(false);
 
+                } else {
+                    Log.i(LOG_TAG,"Toggle is not Checked)");
+                    audioManager.setMode(AudioManager.MODE_NORMAL);
+                    audioManager.setSpeakerphoneOn(true);
 
                 }
             }
@@ -71,8 +72,6 @@ public class ReceiveCallActivity extends Activity {
 
         TextView textView = (TextView) findViewById(R.id.textViewIncomingCall);
         textView.setText("Incoming call: " + contactName);
-
-        startVibrating();
 
         final Button endButton = (Button) findViewById(R.id.buttonEndCall1);
         endButton.setVisibility(View.INVISIBLE);
@@ -87,9 +86,7 @@ public class ReceiveCallActivity extends Activity {
             public void onClick(View v) {
 
                 try {
-
-                    cancleVibrating();
-
+                    linearLayout.setVisibility(View.INVISIBLE);
                     // Accepting call. Send a notification and start the call
                     sendMessage("ACC:");
                     InetAddress address = InetAddress.getByName(contactIp);
@@ -122,7 +119,6 @@ public class ReceiveCallActivity extends Activity {
             @Override
             public void onClick(View v) {
                 // Send a reject notification and end the call
-                cancleVibrating();
                 sendMessage("REJ:");
                 endCall();
             }
@@ -141,7 +137,6 @@ public class ReceiveCallActivity extends Activity {
 
     private void endCall() {
         // End the call and send a notification
-        cancleVibrating();
         stopListener();
         if (IN_CALL) {
 
@@ -245,15 +240,4 @@ public class ReceiveCallActivity extends Activity {
         return true;
     }
 
-    private void startVibrating() {
-        if (vibrator.hasVibrator()) {
-            long[] pattern = {0, 500, 1000};
-
-            vibrator.vibrate(pattern, 0);
-        }
-    }
-
-    private void cancleVibrating() {
-        vibrator.cancel();
-    }
 }
