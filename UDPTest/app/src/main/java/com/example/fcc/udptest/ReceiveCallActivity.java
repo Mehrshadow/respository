@@ -3,9 +3,7 @@ package com.example.fcc.udptest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-
 import android.media.AudioManager;
-
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -51,14 +49,15 @@ public class ReceiveCallActivity extends Activity {
 
                 if (isChecked) {
 
-                    Log.i(LOG_TAG,"Toggle isChecked)");
+                    Log.i(LOG_TAG, "Toggle is not Checked)");
+                    audioManager.setMode(AudioManager.MODE_NORMAL);
+                    audioManager.setSpeakerphoneOn(true);
+                } else {
+
+                    Log.i(LOG_TAG, "Toggle isChecked)");
                     audioManager.setMode(AudioManager.MODE_IN_CALL);
                     audioManager.setSpeakerphoneOn(false);
 
-                } else {
-                    Log.i(LOG_TAG,"Toggle is not Checked)");
-                    audioManager.setMode(AudioManager.MODE_NORMAL);
-                    audioManager.setSpeakerphoneOn(true);
 
                 }
             }
