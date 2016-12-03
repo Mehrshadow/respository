@@ -34,15 +34,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
     private boolean IN_CALL = false;
     private AudioCall call;
     private ToggleButton toggleSwitchSpeaker;
-//    private IChangeSpeakerStatus iChangeSpeakerStatus;
 
-//    public interface IChangeSpeakerStatus {
-//        void OnchangeStatus(boolean switchStatus);
-//    }
-//
-//    void setChangeSpeakerListener(IChangeSpeakerStatus iChangeSpeakerStatus) {
-//        this.iChangeSpeakerStatus = iChangeSpeakerStatus;
-//    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +67,8 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
             }
         });
     }
+
+
 
     private void makeCall() {
         // Send a request to start a call
