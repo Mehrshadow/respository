@@ -3,25 +3,25 @@
     android:id="@+id/LinearLayout1"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/background_oncall"
     android:orientation="vertical"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context=".MainActivity"
-    android:background="@drawable/background_oncall">
+    tools:context=".MainActivity">
 
     <TextView
         android:id="@+id/textViewEnterName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/enterName"
-        android:textSize="18sp"
-        android:textColor="@android:color/background_light" />
+        android:textColor="@android:color/background_light"
+        android:textSize="18sp" />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content">
 
         <EditText
             android:id="@+id/editTextDisplayName"
@@ -31,7 +31,7 @@
             android:ems="10"
             android:inputType="textPersonName"
             android:maxLength="15"
-            android:singleLine="true" >
+            android:singleLine="true">
 
             <requestFocus />
         </EditText>
@@ -42,45 +42,55 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/submitName"
-            android:background="@drawable/call_end_call" />
+            android:background="@drawable/call_end_call"
+            android:text="@string/submitName" />
     </LinearLayout>
 
-        <TextView
-            android:id="@+id/textViewSelectContact"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/selectContact"
-            android:visibility="invisible"
-            android:textSize="18sp"
-            android:textColor="@android:color/background_light" />
+    <TextView
+        android:id="@+id/textViewSelectContact"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/selectContact"
+        android:textColor="@android:color/background_light"
+        android:textSize="18sp"
+        android:visibility="invisible" />
 
-        <LinearLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
-            <Button
-	            android:id="@+id/buttonCall"
-	            style="?android:attr/buttonStyleSmall"
-	            android:layout_width="match_parent"
-	            android:layout_height="wrap_content"
-	            android:text="@string/call"
-	            android:visibility="invisible"
-                android:background="@drawable/call_end_call" />
-	 	</LinearLayout>
-    
+        <Button
+            android:id="@+id/buttonCall"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/call_end_call"
+            android:text="@string/call"
+            android:visibility="invisible" />
+
+        <Button
+            android:id="@+id/btnVideoCall"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/call_end_call"
+            android:text="@string/videocall"
+            android:visibility="invisible" />
+    </LinearLayout>
+
     <ScrollView
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="invisible" >
+        android:visibility="invisible">
 
         <RadioGroup
             android:id="@+id/contactList"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content" >
-                
+            android:layout_height="wrap_content">
+
         </RadioGroup>
     </ScrollView>
-    
+
 </LinearLayout>

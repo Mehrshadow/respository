@@ -37,7 +37,6 @@ public class ReceiveCallActivity extends Activity {
     private AudioCall call;
     AudioManager audioManager;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 

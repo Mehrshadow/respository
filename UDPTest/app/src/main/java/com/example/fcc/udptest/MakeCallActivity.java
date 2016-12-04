@@ -33,7 +33,6 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
     private boolean LISTEN = true;
     private boolean IN_CALL = false;
     private AudioCall call;
-    private ToggleButton toggleSwitchSpeaker;
 
 
     @Override
@@ -67,7 +66,6 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
             }
         });
     }
-
 
 
     private void makeCall() {

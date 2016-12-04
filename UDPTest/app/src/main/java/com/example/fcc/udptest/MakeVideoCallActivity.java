@@ -1,38 +1,86 @@
 package com.example.fcc.udptest;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.View;
-import android.widget.Button;
+import android.widget.MediaController;
+import android.widget.TextView;
+import android.widget.Toast;
+import android.widget.VideoView;
 
+import java.io.BufferedOutputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 
-/**
- * Created by FCC on 12/3/2016.
- */
+public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Callback {
 
-public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Callback, View.OnClickListener {
-
-    MediaRecorder mediaRecorder;
-    SurfaceHolder surfaceHolder;
-    boolean recording = false;
-    private Button btnRecord;
+    private static final String LOG_TAG = "UDP:MakeVideoCall";
+    private static final int SLEEP_TIME = 100;
+    private String contactIp;
+    private String displayName;
+    private String contactName;
+    private MediaRecorder mediaRecorder;
+    private SurfaceHolder surfaceHolder;
+    private VideoView videoView;
+    private boolean recording = false;
+    private boolean LISTEN = true;
+    private boolean IN_CALL = false;
+    private static final int BUF_SIZE = 1024;
+    private final static int port_Connection = 50005;
+    private final static int port_VideoCall = 60000;
+    private Camera camera;
+    private boolean receiving = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_make_video_call);
 
-        btnRecord = (Button) findViewById(R.id.btnRecord);
-        btnRecord.setOnClickListener(this);
+        Log.d(LOG_TAG, "Make video call started");
+
+        initViewVideo();
+
+        Intent intent = getIntent();
+        displayName = intent.getStringExtra(MainActivity.EXTRA_DISPLAYNAME);
+        contactName = intent.getStringExtra(MainActivity.EXTRA_CONTACT);
+        contactIp = intent.getStringExtra(MainActivity.EXTRA_IP);
+
+        TextView textView = (TextView) findViewById(R.id.contactName);
+        textView.setText("Calling: " + contactName);
 
         mediaRecorder = new MediaRecorder();
         initRecorder();
+
+        startListener();
+        makeVideoCall();
+    }
+
+    private void initViewVideo() {
+        videoView = (VideoView) findViewById(R.id.videoView);
+        videoView.setVideoURI(Uri.parse(G.ReceiveVideoPath));
+
+        MediaController mc = new MediaController(this);
+        videoView.setMediaController(mc);
+
+        Log.d(LOG_TAG, "VideoView initialized");
     }
 
     private void initRecorder() {
@@ -41,14 +89,263 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
         surfaceHolder.addCallback(this);
         surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 
+        Log.d(LOG_TAG, "surface holder done");
+
+        if (checkCameraHardware(this)) {
+            try {
+                camera = Camera.open(0);// 1 = front camera, 0 = rear camera}
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        } else {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(MakeVideoCallActivity.this, "NO Camera Device found!!", Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
 
-        CamcorderProfile cpHigh = CamcorderProfile.get(CamcorderProfile.QUALITY_480P);
+        CamcorderProfile cpHigh = CamcorderProfile.get(CamcorderProfile.QUALITY_LOW);
         mediaRecorder.setProfile(cpHigh);
         mediaRecorder.setOutputFile(Environment.getExternalStorageDirectory().getPath() + "/testCapture.mp4");
 //        mediaRecorder.setMaxDuration();
 //        mediaRecorder.setMaxFileSize();
+
+        Log.d(LOG_TAG, "media recorder done");
+    }
+
+    private boolean checkCameraHardware(Context context) {
+        if (context.getPackageManager().hasSystemFeature(
+                PackageManager.FEATURE_CAMERA)) {
+            // this device has a camera
+            Log.d(LOG_TAG, "device has camera");
+            return true;
+        } else {
+            // no camera on this device
+            Log.d(LOG_TAG, "device does not have any camera!");
+            return false;
+        }
+    }
+
+    private void startListener() {
+        // Create listener thread
+        LISTEN = true;
+        Thread listenThread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+
+                try {
+
+                    Log.i(LOG_TAG, "Listener started!");
+                    DatagramSocket socket = new DatagramSocket(port_Connection);
+                    socket.setSoTimeout(15000);
+                    byte[] buffer = new byte[BUF_SIZE];
+                    DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
+
+                    while (LISTEN) {
+
+                        try {
+
+                            Log.i(LOG_TAG, "Listening for packets");
+                            socket.receive(packet);
+                            String data = new String(buffer, 0, packet.getLength());
+                            Log.i(LOG_TAG, "Packet received from " + packet.getAddress() + " with contents: " + data);
+                            String action = data.substring(0, 4);
+                            if (action.equals("ACC:")) {
+                                // Accept notification received. Start VideoCall
+                                sendVideo(packet.getAddress());
+                                receiveVideo();
+
+                                IN_CALL = true;
+
+                            } else if (action.equals("REJ:")) {
+                                // Reject notification received. End call
+//                                endCall();
+                            } else if (action.equals("END:")) {
+                                // End call notification received. End call
+//                                endCall();
+                            } else {
+                                // Invalid notification received
+                                Log.w(LOG_TAG, packet.getAddress() + " sent invalid message: " + data);
+                            }
+                        } catch (SocketTimeoutException e) {
+                            if (!IN_CALL) {
+
+                                Log.i(LOG_TAG, "No reply from contact. Ending call");
+//                                endCall();
+                                return;
+                            }
+                        } catch (IOException e) {
+
+                        }
+                    }
+                    Log.i(LOG_TAG, "Listener ending");
+                    socket.disconnect();
+                    socket.close();
+                    return;
+                } catch (SocketException e) {
+
+                    Log.e(LOG_TAG, "SocketException in Listener");
+                    endCall();
+                }
+            }
+        });
+        listenThread.start();
+    }
+
+    private void receiveVideo() {
+        Log.d(LOG_TAG, "Receiving video data");
+        receiving = true;
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    DatagramSocket socket = new DatagramSocket(port_VideoCall);
+                    socket.setSoTimeout(10000);
+                    byte[] buffer = new byte[BUF_SIZE];
+
+                    DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
+
+                    videoView.start();
+
+                    while (receiving) {
+                        Log.d(LOG_TAG, "Listening for video packets");
+                        socket.receive(packet);
+                        Log.i(LOG_TAG, "Packet received from " + packet.getAddress());
+
+                        saveReceivedVideoBytesToFile(buffer);// inja dare file overwrite mishe..!
+                    }
+
+                    videoView.stopPlayback();
+                    socket.disconnect();
+                    socket.close();
+                    receiving = false;
+
+                } catch (SocketException e) {
+                    receiving = false;
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    receiving = false;
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    private void sendMessage(final String message, final int port) {
+        // Creates a thread used for sending notifications
+        Thread replyThread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+
+                try {
+
+                    InetAddress address = InetAddress.getByName(contactIp);
+                    byte[] data = message.getBytes();
+                    DatagramSocket socket = new DatagramSocket();
+                    DatagramPacket packet = new DatagramPacket(data, data.length, address, port);
+                    socket.send(packet);
+                    Log.i(LOG_TAG, "Sent message( " + message + " ) to " + contactIp);
+                    socket.disconnect();
+                    socket.close();
+                } catch (UnknownHostException e) {
+
+                    Log.e(LOG_TAG, "Failure. UnknownHostException in sendMessage: " + contactIp);
+                } catch (SocketException e) {
+
+                    Log.e(LOG_TAG, "Failure. SocketException in sendMessage: " + e);
+                } catch (IOException e) {
+
+                    Log.e(LOG_TAG, "Failure. IOException in sendMessage: " + e);
+                }
+            }
+        });
+        replyThread.start();
+    }
+
+    private void makeVideoCall() {
+        // Send a request to start a call
+        sendMessage("CAL:" + displayName, port_Connection);
+    }
+
+    private void endCall() {
+        // Ends the chat sessions
+        Log.d(LOG_TAG, "end call");
+        stopListener();
+        if (IN_CALL) {
+
+//            call.endCall();
+        }
+        sendMessage("END:", port_Connection);
+        finish();
+    }
+
+    private void stopListener() {
+        // Ends the listener thread
+        Log.d(LOG_TAG, "stopping listener");
+        LISTEN = false;
+    }
+
+    private void sendVideo(final InetAddress address) {
+        Log.d(LOG_TAG, "send video thread started...");
+
+        recording = true;
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                int bytes_read;
+                int bytes_sent = 0;
+                byte[] buf = new byte[BUF_SIZE];
+
+                try {
+                    FileInputStream fis = new FileInputStream(G.sendVideoPath);
+                    DatagramSocket socket = new DatagramSocket();
+                    mediaRecorder.start();
+                    ;
+
+                    Log.d(LOG_TAG, "Recording started");
+
+                    while (recording) {
+                        bytes_read = fis.read(buf, 0, BUF_SIZE);
+                        DatagramPacket packet = new DatagramPacket(buf, bytes_read, address, port_VideoCall);
+                        socket.send(packet);
+                        bytes_sent += bytes_read;
+
+                        Log.i(LOG_TAG, "Total bytes sent: " + bytes_sent);
+                        Thread.sleep(SLEEP_TIME, 0);
+                    }
+
+                    mediaRecorder.stop();
+                    mediaRecorder.release();
+
+                    socket.disconnect();
+                    socket.close();
+
+                    recording = false;
+
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                    recording = false;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    recording = false;
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    recording = false;
+                }
+
+            }
+        }).start();
     }
 
     @Override
@@ -63,6 +360,7 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
+        Log.d(LOG_TAG, "surface destroyed");
         if (recording) {
             mediaRecorder.stop();
             recording = false;
@@ -71,6 +369,7 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
     }
 
     private void prepareRecorder() {
+        Log.d(LOG_TAG, "preparing recorder");
         mediaRecorder.setPreviewDisplay(surfaceHolder.getSurface());
 
         try {
@@ -78,20 +377,26 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
         } catch (IOException e) {
             e.printStackTrace();
         }
+        Log.d(LOG_TAG, "recorder prepare done");
     }
 
-    @Override
-    public void onClick(View v) {
-        if (recording) {
-            mediaRecorder.stop();
-            recording = false;
+    private void saveReceivedVideoBytesToFile(byte[] data) {
+        Log.d(LOG_TAG, "saving bytes to file");
 
-            //prepare to record again
-            initRecorder();
-            prepareRecorder();
-        } else {
-            recording = true;
-            mediaRecorder.start();
+        BufferedOutputStream bos = null;
+        try {
+            bos = new BufferedOutputStream(new FileOutputStream(G.ReceiveVideoPath));
+
+            bos.write(data);
+            bos.flush();
+            bos.close();
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            Log.d(LOG_TAG, "saving to file failed!!");
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.d(LOG_TAG, "saving to file failed!!");
         }
     }
 }

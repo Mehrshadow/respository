@@ -7,6 +7,8 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -28,6 +30,14 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".ReceiveCallActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".MakeVideoCallActivity"
+            android:configChanges="orientation"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ReceiveVideoCallActivity"
+            android:configChanges="orientation"
             android:screenOrientation="portrait" />
     </application>
 

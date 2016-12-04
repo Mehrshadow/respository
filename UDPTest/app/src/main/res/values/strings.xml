@@ -19,5 +19,6 @@
     <string name="reject">Reject</string>
     <string name="lbl_speaker_on">Speaker On</string>
     <string name="lbl_speaker_off">Speaker Off</string>
+    <string name="videocall">videocall</string>
 
 </resources>
