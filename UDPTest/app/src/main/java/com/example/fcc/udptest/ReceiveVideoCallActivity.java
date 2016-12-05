@@ -19,7 +19,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
-import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -36,7 +36,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     private static final int SLEEP_TIME = 100;
     private String contactIp;
     private String displayName;
-    private final static int port_Connection = 50005;
+    private final static int port_Call = 50004;
+    private final static int BROADCAST_PORT = 50005;
     private final static int port_VideoCall = 60000;
     private boolean IN_VIDEO_CALL = false;
     private boolean LISTEN = false;
@@ -44,7 +45,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     private boolean IN_CALL = false;
     private boolean receiving = false;
     private Button accept, reject, endCall;
-    private int BUF_SIZE = 1024;
+    private int BUF_SIZE = 256;
     private MediaRecorder mediaRecorder;
     private SurfaceHolder surfaceHolder;
     private Camera camera;
@@ -72,17 +73,21 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         TextView textView = (TextView) findViewById(R.id.textViewIncomingCall);
         textView.setText("Incoming call: " + displayName);
 
-        initViewVideo();
+//        initViewVideo();
 
         mediaRecorder = new MediaRecorder();
-        initRecorder();
 
         startListener();
+
+        receiveVideo();
     }
 
     private void initViewVideo() {
 
         videoView = (VideoView) findViewById(R.id.videoView);
+
+        createReceiveVideoFileOrRecreateExiting();
+
         videoView.setVideoURI(Uri.parse(G.ReceiveVideoPath));
 
         MediaController mc = new MediaController(this);
@@ -91,7 +96,24 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         Log.d(LOG_TAG, "video view initialized");
     }
 
-    private void initRecorder() {
+    private void createReceiveVideoFileOrRecreateExiting() {
+        try {
+            File f = new File(G.ReceiveVideoPath);
+            if (f.exists()) {
+
+                f.delete();
+                f.createNewFile();
+
+            } else {
+
+                f.createNewFile();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void prepareRecorder() {
         SurfaceView cameraView = (SurfaceView) findViewById(R.id.surfaceView);
         surfaceHolder = cameraView.getHolder();
         surfaceHolder.addCallback(this);
@@ -101,7 +123,9 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
         if (checkCameraHardware(this)) {
             try {
-                camera = Camera.open(0);// 1 = front camera, 0 = rear camera}
+                camera = Camera.open(1);// 1 = front camera, 0 = rear camera}
+                camera.unlock();
+                mediaRecorder.setCamera(camera);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -115,7 +139,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
             });
         }
 
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
+        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
 
         CamcorderProfile cpHigh = CamcorderProfile.get(CamcorderProfile.QUALITY_LOW);
@@ -151,7 +175,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                 try {
 
                     Log.i(LOG_TAG, "Listener started!");
-                    DatagramSocket socket = new DatagramSocket(port_Connection);
+                    DatagramSocket socket = new DatagramSocket(BROADCAST_PORT);
                     socket.setSoTimeout(15000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
@@ -166,7 +190,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                             Log.i(LOG_TAG, "Packet received from " + packet.getAddress() + " with contents: " + data);
                             String action = data.substring(0, 4);
                             if (action.equals("END:")) {
-                                // Accept notification received. Start VideoCall
                                 endCall();
 
                             } else {
@@ -194,7 +217,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
     private void makeVideoCall() {
         // Send a request to start a call
-        sendMessage("ACC:" + displayName, port_VideoCall);
+        sendMessage("ACC:" + displayName, port_Call);
     }
 
     private void sendMessage(final String message, final int port) {
@@ -296,19 +319,25 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                 public void run() {
                     try {
                         DatagramSocket socket = new DatagramSocket(port_VideoCall);
-                        socket.setSoTimeout(10000);
+                        socket.setSoTimeout(5000);
                         byte[] buffer = new byte[BUF_SIZE];
+                        int bytesSaved = 0;
 
                         DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
 
-                        videoView.start();
+                        createReceiveVideoFileOrRecreateExiting();
+//                        videoView.start();
 
                         while (receiving) {
                             Log.d(LOG_TAG, "Listening for video packets");
                             socket.receive(packet);
                             Log.i(LOG_TAG, "Packet received from " + packet.getAddress());
 
-                            saveReceivedVideoBytesToFile(buffer);// inja dare file overwrite mishe..!
+                            saveReceivedVideoBytesToFile(packet.getData());
+
+                            bytesSaved += buffer.length;
+
+                            Log.d(LOG_TAG, bytesSaved + " bytes saved to file");
                         }
 
                         videoView.stopPlayback();
@@ -328,6 +357,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         }
     }
 
+
     private void stopListener() {
         Log.d(LOG_TAG, "Stopping listener");
         // Ends the listener thread
@@ -342,13 +372,13 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
 //            call.endCall();
         }
-        sendMessage("END:", port_Connection);
+        sendMessage("END:", BROADCAST_PORT);
         finish();
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        initRecorder();
+        prepareRecorder();
     }
 
     @Override
@@ -369,7 +399,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.buttonAccept:
-                sendMessage("ACC:", port_Connection);
+                sendMessage("ACC:", BROADCAST_PORT);
+
                 InetAddress address = null;
                 try {
                     address = InetAddress.getByName(contactIp);
@@ -377,12 +408,13 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                     Log.i(LOG_TAG, "Calling " + address.toString());
                     IN_VIDEO_CALL = true;
 
-                    sendVideo(address);
-                    receiveVideo();
+//                    sendVideo(address);
+//                    receiveVideo();
+
 
                     // Hide the buttons as they're not longer required
-                    accept.setEnabled(false);
-                    reject.setEnabled(false);
+                    accept.setVisibility(View.INVISIBLE);
+                    reject.setVisibility(View.INVISIBLE);
                     endCall.setVisibility(View.VISIBLE);
 
                 } catch (UnknownHostException e) {
@@ -390,7 +422,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                 }
                 break;
             case R.id.buttonReject:
-                sendMessage("REJ:", port_Connection);
+                sendMessage("REJ:", BROADCAST_PORT);
                 endCall();
                 break;
             case R.id.buttonEndCall:
@@ -401,20 +433,15 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
     private void saveReceivedVideoBytesToFile(byte[] data) {
         Log.d(LOG_TAG, "saving to file...");
-        BufferedOutputStream bos = null;
         try {
-            bos = new BufferedOutputStream(new FileOutputStream(G.ReceiveVideoPath));
-
-            bos.write(data);
-            bos.flush();
-            bos.close();
+            FileOutputStream os = new FileOutputStream(G.ReceiveVideoPath, true);
+            os.write(data);
+            os.close();
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            Log.d(LOG_TAG, "saving to file failed");
         } catch (IOException e) {
             e.printStackTrace();
-            Log.d(LOG_TAG, "saving to file failed");
         }
     }
 }

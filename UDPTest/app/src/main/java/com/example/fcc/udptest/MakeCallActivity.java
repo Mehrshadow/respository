@@ -129,7 +129,6 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
 
                                 Log.i(LOG_TAG, "No reply from contact. Ending call");
                                 endCall();
-                                return;
                             }
                         } catch (IOException e) {
 

@@ -9,10 +9,11 @@ import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
+import android.widget.Button;
 import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,7 +31,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
-public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Callback {
+public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Callback, View.OnClickListener {
 
     private static final String LOG_TAG = "UDP:MakeVideoCall";
     private static final int SLEEP_TIME = 100;
@@ -43,11 +44,14 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
     private boolean recording = false;
     private boolean LISTEN = true;
     private boolean IN_CALL = false;
-    private static final int BUF_SIZE = 1024;
-    private final static int port_Connection = 50005;
+    private static final int BUF_SIZE = 256;
+    private final static int port_Call = 50004;
+    private final static int BROADCAST_PORT = 50005;
     private final static int port_VideoCall = 60000;
     private Camera camera;
     private boolean receiving = false;
+    private boolean cameraConfigured = false;
+    private Button buttonEndCall;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +60,7 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
 
         Log.d(LOG_TAG, "Make video call started");
 
-        initViewVideo();
+//        initViewVideo();
 
         Intent intent = getIntent();
         displayName = intent.getStringExtra(MainActivity.EXTRA_DISPLAYNAME);
@@ -65,6 +69,9 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
 
         TextView textView = (TextView) findViewById(R.id.contactName);
         textView.setText("Calling: " + contactName);
+
+        buttonEndCall = (Button) findViewById(R.id.buttonEndCall);
+        buttonEndCall.setOnClickListener(this);
 
         mediaRecorder = new MediaRecorder();
         initRecorder();
@@ -93,7 +100,10 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
 
         if (checkCameraHardware(this)) {
             try {
-                camera = Camera.open(0);// 1 = front camera, 0 = rear camera}
+
+                camera = Camera.open(1);// 1 = front camera, 0 = rear camera}
+                camera.unlock();
+                mediaRecorder.setCamera(camera);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -107,12 +117,13 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
             });
         }
 
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
+        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
 
         CamcorderProfile cpHigh = CamcorderProfile.get(CamcorderProfile.QUALITY_LOW);
         mediaRecorder.setProfile(cpHigh);
-        mediaRecorder.setOutputFile(Environment.getExternalStorageDirectory().getPath() + "/testCapture.mp4");
+        mediaRecorder.setOutputFile(G.sendVideoPath);
+
 //        mediaRecorder.setMaxDuration();
 //        mediaRecorder.setMaxFileSize();
 
@@ -143,7 +154,7 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
                 try {
 
                     Log.i(LOG_TAG, "Listener started!");
-                    DatagramSocket socket = new DatagramSocket(port_Connection);
+                    DatagramSocket socket = new DatagramSocket(BROADCAST_PORT);
                     socket.setSoTimeout(15000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
@@ -158,18 +169,21 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
                             Log.i(LOG_TAG, "Packet received from " + packet.getAddress() + " with contents: " + data);
                             String action = data.substring(0, 4);
                             if (action.equals("ACC:")) {
-                                // Accept notification received. Start VideoCall
+
+//                                Accept notification received. Start VideoCall
                                 sendVideo(packet.getAddress());
-                                receiveVideo();
+//                                receiveVideo();
 
                                 IN_CALL = true;
 
                             } else if (action.equals("REJ:")) {
                                 // Reject notification received. End call
-//                                endCall();
+                                Log.d(LOG_TAG, "Ending call...");
+                                endCall();
                             } else if (action.equals("END:")) {
+                                Log.d(LOG_TAG, "Ending call...");
                                 // End call notification received. End call
-//                                endCall();
+                                endCall();
                             } else {
                                 // Invalid notification received
                                 Log.w(LOG_TAG, packet.getAddress() + " sent invalid message: " + data);
@@ -178,20 +192,21 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
                             if (!IN_CALL) {
 
                                 Log.i(LOG_TAG, "No reply from contact. Ending call");
-//                                endCall();
-                                return;
+                                endCall();
                             }
                         } catch (IOException e) {
-
+                            Log.e(LOG_TAG, e.toString());
+                            endCall();
                         }
                     }
                     Log.i(LOG_TAG, "Listener ending");
+
                     socket.disconnect();
                     socket.close();
                     return;
                 } catch (SocketException e) {
 
-                    Log.e(LOG_TAG, "SocketException in Listener");
+                    Log.e(LOG_TAG, e.toString());
                     endCall();
                 }
             }
@@ -273,7 +288,7 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
 
     private void makeVideoCall() {
         // Send a request to start a call
-        sendMessage("CAL:" + displayName, port_Connection);
+        sendMessage("CAL:" + displayName, port_Call);
     }
 
     private void endCall() {
@@ -282,9 +297,12 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
         stopListener();
         if (IN_CALL) {
 
-//            call.endCall();
         }
-        sendMessage("END:", port_Connection);
+        sendMessage("END:", BROADCAST_PORT);
+        if (camera != null) {
+//            camera.stopPreview();
+            camera.release();
+        }
         finish();
     }
 
@@ -308,15 +326,16 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
                 byte[] buf = new byte[BUF_SIZE];
 
                 try {
-                    FileInputStream fis = new FileInputStream(G.sendVideoPath);
+
                     DatagramSocket socket = new DatagramSocket();
                     mediaRecorder.start();
-                    ;
 
+                    FileInputStream fis = new FileInputStream(G.sendVideoPath);
                     Log.d(LOG_TAG, "Recording started");
 
                     while (recording) {
                         bytes_read = fis.read(buf, 0, BUF_SIZE);
+
                         DatagramPacket packet = new DatagramPacket(buf, bytes_read, address, port_VideoCall);
                         socket.send(packet);
                         bytes_sent += bytes_read;
@@ -355,8 +374,8 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-
     }
+
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
@@ -398,6 +417,11 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
             e.printStackTrace();
             Log.d(LOG_TAG, "saving to file failed!!");
         }
+    }
+
+    @Override
+    public void onClick(View v) {
+        endCall();
     }
 }
 

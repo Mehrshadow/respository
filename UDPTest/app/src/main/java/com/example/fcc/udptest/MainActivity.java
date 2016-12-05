@@ -196,6 +196,8 @@ public class MainActivity extends Activity implements ContactManager.IUpdateCont
                             Log.i(LOG_TAG, "Packet received from " + packet.getAddress() + " with contents: " + data);
                             String action = data.substring(0, 4);
                             if (action.equals("CAL:")) {
+
+                                Log.d(LOG_TAG, "**CAL received**");
                                 // Received a call request. Start the ReceiveCallActivity
                                 String address = packet.getAddress().toString();
                                 String name = data.substring(4, packet.getLength());
