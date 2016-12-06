@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AndroidVideoChat</string>
+    <string name="start_chat">start chat</string>
+    <string name="login">login</string>
+    <string name="password">password</string>
+    <string name="please_wait">Please wait</string>
+    <string name="login_by_first_user">Login by first user</string>
+    <string name="login_by_second_user">Login by second user</string>
+    <string name="video_off">video off</string>
+    <string name="audio_off">audio off</string>
+    <string name="video_on">video on</string>
+    <string name="audio_on">audio on</string>
+    <string name="call_user">call </string>
+</resources>
