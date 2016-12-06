@@ -5,9 +5,11 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
+import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -335,14 +337,16 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                             socket.receive(packet);
                             Log.i(LOG_TAG, "Packet received from " + packet.getAddress());
 
-                            saveReceivedVideoBytesToFile(packet.getData());
+//                            saveReceivedVideoBytesToFile(packet.getData());
+
+                            playReceivedVideo(socket);
 
                             bytesSaved += buffer.length;
 
-                            Log.d(LOG_TAG, bytesSaved + " bytes saved to file");
+                            Log.d(LOG_TAG, bytesSaved + " bytes saved");
                         }
 
-                        videoView.stopPlayback();
+//                        videoView.stopPlayback();
                         socket.disconnect();
                         socket.close();
                         receiving = false;
@@ -449,4 +453,22 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
             e.printStackTrace();
         }
     }
+
+    private void playReceivedVideo(DatagramSocket socket) {
+        try {
+            MediaPlayer mediaPlayer = new MediaPlayer();
+            ParcelFileDescriptor pfd = ParcelFileDescriptor.fromDatagramSocket(socket);
+
+            mediaPlayer.setDataSource(pfd.getFileDescriptor());
+
+            mediaPlayer.setDisplay(surfaceHolder);
+//            mediaPlayer.prepare();
+            mediaPlayer.prepareAsync();
+            mediaPlayer.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
 }
