@@ -281,7 +281,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                             bytes_sent += bytes_read;
 
                             Log.i(LOG_TAG, "Total bytes sent: " + bytes_sent);
-                            Thread.sleep(SLEEP_TIME, 0);
+//                            Thread.sleep(SLEEP_TIME, 0);
                         }
 
                         mediaRecorder.stop();
@@ -298,9 +298,9 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                     } catch (IOException e) {
                         e.printStackTrace();
                         recording = false;
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                        recording = false;
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                        recording = false;
                     }
 
                 }
@@ -314,6 +314,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         if (!receiving) {
             receiving = true;
 
+            createReceiveVideoFileOrRecreateExiting();
+
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -323,13 +325,12 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                         byte[] buffer = new byte[BUF_SIZE];
                         int bytesSaved = 0;
 
-                        DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
-
-                        createReceiveVideoFileOrRecreateExiting();
 //                        videoView.start();
 
+                        Log.d(LOG_TAG, "Listening for video packets");
                         while (receiving) {
-                            Log.d(LOG_TAG, "Listening for video packets");
+
+                            DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
                             socket.receive(packet);
                             Log.i(LOG_TAG, "Packet received from " + packet.getAddress());
 
