@@ -19,6 +19,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -45,7 +46,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     private boolean IN_CALL = false;
     private boolean receiving = false;
     private Button accept, reject, endCall;
-    private int BUF_SIZE = 256;
+    private int BUF_SIZE = 1024;
     private MediaRecorder mediaRecorder;
     private SurfaceHolder surfaceHolder;
     private Camera camera;
@@ -435,9 +436,12 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     private void saveReceivedVideoBytesToFile(byte[] data) {
         Log.d(LOG_TAG, "saving to file...");
         try {
-            FileOutputStream os = new FileOutputStream(G.ReceiveVideoPath, true);
-            os.write(data);
-            os.close();
+            File f = new File(G.ReceiveVideoPath);
+            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(f, true));
+
+//            FileOutputStream os = new FileOutputStream(G.ReceiveVideoPath, true);
+            bos.write(data);
+            bos.close();
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
