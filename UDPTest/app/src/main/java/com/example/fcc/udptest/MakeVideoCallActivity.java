@@ -36,7 +36,7 @@ import java.net.UnknownHostException;
 public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Callback, View.OnClickListener {
 
     private static final String LOG_TAG = "UDP:MakeVideoCall";
-    private static final int SLEEP_TIME = 5000;
+    private static final int SLEEP_TIME = 250;
     private String contactIp;
     private String displayName;
     private String contactName;
@@ -120,7 +120,6 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
 
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
-
         CamcorderProfile cpHigh = CamcorderProfile.get(CamcorderProfile.QUALITY_LOW);
         mediaRecorder.setProfile(cpHigh);
         mediaRecorder.setOutputFile(G.sendVideoPath);
@@ -304,7 +303,7 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
 //            camera.stopPreview();
             camera.release();
         }
-        finish();
+//        finish();
     }
 
     private void stopListener() {
@@ -324,8 +323,6 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
 
                 int bytes_read;
                 int bytes_sent = 0;
-
-//                File file = new File(G.sendVideoPath);
                 byte[] buf;
 
                 try {
@@ -333,18 +330,15 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
                     DatagramSocket socket = new DatagramSocket();
                     mediaRecorder.start();
 
-//                    FileInputStream fis = new FileInputStream(G.sendVideoPath);
-
-//                    BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
-
                     Log.d(LOG_TAG, "Recording started");
 
+                    File file = new File(G.sendVideoPath);
+                    buf = new byte[(int) file.length()];
+
                     while (recording) {
-                        File file = new File(G.sendVideoPath);
+
                         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
 
-                        buf = new byte[BUF_SIZE];
-//                        byte[] org.apache.commons.io.IOUtils.toByteArray(InputStream input)
                         bytes_read = bis.read(buf, 0, buf.length);
 
                         if (bytes_read != -1) {
@@ -355,12 +349,14 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
                             bytes_sent += bytes_read;
 
                             Log.i(LOG_TAG, "Total bytes sent: " + bytes_sent);
-//                        Thread.sleep(SLEEP_TIME, 0);
+                            Thread.sleep(SLEEP_TIME, 0);
 
                         } else {
                             Log.d(LOG_TAG, "End of file reached");
                         }
                     }
+
+                    Log.d(LOG_TAG, "final value: " + bytes_sent / 1000);
 
                     mediaRecorder.stop();
                     mediaRecorder.release();
@@ -374,17 +370,20 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
                     Log.e(LOG_TAG, e.toString());
                     e.printStackTrace();
                     endCall();
-                } catch (Exception e) {
-                    Log.e(LOG_TAG, e.toString());
+                } catch (SocketException e) {
                     e.printStackTrace();
-                    endCall();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
 //                } catch (InterruptedException e) {
 //                    e.printStackTrace();
 //                    recording = false;
-                }
 
             }
-        }).start();
+        }
+        ).start();
     }
 
     @Override
