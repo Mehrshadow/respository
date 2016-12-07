@@ -54,7 +54,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     private Camera camera;
     private VideoView videoView;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -179,7 +178,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
                     Log.i(LOG_TAG, "Listener started!");
                     DatagramSocket socket = new DatagramSocket(BROADCAST_PORT);
-                    socket.setSoTimeout(15000);
+                    socket.setSoTimeout(5000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
 
@@ -317,7 +316,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         if (!receiving) {
             receiving = true;
 
-            createReceiveVideoFileOrRecreateExiting();
+//            createReceiveVideoFileOrRecreateExiting();
 
             new Thread(new Runnable() {
                 @Override
@@ -339,7 +338,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
 //                            saveReceivedVideoBytesToFile(packet.getData());
 
-                            playReceivedVideo(socket);
+                            playReceivedVideo(socket, packet.getLength());
 
                             bytesSaved += buffer.length;
 
@@ -363,7 +362,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         }
     }
 
-
     private void stopListener() {
         Log.d(LOG_TAG, "Stopping listener");
         // Ends the listener thread
@@ -374,11 +372,18 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         Log.d(LOG_TAG, "end call");
         // Ends the chat sessions
         stopListener();
-        if (IN_CALL) {
+//        if (camera != null) {
+////            camera.stopPreview();
+//            camera.release();
+//        }
 
-//            call.endCall();
+        if (IN_VIDEO_CALL) {
+            receiving = false;
+//            mediaRecorder.stop();
+//            mediaRecorder.release();
         }
         sendMessage("END:", BROADCAST_PORT);
+
         finish();
     }
 
@@ -454,12 +459,12 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         }
     }
 
-    private void playReceivedVideo(DatagramSocket socket) {
+    private void playReceivedVideo(DatagramSocket socket, int packetLength) {
         try {
             MediaPlayer mediaPlayer = new MediaPlayer();
             ParcelFileDescriptor pfd = ParcelFileDescriptor.fromDatagramSocket(socket);
 
-            mediaPlayer.setDataSource(pfd.getFileDescriptor());
+            mediaPlayer.setDataSource(pfd.getFileDescriptor(), 0, packetLength);
 
             mediaPlayer.setDisplay(surfaceHolder);
 //            mediaPlayer.prepare();
