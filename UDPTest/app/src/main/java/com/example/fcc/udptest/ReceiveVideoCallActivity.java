@@ -316,7 +316,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         if (!receiving) {
             receiving = true;
 
-            createReceiveVideoFileOrRecreateExiting();
+//            createReceiveVideoFileOrRecreateExiting();
 
             new Thread(new Runnable() {
                 @Override
