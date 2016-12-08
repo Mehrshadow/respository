@@ -146,7 +146,9 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
         try {
             if (camera != null) {
                 camera.stopPreview();
+                camera.setPreviewCallback(null);
                 camera.release();
+                camera.reconnect();
             }
             pfd.close();
             mediaRecorder.stop();
@@ -333,8 +335,8 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
 
         if (IN_CALL) {
             recording = false;
-//            mediaRecorder.stop();
-//            mediaRecorder.release();
+
+//            stopRecorder();
         }
         sendMessage("END:", BROADCAST_PORT);
 
@@ -364,7 +366,8 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
 
 //                    DatagramSocket socket = new DatagramSocket();
 
-                    recordingSocket = new DatagramSocket(port_VideoCall, address);
+                    recordingSocket = new DatagramSocket();
+                    recordingSocket.connect(address, port_VideoCall);
 
                     startRecorder(recordingSocket);// media recorder
 
