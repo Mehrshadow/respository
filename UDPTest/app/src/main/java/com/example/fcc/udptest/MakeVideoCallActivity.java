@@ -49,7 +49,7 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
     private final static int port_Call = 50004;
     private final static int BROADCAST_PORT = 50005;
     private final static int port_VideoCall = 60000;
-    private Camera camera;
+    private Camera camera = null;
     private boolean receiving = false;
     private Button buttonEndCall;
     //    private ParcelFileDescriptor[] pfdPipe;
@@ -104,8 +104,8 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
         if (checkCameraHardware(this)) {
             try {
 
-                camera = Camera.open(1);// 1 = front camera, 0 = rear camera}
-                camera.unlock();
+                openCamera();
+
                 mediaRecorder.setCamera(camera);
             } catch (Exception e) {
                 Log.e(LOG_TAG, "Error in camera");
@@ -123,15 +123,20 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
 
     }
 
+    private void openCamera() {
+        camera = Camera.open(1);
+        camera.unlock();
+    }
+
     private void startRecorder() throws IOException {
 
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
 //        CamcorderProfile cpHigh = CamcorderProfile.get(CamcorderProfile.QUALITY_LOW);
 //        mediaRecorder.setProfile(cpHigh);
-        mediaRecorder.setOutputFormat(8);// MPEG2TS format
-        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
-        mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT);
+        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);// MPEG2TS format
+//        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
+//        mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT);
         mediaRecorder.setOutputFile(writeFD.getFileDescriptor());
 
         try {
@@ -162,7 +167,7 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
                 camera.stopPreview();
                 camera.setPreviewCallback(null);
                 camera.release();
-                camera.reconnect();
+                camera = null;
             }
             writeFD.close();
             mediaRecorder.stop();
@@ -364,7 +369,7 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
     }
 
     private void sendVideo(final InetAddress address) {
-        Log.d(LOG_TAG, "send video thread started...");
+        Log.d(LOG_TAG, "***********send video thread started...");
 
         recording = true;
 
@@ -381,13 +386,12 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
 //                    DatagramSocket socket = new DatagramSocket();
 
                     ServerSocket serverSocket = new ServerSocket(port_VideoCall);
-                    serverSocket.setSoTimeout(5000);
 
                     while (recording) {
 
                         Socket socket = serverSocket.accept();
 
-                        Log.d(LOG_TAG, "Socket Server accepted");
+                        Log.d(LOG_TAG, "***********Socket Server accepted");
 
 //                    recordingSocket = new DatagramSocket();
 //                    recordingSocket.connect(address, port_VideoCall);
