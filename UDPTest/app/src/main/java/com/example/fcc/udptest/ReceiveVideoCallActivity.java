@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
@@ -255,8 +256,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         replyThread.start();
     }
 
-    private void sendVideo(final InetAddress address)
-    {
+    private void sendVideo(final InetAddress address) {
         Log.d(LOG_TAG, "send video thread started...");
 
         if (!recording) {
@@ -323,31 +323,41 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                 @Override
                 public void run() {
                     try {
-                        DatagramSocket socket = new DatagramSocket(port_VideoCall);
-                        socket.setSoTimeout(5000);
-                        byte[] buffer = new byte[BUF_SIZE];
-                        int bytesSaved = 0;
+//                        DatagramSocket socket = new DatagramSocket(port_VideoCall);
+//                        socket.setSoTimeout(5000);
 
+                        Log.d(LOG_TAG, "trying to connect to server");
+                        InetAddress address = InetAddress.getByName(contactIp);
+
+                        Socket socket = new Socket(address, port_VideoCall);
+
+                        if (socket.isConnected()) {
+                            Log.d(LOG_TAG, "Receiver socket connected");
+                        }
+
+//                        byte[] buffer = new byte[BUF_SIZE];
+//                        int bytesSaved = 0;
+//
 //                        videoView.start();
 
-                        Log.d(LOG_TAG, "Listening for video packets");
+//                        Log.d(LOG_TAG, "Listening for video packets");
                         while (receiving) {
 
-                            DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
-                            socket.receive(packet);
-                            Log.i(LOG_TAG, "Packet received from " + packet.getAddress());
+//                            DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
+//                            socket.receive(packet);
+//                            Log.i(LOG_TAG, "Packet received from " + packet.getAddress());
 
 //                            saveReceivedVideoBytesToFile(packet.getData());
 
-                            playReceivedVideo(socket, packet.getLength());
-
-                            bytesSaved += buffer.length;
-
-                            Log.d(LOG_TAG, bytesSaved + " bytes saved");
+//                            playReceivedVideo(socket, packet.getLength());
+//
+//                            bytesSaved += buffer.length;
+//
+//                            Log.d(LOG_TAG, bytesSaved + " bytes saved");
                         }
 
 //                        videoView.stopPlayback();
-                        socket.disconnect();
+//                        socket.disconnect();
                         socket.close();
                         receiving = false;
 

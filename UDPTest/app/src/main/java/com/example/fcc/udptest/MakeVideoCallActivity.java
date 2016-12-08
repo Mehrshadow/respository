@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
-import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Bundle;
@@ -27,6 +26,8 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
@@ -51,8 +52,9 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
     private Camera camera;
     private boolean receiving = false;
     private Button buttonEndCall;
-    private ParcelFileDescriptor pfd;
-    private DatagramSocket recordingSocket;
+    //    private ParcelFileDescriptor[] pfdPipe;
+    private ParcelFileDescriptor writeFD;
+//    private DatagramSocket recordingSocket;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,15 +123,16 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
 
     }
 
-    private void startRecorder(DatagramSocket socket) {
+    private void startRecorder() throws IOException {
 
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
-        CamcorderProfile cpHigh = CamcorderProfile.get(CamcorderProfile.QUALITY_LOW);
-        mediaRecorder.setProfile(cpHigh);
-
-        pfd = ParcelFileDescriptor.fromDatagramSocket(socket);
-        mediaRecorder.setOutputFile(pfd.getFileDescriptor());
+//        CamcorderProfile cpHigh = CamcorderProfile.get(CamcorderProfile.QUALITY_LOW);
+//        mediaRecorder.setProfile(cpHigh);
+        mediaRecorder.setOutputFormat(8);// MPEG2TS format
+        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
+        mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT);
+        mediaRecorder.setOutputFile(writeFD.getFileDescriptor());
 
         try {
             mediaRecorder.prepare();
@@ -142,6 +145,17 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
         Log.d(LOG_TAG, "Media recorder started");
     }
 
+    /*private void createWRPipe(Socket socket) {
+        try {
+            pfdPipe = ParcelFileDescriptor.createPipe();
+            writeFD = ParcelFileDescriptor.fromSocket(socket);
+            readFD = pfdPipe[1];
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }*/
+
     private void stopRecorder() {
         try {
             if (camera != null) {
@@ -150,7 +164,7 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
                 camera.release();
                 camera.reconnect();
             }
-            pfd.close();
+            writeFD.close();
             mediaRecorder.stop();
             mediaRecorder.release();
         } catch (Exception e) {
@@ -366,13 +380,22 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
 
 //                    DatagramSocket socket = new DatagramSocket();
 
-                    recordingSocket = new DatagramSocket();
-                    recordingSocket.connect(address, port_VideoCall);
+                    ServerSocket serverSocket = new ServerSocket(port_VideoCall);
+                    serverSocket.setSoTimeout(5000);
 
-                    startRecorder(recordingSocket);// media recorder
+                    while (recording) {
 
-                    Log.d(LOG_TAG, "Recording started");
+                        Socket socket = serverSocket.accept();
 
+                        Log.d(LOG_TAG, "Socket Server accepted");
+
+//                    recordingSocket = new DatagramSocket();
+//                    recordingSocket.connect(address, port_VideoCall);
+
+                        writeFD = ParcelFileDescriptor.fromSocket(socket);
+
+                        startRecorder();// media recorder
+                    }
 
                     /*** Wroooooooooooong **/
 
@@ -416,6 +439,9 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
 
                 } catch (SocketException e) {
                     Log.e(LOG_TAG, "Error in Send video");
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    Log.e(LOG_TAG, "reading parcel error");
                     e.printStackTrace();
                 }
             }
