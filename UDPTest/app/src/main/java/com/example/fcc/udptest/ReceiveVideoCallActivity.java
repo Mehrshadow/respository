@@ -255,7 +255,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         replyThread.start();
     }
 
-    private void sendVideo(final InetAddress address) {
+    private void sendVideo(final InetAddress address)
+    {
         Log.d(LOG_TAG, "send video thread started...");
 
         if (!recording) {
@@ -311,7 +312,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     }
 
     private void receiveVideo() {
-        Log.d(LOG_TAG, "Receiving video data");
+        Log.d(LOG_TAG, "Receive video");
 
         if (!receiving) {
             receiving = true;
@@ -463,6 +464,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         try {
             MediaPlayer mediaPlayer = new MediaPlayer();
             ParcelFileDescriptor pfd = ParcelFileDescriptor.fromDatagramSocket(socket);
+            Log.d(LOG_TAG, "parcel size: " + pfd.getStatSize());
 
             mediaPlayer.setDataSource(pfd.getFileDescriptor(), 0, packetLength);
 
