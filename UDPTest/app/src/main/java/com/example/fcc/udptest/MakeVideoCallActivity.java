@@ -39,7 +39,9 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private boolean recording = false;
     private boolean LISTEN = true;
     private boolean IN_CALL = false;
+    private boolean cameraPrepared = true;
     private static int BUF_SIZE = 1024;
+    private static int BUF_SIZE_CAMERA = 1024;
     private final static int port_Call = 50004;
     private final static int BROADCAST_PORT = 50005;
     private final static int port_VideoCall = 60000;
@@ -80,15 +82,20 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
         camera.startPreview();
 
-        startListener();
-        makeVideoCall();
     }
+
 
     Camera.PreviewCallback previewCb = new Camera.PreviewCallback() {
         public void onPreviewFrame(byte[] data, Camera camera) {
+            if (cameraPrepared) {
+                Log.d(LOG_TAG, "******We made a video call*****");
+                startListener();
+                makeVideoCall();
+                cameraPrepared = false;
+            }
             cameraData = data;
-            BUF_SIZE = data.length;
-            Log.d(LOG_TAG, BUF_SIZE + "");
+            BUF_SIZE_CAMERA = data.length;
+            Log.d(LOG_TAG, BUF_SIZE_CAMERA + "");
         }
     };
 
@@ -147,7 +154,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
                     Log.i(LOG_TAG, "Listener started!");
                     DatagramSocket socket = new DatagramSocket(BROADCAST_PORT);
-                    socket.setSoTimeout(5000);
+//                    socket.setSoTimeout(5000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
 
@@ -196,8 +203,11 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
                     socket.disconnect();
                     socket.close();
+                    LISTEN = false;
                     Log.d(LOG_TAG, "Listener socket dc & close");
+
                     return;
+
                 } catch (SocketException e) {
 
                     Log.e(LOG_TAG, e.toString());
@@ -282,7 +292,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
     private void makeVideoCall() {
         // Send a request to start a call
-        sendMessage("CAL:" + displayName + "[BUF_SIZE]" + BUF_SIZE, port_Call);
+        sendMessage("CAL:" + displayName + "___" + BUF_SIZE, port_Call);
         G.cameraDataSize = BUF_SIZE;
     }
 
@@ -320,7 +330,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
             @Override
             public void run() {
 
-                cameraData = new byte[BUF_SIZE];
+                cameraData = new byte[BUF_SIZE_CAMERA];
 
                 try {
 
@@ -328,7 +338,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
 //                    ServerSocket serverSocket = new ServerSocket(port_VideoCall);
 //
-                    while (recording) {
+
 //
 //                        Socket socket = serverSocket.accept();
 //
@@ -336,11 +346,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
 //                    recordingSocket = new DatagramSocket();
 //                    recordingSocket.connect(address, port_VideoCall);
-                        writeFD = ParcelFileDescriptor.fromDatagramSocket(socket);
 
-                    }
-
-                    /*** Wroooooooooooong **/
 
                     int bytes_sent = 0;
                     while (recording) {
@@ -354,6 +360,8 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 //                        if (bytes_read != -1) {
 
 //                            Log.d(LOG_TAG, "** bytes_Read = " + bytes_read + " buffer size = " + buf.length + " **");
+//                        writeFD = ParcelFileDescriptor.fromDatagramSocket(socket);
+
                         DatagramPacket packet = new DatagramPacket(cameraData, cameraData.length, address, port_VideoCall);
                         socket.send(packet);
                         bytes_sent += cameraData.length;
@@ -371,9 +379,11 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                     recording = false;
 
                 } catch (SocketException e) {
+                    recording = false;
                     Log.e(LOG_TAG, "Error in Send video");
                     e.printStackTrace();
                 } catch (IOException e) {
+                    recording = false;
                     Log.e(LOG_TAG, "reading parcel error");
                     e.printStackTrace();
                 }

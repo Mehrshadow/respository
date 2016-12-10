@@ -54,6 +54,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     private SurfaceHolder surfaceHolder;
     private Camera camera;
     private VideoView videoView;
+    private int Camera_Buff_Sise;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +73,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         Intent intent = getIntent();
         displayName = intent.getStringExtra(MainActivity.EXTRA_CONTACT);
         contactIp = intent.getStringExtra(MainActivity.EXTRA_IP);
+        Camera_Buff_Sise = intent.getIntExtra(EXTRA_BUFF_SIZE, 0);
 
         TextView textView = (TextView) findViewById(R.id.textViewIncomingCall);
         textView.setText("Incoming call: " + displayName);
@@ -179,7 +181,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
                     Log.i(LOG_TAG, "Listener started!");
                     DatagramSocket socket = new DatagramSocket(BROADCAST_PORT);
-                    socket.setSoTimeout(5000);
+//                    socket.setSoTimeout(5000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
 
@@ -324,7 +326,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                 public void run() {
                     try {
                         DatagramSocket socket = new DatagramSocket(port_VideoCall);
-                        socket.setSoTimeout(5000);
+//                        socket.setSoTimeout(5000);
 
                         while (receiving) {
 
@@ -337,30 +339,33 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 //                            Log.d(LOG_TAG, "************Receiver socket connected");
 //                        }
 
-                            byte[] buffer = new byte[BUF_SIZE];
+                            byte[] buffer = new byte[Camera_Buff_Sise];
                             int bytesSaved = 0;
 
 //                        videoView.start();
 //
                             Log.d(LOG_TAG, "Listening for video packets");
 //
-                            DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
+                            DatagramPacket packet = new DatagramPacket(buffer, Camera_Buff_Sise);
                             socket.receive(packet);
-                            Log.i(LOG_TAG, "Packet received from " + packet.getAddress());
+                            Log.i(LOG_TAG, "Packet received from " + packet.getAddress() + ", cameraDataSize is: " + Camera_Buff_Sise);
 //
-                            saveReceivedVideoBytesToFile(packet.getData());
+//                            saveReceivedVideoBytesToFile(packet.getData());
+////
+//                            playReceivedVideo(socket, packet.getLength());
 //
-                            playReceivedVideo(socket, packet.getLength());
-
-                            bytesSaved += buffer.length;
-
-                            Log.d(LOG_TAG, bytesSaved + " bytes saved");
+//                            bytesSaved += buffer.length;
+//
+//                            Log.d(LOG_TAG, bytesSaved + " bytes saved");
                         }
 
 //                        videoView.stopPlayback();
 //                        socket.disconnect();
 //                        socket.close();
                         receiving = false;
+
+                        socket.disconnect();
+                        socket.close();
 
                     } catch (SocketException e) {
                         receiving = false;

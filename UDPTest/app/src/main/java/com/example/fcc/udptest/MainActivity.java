@@ -202,10 +202,10 @@ public class MainActivity extends Activity implements ContactManager.IUpdateCont
                                 // Received a call request. Start the ReceiveCallActivity
                                 String address = packet.getAddress().toString();
                                 String name = data.substring(4, packet.getLength());
-                                String[] rcvData = name.split("[BUF_SIZE]");
+                                String[] rcvData = name.split("___");
 
                                 name = rcvData[0];
-                                long buff_size = Long.parseLong(rcvData[1]);
+                                int buff_size = Integer.parseInt(rcvData[1]);
                                 Log.d(LOG_TAG, buff_size + "");
 
                                 Intent intent = new Intent(MainActivity.this, ReceiveVideoCallActivity.class);
