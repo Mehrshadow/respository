@@ -17,7 +17,6 @@ import android.widget.TextView;
 import android.widget.VideoView;
 
 import java.io.BufferedOutputStream;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -312,6 +311,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 //        }
         if (IN_CALL) {
             recording = false;
+            releaseCamera();
 
         }
         sendMessage("END:", BROADCAST_PORT);
@@ -334,6 +334,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
             @Override
             public void run() {
 
+                FileOutputStream fos = null;
                 cameraData = new byte[BUF_SIZE_CAMERA];
 
                 try {
@@ -352,6 +353,10 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                     while (recording) {
 
                         Log.d(LOG_TAG, "recording");
+
+                        fos = new FileOutputStream(G.ReceiveVideoPath);
+                        fos.write(cameraData);
+                        fos.flush();
 
                         OutputStream outputStream = socket.getOutputStream();
                         outputStream.write(cameraData, 0, cameraData.length);
@@ -373,7 +378,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                     socket.close();
 
                     recording = false;
-
+                    fos.close();
                 } catch (SocketException e) {
                     recording = false;
                     Log.e(LOG_TAG, "Error in Send video");
