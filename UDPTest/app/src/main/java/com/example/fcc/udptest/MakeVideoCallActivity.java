@@ -17,12 +17,16 @@ import android.widget.TextView;
 import android.widget.VideoView;
 
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
@@ -334,18 +338,14 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
                 try {
 
-                    DatagramSocket socket = new DatagramSocket();
+//                    DatagramSocket socket = new DatagramSocket();
 
-//                    ServerSocket serverSocket = new ServerSocket(port_VideoCall);
+                    ServerSocket serverSocket = new ServerSocket(port_VideoCall);
 //
 
-//
-//                        Socket socket = serverSocket.accept();
-//
-//                        Log.d(LOG_TAG, "***********Socket Server accepted");
+                    Socket socket = serverSocket.accept();
 
-//                    recordingSocket = new DatagramSocket();
-//                    recordingSocket.connect(address, port_VideoCall);
+                    Log.d(LOG_TAG, "***********Socket Server accepted");
 
 
                     int bytes_sent = 0;
@@ -353,27 +353,23 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
                         Log.d(LOG_TAG, "recording");
 
-//                        BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
+                        OutputStream outputStream = socket.getOutputStream();
+                        outputStream.write(cameraData, 0, cameraData.length);
+                        outputStream.flush();
 
-//                        bytes_read = bis.read(buf, 0, buf.length);
+//                        Log.d(LOG_TAG, "** bytes_Read = " + bytes_read + " buffer size = " + cameraData.length + " **");
+//                        writeFD = ParcelFileDescriptor.fromSocket(socket);
 
-//                        if (bytes_read != -1) {
+//                        DatagramPacket packet = new DatagramPacket(cameraData, cameraData.length, address, port_VideoCall);
+//                        socket.send(packet);
 
-//                            Log.d(LOG_TAG, "** bytes_Read = " + bytes_read + " buffer size = " + buf.length + " **");
-//                        writeFD = ParcelFileDescriptor.fromDatagramSocket(socket);
-
-                        DatagramPacket packet = new DatagramPacket(cameraData, cameraData.length, address, port_VideoCall);
-                        socket.send(packet);
                         bytes_sent += cameraData.length;
 
                         Log.i(LOG_TAG, "Total bytes sent: " + bytes_sent);
                     }
 
-                    Log.d(LOG_TAG, "final value: " + bytes_sent / 1000);
-
                     releaseCamera();
 
-                    socket.disconnect();
                     socket.close();
 
                     recording = false;

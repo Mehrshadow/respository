@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
@@ -319,44 +320,29 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         if (!receiving) {
             receiving = true;
 
-//            createReceiveVideoFileOrRecreateExiting();
-
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     try {
-                        DatagramSocket socket = new DatagramSocket(port_VideoCall);
+//                        DatagramSocket socket = new DatagramSocket(port_VideoCall);
 //                        socket.setSoTimeout(5000);
+
+                        Thread.sleep(2000);
+
+                        Socket socket = null;
 
                         while (receiving) {
 
-//                        Log.d(LOG_TAG, "***********trying to connect to server");
-//                        InetAddress address = InetAddress.getByName(contactIp);
+                            Log.d(LOG_TAG, "***********trying to connect to server");
+                            InetAddress address = InetAddress.getByName(contactIp);
+//
+                            socket = new Socket(address, port_VideoCall);
 
-//                        Socket socket = new Socket(address, port_VideoCall);
-//
-//                        if (socket.isConnected()) {
-//                            Log.d(LOG_TAG, "************Receiver socket connected");
-//                        }
+                            if (socket.isConnected()) {
+                                Log.d(LOG_TAG, "************Receiver socket connected");
 
-                            byte[] buffer = new byte[Camera_Buff_Sise];
-                            int bytesSaved = 0;
-
-//                        videoView.start();
 //
-                            Log.d(LOG_TAG, "Listening for video packets");
-//
-                            DatagramPacket packet = new DatagramPacket(buffer, Camera_Buff_Sise);
-                            socket.receive(packet);
-                            Log.i(LOG_TAG, "Packet received from " + packet.getAddress() + ", cameraDataSize is: " + Camera_Buff_Sise);
-//
-//                            saveReceivedVideoBytesToFile(packet.getData());
-////
-//                            playReceivedVideo(socket, packet.getLength());
-//
-//                            bytesSaved += buffer.length;
-//
-//                            Log.d(LOG_TAG, bytesSaved + " bytes saved");
+                            }
                         }
 
 //                        videoView.stopPlayback();
@@ -364,7 +350,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 //                        socket.close();
                         receiving = false;
 
-                        socket.disconnect();
                         socket.close();
 
                     } catch (SocketException e) {
@@ -372,6 +357,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                         e.printStackTrace();
                     } catch (IOException e) {
                         receiving = false;
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
@@ -476,13 +463,13 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         }
     }
 
-    private void playReceivedVideo(DatagramSocket socket, int packetLength) {
+    private void playReceivedVideo(Socket socket, int packetLength) {
         try {
             MediaPlayer mediaPlayer = new MediaPlayer();
-            ParcelFileDescriptor pfd = ParcelFileDescriptor.fromDatagramSocket(socket);
+            ParcelFileDescriptor pfd = ParcelFileDescriptor.fromSocket(socket);
             Log.d(LOG_TAG, "parcel size: " + pfd.getStatSize());
 
-            mediaPlayer.setDataSource(pfd.getFileDescriptor(), 0, packetLength);
+            mediaPlayer.setDataSource(pfd.getFileDescriptor());
 
             mediaPlayer.setDisplay(surfaceHolder);
 //            mediaPlayer.prepare();
