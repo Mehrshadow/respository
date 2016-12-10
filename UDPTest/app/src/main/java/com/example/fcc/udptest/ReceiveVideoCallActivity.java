@@ -182,7 +182,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
                     Log.i(LOG_TAG, "Listener started!");
                     DatagramSocket socket = new DatagramSocket(BROADCAST_PORT);
-//                    socket.setSoTimeout(5000);
+                    socket.setSoTimeout(5000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
 
@@ -210,7 +210,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                     Log.i(LOG_TAG, "Listener ending");
                     socket.disconnect();
                     socket.close();
-                    return;
                 } catch (SocketException e) {
 
                     Log.e(LOG_TAG, "SocketException in Listener");
@@ -327,8 +326,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 //                        DatagramSocket socket = new DatagramSocket(port_VideoCall);
 //                        socket.setSoTimeout(5000);
 
-                        Thread.sleep(2000);
-
                         Socket socket = null;
 
                         while (receiving) {
@@ -357,8 +354,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                         e.printStackTrace();
                     } catch (IOException e) {
                         receiving = false;
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }

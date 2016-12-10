@@ -20,7 +20,6 @@ import java.io.BufferedOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -33,7 +32,6 @@ import java.net.UnknownHostException;
 public class MakeVideoCallActivity extends Activity implements View.OnClickListener {
 
     private static final String LOG_TAG = "UDP:MakeVideoCall";
-    private static final int SLEEP_TIME = 250;
     private String contactIp;
     private String displayName;
     private String contactName;
@@ -52,6 +50,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private boolean receiving = false;
     private Button buttonEndCall;
     private ParcelFileDescriptor writeFD;
+    private Socket socket;
     private CameraPreview cameraPreview;
     private byte[] cameraData;
 
@@ -79,7 +78,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
         camera = getCameraInstance();
 
-        cameraPreview = new CameraPreview(MakeVideoCallActivity.this, camera, previewCb, null);
+        cameraPreview = new CameraPreview(MakeVideoCallActivity.this, camera, mediaRecorder, previewCb);
 
         initCameraView();
 
@@ -87,6 +86,22 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
     }
 
+    private void startMediaRecorder() {
+        try {
+            mediaRecorder.prepare();
+            mediaRecorder.start();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void stopMediaRecorder() {
+        if (mediaRecorder != null) {
+//            mediaRecorder.stop();
+//            mediaRecorder.release();
+        }
+    }
 
     Camera.PreviewCallback previewCb = new Camera.PreviewCallback() {
         public void onPreviewFrame(byte[] data, Camera camera) {
@@ -124,6 +139,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             releaseCamera();
+            stopMediaRecorder();
         }
         return super.onKeyDown(keyCode, event);
     }
@@ -311,6 +327,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 //        }
         if (IN_CALL) {
             recording = false;
+            stopMediaRecorder();
             releaseCamera();
 
         }
@@ -344,23 +361,25 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                     ServerSocket serverSocket = new ServerSocket(port_VideoCall);
 //
 
-                    Socket socket = serverSocket.accept();
+                    socket = serverSocket.accept();
 
                     Log.d(LOG_TAG, "***********Socket Server accepted");
 
+                    writeFD = ParcelFileDescriptor.fromSocket(socket);
+                    mediaRecorder.setOutputFile(writeFD.getFileDescriptor());
 
                     int bytes_sent = 0;
-                    while (recording) {
+
+                    startMediaRecorder();
+
+                    /*while (recording) {
 
                         Log.d(LOG_TAG, "recording");
 
-                        fos = new FileOutputStream(G.ReceiveVideoPath);
-                        fos.write(cameraData);
-                        fos.flush();
 
-                        OutputStream outputStream = socket.getOutputStream();
-                        outputStream.write(cameraData, 0, cameraData.length);
-                        outputStream.flush();
+//                        OutputStream outputStream = socket.getOutputStream();
+//                        outputStream.write(cameraData, 0, cameraData.length);
+//                        outputStream.flush();
 
 //                        Log.d(LOG_TAG, "** bytes_Read = " + bytes_read + " buffer size = " + cameraData.length + " **");
 //                        writeFD = ParcelFileDescriptor.fromSocket(socket);
@@ -371,14 +390,14 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                         bytes_sent += cameraData.length;
 
                         Log.i(LOG_TAG, "Total bytes sent: " + bytes_sent);
-                    }
+                    }*/
 
-                    releaseCamera();
-
-                    socket.close();
-
-                    recording = false;
-                    fos.close();
+//                    releaseCamera();
+//
+//                    socket.close();
+//
+//                    recording = false;
+//                    fos.close();
                 } catch (SocketException e) {
                     recording = false;
                     Log.e(LOG_TAG, "Error in Send video");
@@ -416,5 +435,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     public void onClick(View v) {
         endCall();
     }
+
 }
 
