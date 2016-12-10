@@ -77,10 +77,8 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
         buttonEndCall.setOnClickListener(this);
 
         mediaRecorder = new MediaRecorder();
-        initSurfaceView();
 
-        startListener();
-        makeVideoCall();
+        initSurfaceView();
     }
 
     private void initViewVideo() {
@@ -93,6 +91,17 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
         Log.d(LOG_TAG, "VideoView initialized");
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        openCamera();
+
+        startListener();
+        makeVideoCall();
+    }
+
+
     private void initSurfaceView() {
         SurfaceView cameraView = (SurfaceView) findViewById(R.id.surfaceView);
         surfaceHolder = cameraView.getHolder();
@@ -101,10 +110,26 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
 
         Log.d(LOG_TAG, "surface holder done");
 
+    }
+
+    private static Camera getCameraInstance() {
+        Camera c = null;
+
+        try {
+            c = Camera.open();
+        } catch (Exception e) {
+            Log.e(LOG_TAG, e.toString());
+        }
+
+        return c;
+    }
+
+    private void openCamera() {
+
         if (checkCameraHardware(this)) {
             try {
 
-                openCamera();
+                camera = getCameraInstance();
 
                 mediaRecorder.setCamera(camera);
             } catch (Exception e) {
@@ -120,12 +145,6 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
                 }
             });
         }
-
-    }
-
-    private void openCamera() {
-        camera = Camera.open(1);
-        camera.unlock();
     }
 
     private void startRecorder() throws IOException {
