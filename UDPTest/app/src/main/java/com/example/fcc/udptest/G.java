@@ -10,4 +10,6 @@ import android.os.Environment;
 public class G extends Application {
     public static final String sendVideoPath = Environment.getExternalStorageDirectory() + "/Send_videoTest.flv";
     public static final String ReceiveVideoPath = Environment.getExternalStorageDirectory() + "/Receive_videoTest.flv";
+
+    public static long cameraDataSize = 0;
 }

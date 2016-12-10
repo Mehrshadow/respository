@@ -1,22 +1,19 @@
 package com.example.fcc.udptest;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.MediaController;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.VideoView;
 
 import java.io.BufferedOutputStream;
@@ -26,13 +23,11 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
-public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Callback, View.OnClickListener {
+public class MakeVideoCallActivity extends Activity implements View.OnClickListener {
 
     private static final String LOG_TAG = "UDP:MakeVideoCall";
     private static final int SLEEP_TIME = 250;
@@ -40,21 +35,20 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
     private String displayName;
     private String contactName;
     private MediaRecorder mediaRecorder;
-    private SurfaceHolder surfaceHolder;
     private VideoView videoView;
     private boolean recording = false;
     private boolean LISTEN = true;
     private boolean IN_CALL = false;
-    private static final int BUF_SIZE = 1024;
+    private static int BUF_SIZE = 1024;
     private final static int port_Call = 50004;
     private final static int BROADCAST_PORT = 50005;
     private final static int port_VideoCall = 60000;
     private Camera camera = null;
     private boolean receiving = false;
     private Button buttonEndCall;
-    //    private ParcelFileDescriptor[] pfdPipe;
     private ParcelFileDescriptor writeFD;
-//    private DatagramSocket recordingSocket;
+    private CameraPreview cameraPreview;
+    private byte[] cameraData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,7 +72,57 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
 
         mediaRecorder = new MediaRecorder();
 
-        initSurfaceView();
+        camera = getCameraInstance();
+
+        cameraPreview = new CameraPreview(MakeVideoCallActivity.this, camera, previewCb, null);
+
+        initCameraView();
+
+        camera.startPreview();
+
+        startListener();
+        makeVideoCall();
+    }
+
+    Camera.PreviewCallback previewCb = new Camera.PreviewCallback() {
+        public void onPreviewFrame(byte[] data, Camera camera) {
+            cameraData = data;
+            BUF_SIZE = data.length;
+            Log.d(LOG_TAG, BUF_SIZE + "");
+        }
+    };
+
+    public static Camera getCameraInstance() {
+        Camera c = null;
+        try {
+            c = Camera.open(1);
+        } catch (Exception e) {
+        }
+        return c;
+    }
+
+    private void releaseCamera() {
+        if (camera != null) {
+//            previewing = false;
+            camera.setPreviewCallback(null);
+            camera.release();
+            camera = null;
+        }
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            releaseCamera();
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    private void initCameraView() {
+        FrameLayout cameraView = (FrameLayout) findViewById(R.id.cameraView);
+        cameraView.addView(cameraPreview);
+
+        Log.d(LOG_TAG, "surface holder done");
     }
 
     private void initViewVideo() {
@@ -89,125 +133,6 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
         videoView.setMediaController(mc);
 
         Log.d(LOG_TAG, "VideoView initialized");
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        openCamera();
-
-        startListener();
-        makeVideoCall();
-    }
-
-
-    private void initSurfaceView() {
-        SurfaceView cameraView = (SurfaceView) findViewById(R.id.surfaceView);
-        surfaceHolder = cameraView.getHolder();
-        surfaceHolder.addCallback(this);
-        surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-
-        Log.d(LOG_TAG, "surface holder done");
-
-    }
-
-    private static Camera getCameraInstance() {
-        Camera c = null;
-
-        try {
-            c = Camera.open();
-        } catch (Exception e) {
-            Log.e(LOG_TAG, e.toString());
-        }
-
-        return c;
-    }
-
-    private void openCamera() {
-
-        if (checkCameraHardware(this)) {
-            try {
-
-                camera = getCameraInstance();
-
-                mediaRecorder.setCamera(camera);
-            } catch (Exception e) {
-                Log.e(LOG_TAG, "Error in camera");
-                e.printStackTrace();
-            }
-
-        } else {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(MakeVideoCallActivity.this, "NO Camera Device found!!", Toast.LENGTH_LONG).show();
-                }
-            });
-        }
-    }
-
-    private void startRecorder() throws IOException {
-
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
-        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
-//        CamcorderProfile cpHigh = CamcorderProfile.get(CamcorderProfile.QUALITY_LOW);
-//        mediaRecorder.setProfile(cpHigh);
-        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);// MPEG2TS format
-//        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
-//        mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT);
-        mediaRecorder.setOutputFile(writeFD.getFileDescriptor());
-
-        try {
-            mediaRecorder.prepare();
-            Log.d(LOG_TAG, "Media recorder prepared");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        mediaRecorder.start();
-
-        Log.d(LOG_TAG, "Media recorder started");
-    }
-
-    /*private void createWRPipe(Socket socket) {
-        try {
-            pfdPipe = ParcelFileDescriptor.createPipe();
-            writeFD = ParcelFileDescriptor.fromSocket(socket);
-            readFD = pfdPipe[1];
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }*/
-
-    private void stopRecorder() {
-        try {
-            if (camera != null) {
-                camera.stopPreview();
-                camera.setPreviewCallback(null);
-                camera.release();
-                camera = null;
-            }
-            writeFD.close();
-            mediaRecorder.stop();
-            mediaRecorder.release();
-        } catch (Exception e) {
-            Log.e(LOG_TAG, "Error in Stop Recorder");
-            e.printStackTrace();
-        }
-    }
-
-    private boolean checkCameraHardware(Context context) {
-        if (context.getPackageManager().hasSystemFeature(
-                PackageManager.FEATURE_CAMERA)) {
-            // this device has a camera
-            Log.d(LOG_TAG, "device has camera");
-            return true;
-        } else {
-            // no camera on this device
-            Log.d(LOG_TAG, "device does not have any camera!");
-            return false;
-        }
     }
 
     private void startListener() {
@@ -357,7 +282,8 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
 
     private void makeVideoCall() {
         // Send a request to start a call
-        sendMessage("CAL:" + displayName, port_Call);
+        sendMessage("CAL:" + displayName + "[BUF_SIZE]" + BUF_SIZE, port_Call);
+        G.cameraDataSize = BUF_SIZE;
     }
 
     private void endCall() {
@@ -370,11 +296,9 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
 //            camera.stopPreview();
 //            camera.release();
 //        }
-
         if (IN_CALL) {
             recording = false;
 
-//            stopRecorder();
         }
         sendMessage("END:", BROADCAST_PORT);
 
@@ -396,35 +320,29 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
             @Override
             public void run() {
 
-                /*int bytes_read;
-                int bytes_sent = 0;
-                byte[] buf;*/
+                cameraData = new byte[BUF_SIZE];
 
                 try {
 
-//                    DatagramSocket socket = new DatagramSocket();
+                    DatagramSocket socket = new DatagramSocket();
 
-                    ServerSocket serverSocket = new ServerSocket(port_VideoCall);
-
+//                    ServerSocket serverSocket = new ServerSocket(port_VideoCall);
+//
                     while (recording) {
-
-                        Socket socket = serverSocket.accept();
-
-                        Log.d(LOG_TAG, "***********Socket Server accepted");
+//
+//                        Socket socket = serverSocket.accept();
+//
+//                        Log.d(LOG_TAG, "***********Socket Server accepted");
 
 //                    recordingSocket = new DatagramSocket();
 //                    recordingSocket.connect(address, port_VideoCall);
+                        writeFD = ParcelFileDescriptor.fromDatagramSocket(socket);
 
-                        writeFD = ParcelFileDescriptor.fromSocket(socket);
-
-                        startRecorder();// media recorder
                     }
 
                     /*** Wroooooooooooong **/
 
-                    /*File file = new File(G.sendVideoPath);
-                    buf = new byte[(int) file.length()];
-
+                    int bytes_sent = 0;
                     while (recording) {
 
                         Log.d(LOG_TAG, "recording");
@@ -436,29 +354,21 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
 //                        if (bytes_read != -1) {
 
 //                            Log.d(LOG_TAG, "** bytes_Read = " + bytes_read + " buffer size = " + buf.length + " **");
-                        DatagramPacket packet = new DatagramPacket(buf, buf.length, address, port_VideoCall);
+                        DatagramPacket packet = new DatagramPacket(cameraData, cameraData.length, address, port_VideoCall);
                         socket.send(packet);
-                        bytes_sent += buf.length;
+                        bytes_sent += cameraData.length;
 
                         Log.i(LOG_TAG, "Total bytes sent: " + bytes_sent);
-//                        Thread.sleep(SLEEP_TIME, 0);
-
-//                        } else {
-//                            Log.d(LOG_TAG, "End of file reached");
-//                        }
                     }
 
                     Log.d(LOG_TAG, "final value: " + bytes_sent / 1000);
 
-//                    mediaRecorder.stop();
-//                    mediaRecorder.release();
-
-                    stopRecorder();
+                    releaseCamera();
 
                     socket.disconnect();
                     socket.close();
 
-                    recording = false;*/
+                    recording = false;
 
                 } catch (SocketException e) {
                     Log.e(LOG_TAG, "Error in Send video");
@@ -469,42 +379,6 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
                 }
             }
         }).start();
-    }
-
-    @Override
-    public void surfaceCreated(SurfaceHolder holder) {
-        prepareRecorder();
-    }
-
-    @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-    }
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        Log.d(LOG_TAG, "surface destroyed");
-        try {
-            if (recording) {
-//                mediaRecorder.stop();
-                recording = false;
-            }
-            mediaRecorder.release();
-        } catch (Exception e) {
-            Log.e(LOG_TAG, "Surface destroyed");
-            e.printStackTrace();
-        }
-    }
-
-    private void prepareRecorder() {
-        Log.d(LOG_TAG, "preparing recorder");
-        mediaRecorder.setPreviewDisplay(surfaceHolder.getSurface());
-
-        /*try {
-            mediaRecorder.prepare();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        Log.d(LOG_TAG, "recorder prepare done");*/
     }
 
     private void saveReceivedVideoBytesToFile(byte[] data) {

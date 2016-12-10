@@ -42,6 +42,7 @@ public class MainActivity extends Activity implements ContactManager.IUpdateCont
     public final static String EXTRA_CONTACT = "hw.dt83.udpchat.CONTACT";
     public final static String EXTRA_IP = "hw.dt83.udpchat.IP";
     public final static String EXTRA_DISPLAYNAME = "hw.dt83.udpchat.DISPLAYNAME";
+    public final static String EXTRA_BUFF_SIZE = "BUFF_SIZE";
     private String contact;
     private InetAddress ip;
 
@@ -201,10 +202,16 @@ public class MainActivity extends Activity implements ContactManager.IUpdateCont
                                 // Received a call request. Start the ReceiveCallActivity
                                 String address = packet.getAddress().toString();
                                 String name = data.substring(4, packet.getLength());
+                                String[] rcvData = name.split("[BUF_SIZE]");
+
+                                name = rcvData[0];
+                                long buff_size = Long.parseLong(rcvData[1]);
+                                Log.d(LOG_TAG, buff_size + "");
 
                                 Intent intent = new Intent(MainActivity.this, ReceiveVideoCallActivity.class);
                                 intent.putExtra(EXTRA_CONTACT, name);
                                 intent.putExtra(EXTRA_IP, address.substring(1, address.length()));
+                                intent.putExtra(EXTRA_BUFF_SIZE, buff_size);
                                 IN_VIDEO_CALL = true;
 
                                 startActivity(intent);
