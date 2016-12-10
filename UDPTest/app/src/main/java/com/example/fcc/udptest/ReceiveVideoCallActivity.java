@@ -312,7 +312,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     }
 
     private void receiveVideo() {
-        Log.d(LOG_TAG, "Receive video");
+        Log.d(LOG_TAG, "**********Receive video");
 
         if (!receiving) {
             receiving = true;
@@ -326,13 +326,17 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 //                        DatagramSocket socket = new DatagramSocket(port_VideoCall);
 //                        socket.setSoTimeout(5000);
 
-                        Log.d(LOG_TAG, "trying to connect to server");
+                        Thread.sleep(2000);
+
+                        while (receiving) {
+
+                        Log.d(LOG_TAG, "***********trying to connect to server");
                         InetAddress address = InetAddress.getByName(contactIp);
 
                         Socket socket = new Socket(address, port_VideoCall);
 
                         if (socket.isConnected()) {
-                            Log.d(LOG_TAG, "Receiver socket connected");
+                            Log.d(LOG_TAG, "************Receiver socket connected");
                         }
 
 //                        byte[] buffer = new byte[BUF_SIZE];
@@ -341,7 +345,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 //                        videoView.start();
 
 //                        Log.d(LOG_TAG, "Listening for video packets");
-                        while (receiving) {
 
 //                            DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
 //                            socket.receive(packet);
@@ -358,7 +361,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
 //                        videoView.stopPlayback();
 //                        socket.disconnect();
-                        socket.close();
+//                        socket.close();
                         receiving = false;
 
                     } catch (SocketException e) {
@@ -366,6 +369,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                         e.printStackTrace();
                     } catch (IOException e) {
                         receiving = false;
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
