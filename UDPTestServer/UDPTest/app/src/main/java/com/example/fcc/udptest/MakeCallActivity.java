@@ -41,9 +41,9 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         Log.i(LOG_TAG, "MakeCallActivity started!");
 
         Intent intent = getIntent();
-        displayName = intent.getStringExtra(MainActivity.EXTRA_DISPLAYNAME);
-        contactName = intent.getStringExtra(MainActivity.EXTRA_C_Name);
-        contactIp = intent.getStringExtra(MainActivity.EXTRA_C_Ip);
+        displayName = intent.getStringExtra(G.EXTRA_DISPLAYNAME);
+        contactName = intent.getStringExtra(G.EXTRA_C_Name);
+        contactIp = intent.getStringExtra(G.EXTRA_C_Ip);
 
         TextView textView = (TextView) findViewById(R.id.textViewCalling);
         ToggleButton btnSwtich = (ToggleButton) findViewById(R.id.toggleButton2);
@@ -138,6 +138,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                 } catch (SocketException e) {
 
                     Log.e(LOG_TAG, "SocketException in Listener");
+                    e.printStackTrace();
                     endCall();
                 }
             }
@@ -188,7 +189,6 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         getMenuInflater().inflate(R.menu.make_call, menu);
         return true;
     }
-
 
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {

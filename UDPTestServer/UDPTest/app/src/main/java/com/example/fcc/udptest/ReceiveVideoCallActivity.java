@@ -70,8 +70,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         endCall.setOnClickListener(this);
 
         Intent intent = getIntent();
-        displayName = intent.getStringExtra(MainActivity.EXTRA_C_Name);
-        contactIp = intent.getStringExtra(MainActivity.EXTRA_C_Ip);
+        displayName = intent.getStringExtra(G.EXTRA_C_Name);
+        contactIp = intent.getStringExtra(G.EXTRA_C_Ip);
 
         TextView textView = (TextView) findViewById(R.id.textViewIncomingCall);
         textView.setText("Incoming call: " + displayName);

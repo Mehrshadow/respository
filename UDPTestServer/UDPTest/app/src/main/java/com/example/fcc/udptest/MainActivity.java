@@ -8,9 +8,6 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.widget.Button;
-import android.widget.RadioGroup;
-import android.widget.ScrollView;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -22,6 +19,9 @@ import java.net.UnknownHostException;
 
 import classes.Logger;
 import classes.RcyContactsAdapter;
+
+import static com.example.fcc.udptest.G.EXTRA_C_Ip;
+import static com.example.fcc.udptest.G.EXTRA_C_Name;
 
 public class MainActivity extends Activity {
 
@@ -38,15 +38,6 @@ public class MainActivity extends Activity {
     private boolean LISTEN = false;
     private boolean LISTEN_Video = true;
 
-    public final static String EXTRA_C_Name = "hw.dt83.udpchat.CONTACT";
-    public final static String EXTRA_C_Ip = "hw.dt83.udpchat.IP";
-    public final static String EXTRA_DISPLAYNAME = "hw.dt83.udpchat.DISPLAYNAME";
-    private String contact;
-    private InetAddress ip;
-
-    private Button startButton, callButton, videoCallButton;
-    private ScrollView scrollView;
-    private RadioGroup radioGroup;
     private RecyclerView rcy_contacts;
 
     ContactManager contactManager = new ContactManager();
@@ -70,9 +61,6 @@ public class MainActivity extends Activity {
     private void initViews() {
 
         rcy_contacts = (RecyclerView) findViewById(R.id.rcy_contactslist);
-        callButton = (Button) findViewById(R.id.buttonCall);
-        videoCallButton = (Button) findViewById(R.id.btnVideoCall);
-
 
         rcy_contacts.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         // RcyContactsAdapter adapter = new RcyContactsAdapter(G.contactsList);
@@ -114,8 +102,8 @@ public class MainActivity extends Activity {
                                 String name = data.substring(4, packet.getLength());
 
                                 Intent intent = new Intent(MainActivity.this, ReceiveCallActivity.class);
-                                intent.putExtra(EXTRA_C_Name, name);
-                                intent.putExtra(EXTRA_C_Ip, address.substring(1, address.length()));
+                                intent.putExtra(G.EXTRA_C_Name, name);
+                                intent.putExtra(G.EXTRA_C_Ip, address.substring(1, address.length()));
                                 G.IN_CALL = true;
                                 startActivity(intent);
                             } else {
@@ -154,7 +142,7 @@ public class MainActivity extends Activity {
                     // Set up the socket and packet to receive
                     Logger.i("MainActivity", "startVideoCallListener", "Incoming video call listener started");
                     DatagramSocket socket = new DatagramSocket(VIDEOCALL_LISTENER_PORT);
-                    socket.setSoTimeout(1000);
+                    socket.setSoTimeout(10000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
                     while (LISTEN_Video) {

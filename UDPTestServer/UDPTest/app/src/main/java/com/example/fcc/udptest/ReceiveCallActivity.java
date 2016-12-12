@@ -40,7 +40,7 @@ public class ReceiveCallActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_receive_call);
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        final LinearLayout linearLayout = (LinearLayout)findViewById(R.id.layout_call);
+        final LinearLayout linearLayout = (LinearLayout) findViewById(R.id.layout_call);
 
 
         final ToggleButton Tgl_Speaker = (ToggleButton) findViewById(R.id.tgl_speaker);
@@ -49,12 +49,12 @@ public class ReceiveCallActivity extends Activity {
 
                 if (isChecked) {
 
-                    Log.i(LOG_TAG,"Toggle isChecked)");
+                    Log.i(LOG_TAG, "Toggle isChecked)");
                     audioManager.setMode(AudioManager.MODE_IN_CALL);
                     audioManager.setSpeakerphoneOn(false);
 
                 } else {
-                    Log.i(LOG_TAG,"Toggle is not Checked)");
+                    Log.i(LOG_TAG, "Toggle is not Checked)");
                     audioManager.setMode(AudioManager.MODE_NORMAL);
                     audioManager.setSpeakerphoneOn(true);
 
@@ -63,8 +63,8 @@ public class ReceiveCallActivity extends Activity {
         });
 
         Intent intent = getIntent();
-        contactName = intent.getStringExtra(MainActivity.EXTRA_C_Name);
-        contactIp = intent.getStringExtra(MainActivity.EXTRA_C_Ip);
+        contactName = intent.getStringExtra(G.EXTRA_C_Name);
+        contactIp = intent.getStringExtra(G.EXTRA_C_Ip);
 
         TextView textView = (TextView) findViewById(R.id.textViewIncomingCall);
         textView.setText("Incoming call: " + contactName);
@@ -185,6 +185,7 @@ public class ReceiveCallActivity extends Activity {
                 } catch (SocketException e) {
 
                     Log.e(LOG_TAG, "SocketException in Listener " + e);
+                    e.printStackTrace();
                     endCall();
                 }
             }

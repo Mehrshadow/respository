@@ -152,6 +152,7 @@ public class MainActivity extends Activity implements OnClickListener {
                 } catch (SocketException e) {
 
                     Log.e(LOG_TAG, "SocketException in listener " + e);
+                    e.printStackTrace();
                 }
             }
         });
@@ -436,6 +437,4 @@ public class MainActivity extends Activity implements OnClickListener {
 
 
     }
-
-
 }

@@ -3,7 +3,6 @@ package classes;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,17 +15,12 @@ import com.example.fcc.udptest.R;
 
 import java.net.InetAddress;
 import java.util.List;
-import java.util.logging.*;
 
 /**
  * Created by HaMiD on 12/10/2016.
  */
 
 public class RcyContactsAdapter extends RecyclerView.Adapter<RcyContactsHolder> {
-
-    public final static String EXTRA_C_Name = "hw.dt83.udpchat.CONTACT";
-    public final static String EXTRA_C_Ip = "hw.dt83.udpchat.IP";
-    public final static String EXTRA_DISPLAYNAME = "hw.dt83.udpchat.DISPLAYNAME";
 
     List<Contacts> contactsList;
     MainActivity mainActivity = new MainActivity();
@@ -51,11 +45,10 @@ public class RcyContactsAdapter extends RecyclerView.Adapter<RcyContactsHolder> 
 
         holder.Txt_C_Name.setText(contactsList.get(position).getC_Name());
 
-
         holder.Btn_VoiceCall.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                MakeVideoCall(contactsList.get(position).getC_Name(),contactsList.get(position).getC_Ip());
+                MakeVoiceCall(contactsList.get(position).getC_Name(), contactsList.get(position).getC_Ip());
                 Logger.i("RcyContactsAdapter", "onBindViewHolder", "Send MakeVoiceCall Req to >> " + contactsList.get(position).getC_Ip());
             }
         });
@@ -64,7 +57,7 @@ public class RcyContactsAdapter extends RecyclerView.Adapter<RcyContactsHolder> 
             @Override
             public void onClick(View v) {
 
-                MakeVoiceCall(contactsList.get(position).getC_Name(),contactsList.get(position).getC_Ip());
+                MakeVideoCall(contactsList.get(position).getC_Name(), contactsList.get(position).getC_Ip());
                 Logger.i("RcyContactsAdapter", "onBindViewHolder", "Send MakeVideoCall Req to >> " + contactsList.get(position).getC_Ip());
 
             }
@@ -82,21 +75,21 @@ public class RcyContactsAdapter extends RecyclerView.Adapter<RcyContactsHolder> 
         G.IN_CALL = true;
 
         // Send this information to the MakeCallActivity and start that activity
-        Intent intent = new Intent(context, MakeVideoCallActivity.class);
-        intent.putExtra(EXTRA_C_Name, C_Name);
-        intent.putExtra(EXTRA_C_Ip, C_Ip);
-        intent.putExtra(EXTRA_DISPLAYNAME, "SERVER");
+        Intent intent = new Intent(context, MakeCallActivity.class);
+        intent.putExtra(G.EXTRA_C_Name, C_Name);
+        intent.putExtra(G.EXTRA_C_Ip, C_Ip.toString().substring(1));
+        intent.putExtra(G.EXTRA_DISPLAYNAME, "SERVER");
         context.startActivity(intent);
     }
 
     public void MakeVideoCall(String C_Name, InetAddress C_Ip) {
 
-        G.IN_CALL= true;
+        G.IN_CALL = true;
 
-        Intent i = new Intent(context, MakeCallActivity.class);
-        i.putExtra(EXTRA_C_Name, C_Name);
-        i.putExtra(EXTRA_C_Ip, C_Ip);
-        i.putExtra(EXTRA_DISPLAYNAME, "SERVER");
+        Intent i = new Intent(context, MakeVideoCallActivity.class);
+        i.putExtra(G.EXTRA_C_Name, C_Name);
+        i.putExtra(G.EXTRA_C_Ip, C_Ip);
+        i.putExtra(G.EXTRA_DISPLAYNAME, "SERVER");
         context.startActivity(i);
     }
 

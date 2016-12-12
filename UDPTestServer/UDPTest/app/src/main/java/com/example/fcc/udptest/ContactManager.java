@@ -8,28 +8,17 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import classes.Contacts;
 import classes.Logger;
 
-import static android.R.id.list;
-
 public class ContactManager {
     private static final String LOG_TAG = "ContactManager";
-    public static final int BROADCAST_PORT = 50001; // Socket on which packets are sent/received
-    private static final int BROADCAST_INTERVAL = 3000; // Milliseconds
+
     private static final int BROADCAST_BUF_SIZE = 1024;
-    private boolean BROADCAST = true;
     private boolean CheckContactExist = false;
     public static boolean LISTEN = true;
-    private HashMap<String, InetAddress> contacts;
     private InetAddress broadcastIP;
-    public static String displayName;
 
 
     public ContactManager() {
@@ -40,24 +29,22 @@ public class ContactManager {
 
         //\\\\\\\\\\\\\\\\\\\\
 
-            for (int i = 0; i < G.contactsList.size(); i++) {
+        for (int i = 0; i < G.contactsList.size(); i++) {
 
-                if (G.contactsList.get(i).getC_Ip().equals(address)) {
-                    G.contactsList.get(i).setC_Name(name);
-                    CheckContactExist = true;
-                    break;
-                }
+            if (G.contactsList.get(i).getC_Ip().equals(address)) {
+                G.contactsList.get(i).setC_Name(name);
+                CheckContactExist = true;
+                break;
             }
-            if (!CheckContactExist) {
-                Contacts contacts = new Contacts();
-                contacts.setC_Ip(address);
-                contacts.setC_Name(name);
-                G.contactsList.add(contacts);
-                Logger.d("ContactManager", "addContact", "Add >> Name = " + name + " & Ip = " + address);
-            }
-            Logger.d("ContactManager", "addContact", "Already Exist  >> Name = " + name + " & Ip = " + address);
-
-
+        }
+        if (!CheckContactExist) {
+            Contacts contacts = new Contacts();
+            contacts.setC_Ip(address);
+            contacts.setC_Name(name);
+            G.contactsList.add(contacts);
+            Logger.d("ContactManager", "addContact", "Add >> Name = " + name + " & Ip = " + address);
+        }
+        Logger.d("ContactManager", "addContact", "Already Exist  >> Name = " + name + " & Ip = " + address);
 
 
     }
@@ -94,7 +81,7 @@ public class ContactManager {
                     byte[] message = notification.getBytes();
                     DatagramSocket socket = new DatagramSocket();
                     socket.setBroadcast(true);
-                    DatagramPacket packet = new DatagramPacket(message, message.length, broadcastIP, BROADCAST_PORT);
+                    DatagramPacket packet = new DatagramPacket(message, message.length, broadcastIP, G.CONTACTSYNC_PORT);
                     socket.send(packet);
                     Log.i(LOG_TAG, "Broadcast BYE notification!");
                     socket.disconnect();
@@ -124,8 +111,7 @@ public class ContactManager {
                 DatagramSocket socket;
                 try {
 
-                    // socket = new DatagramSocket(BROADCAST_PORT);
-                    socket = new DatagramSocket(50002);
+                    socket = new DatagramSocket(G.CONTACTSYNC_PORT);
                 } catch (SocketException e) {
 
                     Log.e(LOG_TAG, "SocketExcepion in listener: " + e);

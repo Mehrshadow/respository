@@ -66,9 +66,9 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
 
 
         Intent intent = getIntent();
-        displayName = intent.getStringExtra(MainActivity.EXTRA_DISPLAYNAME);
-        contactName = intent.getStringExtra(MainActivity.EXTRA_C_Name);
-        contactIp = intent.getStringExtra(MainActivity.EXTRA_C_Ip);
+        displayName = intent.getStringExtra(G.EXTRA_DISPLAYNAME);
+        contactName = intent.getStringExtra(G.EXTRA_C_Name);
+        contactIp = intent.getStringExtra(G.EXTRA_C_Ip);
 
         TextView textView = (TextView) findViewById(R.id.contactName);
         textView.setText("Calling: " + contactName);
