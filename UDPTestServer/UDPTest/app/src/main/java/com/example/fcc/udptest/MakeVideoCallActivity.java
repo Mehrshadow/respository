@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
@@ -40,6 +41,7 @@ import static com.example.fcc.udptest.ContactManager.LISTEN;
 public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Callback, View.OnClickListener {
 
     private static final String LOG_TAG = "UDP:MakeVideoCall";
+
     private String contactIp;
     private String displayName;
     private String contactName;
@@ -53,6 +55,7 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
     private DatagramSocket socket;
     private DatagramPacket packet;
     private CameraPreview cameraPreview;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,12 +128,14 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
         makeVideoCall();
     }
 
+
     @Override
     protected void onStop() {
         super.onStop();
 
         stopListener();
     }
+
 
     private void initSurfaceView() {
         SurfaceView cameraView = (SurfaceView) findViewById(R.id.surfaceView);
@@ -231,10 +236,12 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
                 try {
 
                     Log.i(LOG_TAG, "Listener started!");
+
                     socket = new DatagramSocket(G.BROADCAST_PORT);
                     socket.setSoTimeout(10000);
                     byte[] buffer = new byte[BUF_SIZE];
                     packet = new DatagramPacket(buffer, BUF_SIZE);
+
 
                     while (LISTEN) {
                         try {
@@ -247,7 +254,9 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
                             if (action.equals("ACC:")) {
 
                                 Log.d(LOG_TAG, "video call accepted");
+
                                 sendVideo(socket);
+
 
                             } else if (action.equals("REJ:")) {
                                 // Reject notification received. End call
@@ -263,6 +272,7 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
 
                             Log.i(LOG_TAG, "No reply from contact. Ending call");
                             endCall();
+
 
                         } catch (IOException e) {
                             Log.e(LOG_TAG, e.toString());
@@ -323,6 +333,7 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
     private void makeVideoCall() {
         // Send a request to start a call
         sendMessage("CAL:" + displayName, G.BROADCAST_PORT);
+
     }
 
     private void endCall() {
@@ -335,10 +346,13 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
 
         sendMessage("END:", G.BROADCAST_PORT);
 
+
         finish();
     }
 
     private void stopListener() {
+
+
         Log.d(LOG_TAG, "stopping listener");
         LISTEN = false;
     }
@@ -368,10 +382,12 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
     public void surfaceDestroyed(SurfaceHolder holder) {
         Log.d(LOG_TAG, "surface destroyed");
         try {
+
 //            if (recording) {
 ////                mediaRecorder.stop();
 //                recording = false;
 //            }
+
             mediaRecorder.release();
         } catch (Exception e) {
             Log.e(LOG_TAG, "Surface destroyed");

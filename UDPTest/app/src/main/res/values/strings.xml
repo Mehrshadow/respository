@@ -20,5 +20,8 @@
     <string name="lbl_speaker_on">Speaker On</string>
     <string name="lbl_speaker_off">Speaker Off</string>
     <string name="videocall">videocall</string>
+    <string name="VoiceCall">VoiceCall</string>
+    <string name="VideoCall">VideoCall</string>
+    <string name="enterinfo">Enter Your Name And ServerIp</string>
 
 </resources>

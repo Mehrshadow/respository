@@ -36,28 +36,34 @@ public class ContactManager {
     }
 
 
-    public  void addContact(String name, InetAddress address) {
+    public void addContact(String name, InetAddress address) {
 
         //\\\\\\\\\\\\\\\\\\\\
 
-        for (int i =0;i<G.contactsList.size();i++){
-            if(G.contactsList.get(i).getC_Ip().equals(address)){
-                G.contactsList.get(i).setC_Name(name);
-                CheckContactExist = true;
-                break;
+            for (int i = 0; i < G.contactsList.size(); i++) {
+
+                if (G.contactsList.get(i).getC_Ip().equals(address)) {
+                    G.contactsList.get(i).setC_Name(name);
+                    CheckContactExist = true;
+                    break;
+                }
             }
-        }
-        if (!CheckContactExist){
-            Contacts contacts = new Contacts(address,name);
-            G.contactsList.add(contacts);
-            Logger.d("ContactManager", "addContact", "Add >> Name = " + name + " & Ip = " + address);
-        }
-        Logger.d("ContactManager", "addContact", "Already Exist  >> Name = " + name + " & Ip = " + address);
+            if (!CheckContactExist) {
+                Contacts contacts = new Contacts();
+                contacts.setC_Ip(address);
+                contacts.setC_Name(name);
+                G.contactsList.add(contacts);
+                Logger.d("ContactManager", "addContact", "Add >> Name = " + name + " & Ip = " + address);
+            }
+            Logger.d("ContactManager", "addContact", "Already Exist  >> Name = " + name + " & Ip = " + address);
+
+
+
 
     }
     //\\\\\\\\\\
 
-    public  void removeContact(String name) {
+    public void removeContact(String name) {
     /*    // If the contact is known to us, remove it
         if (contacts.containsKey(name)) {
 

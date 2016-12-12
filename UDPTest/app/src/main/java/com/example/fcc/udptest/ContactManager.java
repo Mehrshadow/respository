@@ -10,20 +10,27 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.HashMap;
 
-public class ContactManager {
+import classes.Contacts;
+import classes.Logger;
 
+public class ContactManager {
     private static final String LOG_TAG = "ContactManager";
     public static final int BROADCAST_PORT = 50001; // Socket on which packets are sent/received
     private static final int BROADCAST_INTERVAL = 3000; // Milliseconds
     private static final int BROADCAST_BUF_SIZE = 1024;
     private boolean BROADCAST = true;
-    private boolean LISTEN = true;
+    public static boolean LISTEN = true;
     private HashMap<String, InetAddress> contacts;
     private InetAddress broadcastIP;
-    private String displayName;
+    public static String displayName;
     IUpdateContact updateContact;
+    Contacts contactsList;
+
+    public ContactManager() {
+    }
 
     public ContactManager(String name, InetAddress broadcastIP) {
+
         this.displayName = name;
         contacts = new HashMap<String, InetAddress>();
         this.broadcastIP = broadcastIP;
@@ -44,26 +51,18 @@ public class ContactManager {
         return contacts;
     }
 
-    public void addContact(String name, InetAddress address) {
-        // If the contact is not already known to us, add it
-        if (!contacts.containsKey(name)) {
+    public static void addContact(String name, InetAddress address) {
 
-            Log.i(LOG_TAG, "Adding contact: " + name);
-            contacts.put(name, address);
-
-            Log.d(LOG_TAG, "add1");
-            updateContact.onReceive();
-            Log.d(LOG_TAG, "add2");
-
-            Log.i(LOG_TAG, "#Contacts: " + contacts.size());
-            return;
+        //\\\\\\\\\\\\\\\\\\\\
+        G.contactsList.add(new Contacts(address,name));
+        //\\\\\\\\\\\\\\\\\\\\
+        Logger.d("ContactManager", "addContact", "Add >> Name = "+name+"& Ip = "+address);
         }
-        Log.i(LOG_TAG, "Contact already exists: " + name);
-        return;
-    }
 
-    public void removeContact(String name) {
-        // If the contact is known to us, remove it
+
+
+    public static void removeContact(String name) {
+    /*    // If the contact is known to us, remove it
         if (contacts.containsKey(name)) {
 
             Log.i(LOG_TAG, "Removing contact: " + name);
@@ -77,7 +76,7 @@ public class ContactManager {
             return;
         }
         Log.i(LOG_TAG, "Cannot remove contact. " + name + " does not exist.");
-        return;
+        return;*/
     }
 
     public void bye(final String name) {
@@ -162,7 +161,7 @@ public class ContactManager {
         BROADCAST = false;
     }
 
-    public void listen() {
+    public  void listen() {
         // Create the listener thread
         Log.i(LOG_TAG, "Listening started!");
         Thread listenThread = new Thread(new Runnable() {

@@ -27,6 +27,7 @@ import java.net.UnknownHostException;
 public class ReceiveCallActivity extends Activity {
 
     private static final String LOG_TAG = "ReceiveCall";
+
     private static final int BUF_SIZE = 1024;
     private static final int SAMPLE_RATE = 8000; // Hertz
     private String contactIp;
@@ -211,7 +212,9 @@ public class ReceiveCallActivity extends Activity {
                     InetAddress address = InetAddress.getByName(contactIp);
                     byte[] data = message.getBytes();
                     DatagramSocket socket = new DatagramSocket();
+
                     DatagramPacket packet = new DatagramPacket(data, data.length, address, G.BROADCAST_PORT);
+
                     socket.send(packet);
                     Log.i(LOG_TAG, "Sent message( " + message + " ) to " + contactIp);
                     socket.disconnect();

@@ -80,9 +80,10 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         if (IN_CALL) {
 
             call.endCall();
+
+            sendMessage("END:", G.BROADCAST_PORT);
+            finish();
         }
-        sendMessage("END:", G.BROADCAST_PORT);
-        finish();
     }
 
     private void startListener() {
@@ -96,6 +97,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                 try {
 
                     Log.i(LOG_TAG, "Listener started!");
+
                     DatagramSocket socket = new DatagramSocket(G.BROADCAST_PORT);
                     socket.setSoTimeout(15000);
                     byte[] buffer = new byte[BUF_SIZE];
