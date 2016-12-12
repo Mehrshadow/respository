@@ -326,7 +326,16 @@ public class MainActivity extends Activity implements OnClickListener {
                 break;
 
             case R.id.buttonCall:
-
+                if (CheckInput()) {
+                    SERVER_IP = Edit_Server_Port.getText().toString();
+                    Username = Edit_Username.getText().toString();
+                    try {
+                        InetAddress inetAddress = InetAddress.getByName(SERVER_IP);
+                        MakeVoiceCall(Username, inetAddress);
+                    } catch (UnknownHostException e) {
+                        e.printStackTrace();
+                    }
+                }
 
                 break;
         }
