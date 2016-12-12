@@ -29,7 +29,7 @@ public class MainActivity extends Activity implements OnClickListener {
     private static final int CALL_LISTENER_PORT = 50003;
     private static final int VIDEOCALL_LISTENER_PORT = 50004;
     private static final int BUF_SIZE = 1024;
-    private static final int BROADCAST_PORT = 50002;
+
     private static final int CheckStatus = 50006;
     private static final int BROADCAST_INTERVAL = 10000; // Milliseconds
     public static boolean Online = false;
@@ -48,6 +48,7 @@ public class MainActivity extends Activity implements OnClickListener {
     private EditText Edit_Username;
     private String SERVER_IP;
     private String Username;
+    private boolean started = false;
 
 
     @Override
@@ -176,7 +177,7 @@ public class MainActivity extends Activity implements OnClickListener {
                     // Set up the socket and packet to receive
                     Log.i(LOG_TAG, "Incoming video call listener started");
                     DatagramSocket socket = new DatagramSocket(VIDEOCALL_LISTENER_PORT);
-                    socket.setSoTimeout(1000);
+                    socket.setSoTimeout(10000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
                     while (LISTEN_Video) {
@@ -228,17 +229,46 @@ public class MainActivity extends Activity implements OnClickListener {
     public void onPause() {
 
         super.onPause();
-      /*  if (STARTED) {
+        if (started) {
 
-            contactManager.bye(displayName);
-            contactManager.stopBroadcasting();
-            contactManager.stopListening();
-            //STARTED = false;
-        }*/
+            removeContact(getBroadcastIp());
+        }
         stopCallListener();
         stopVideoCallListener();
         Log.i(LOG_TAG, "App paused!");
     }
+
+    public void removeContact(final InetAddress address) {
+        // Sends a Bye notification to other devices
+        Thread byeThread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+
+                try {
+                    Log.i(LOG_TAG, "Attempting to broadcast BYE notification!");
+                    String notification = "BYE:" + ip;
+                    byte[] message = notification.getBytes();
+                    DatagramSocket socket = new DatagramSocket();
+                    socket.setBroadcast(true);
+                    DatagramPacket packet = new DatagramPacket(message, message.length, address, G.CONTACTSYNC_PORT);
+                    socket.send(packet);
+                    Log.i(LOG_TAG, "Broadcast BYE notification!");
+                    socket.disconnect();
+                    socket.close();
+                    return;
+                } catch (SocketException e) {
+
+                    Log.e(LOG_TAG, "SocketException during BYE notification: " + e);
+                } catch (IOException e) {
+
+                    Log.e(LOG_TAG, "IOException during BYE notification: " + e);
+                }
+            }
+        });
+        byeThread.start();
+    }
+
 
     @Override
     public void onStop() {
@@ -271,11 +301,17 @@ public class MainActivity extends Activity implements OnClickListener {
         switch (v.getId()) {
 
             case R.id.buttonStart:
+
+                started = true;
+
                 Logger.d("MainActivity", "onClick", "Start button pressed");
 
                 Username = Edit_Username.getText().toString();
                 SERVER_IP = Edit_Server_Port.getText().toString();
                 if (CheckInput()) {
+
+                    startButton.setEnabled(false);
+
                     startCallListener();
                     startVideoCallListener();
                     callButton.setVisibility(View.VISIBLE);
@@ -377,11 +413,11 @@ public class MainActivity extends Activity implements OnClickListener {
                     byte[] message = request.getBytes();
                     DatagramSocket socket = new DatagramSocket();
                     socket.setBroadcast(true);
-                    DatagramPacket packet = new DatagramPacket(message, message.length, SERVER_IP, BROADCAST_PORT);
+                    DatagramPacket packet = new DatagramPacket(message, message.length, SERVER_IP, G.CONTACTSYNC_PORT);
                     while (BROADCAST) {
 
                         socket.send(packet);
-                        Logger.d("MainActivity", "broadcastName", "Broadcast packet sent >> name >>" + Username + " Adrs >> " + packet.getAddress().toString() + "   To >> " + SERVER_IP + ":" + BROADCAST_PORT);
+                        Logger.d("MainActivity", "broadcastName", "Broadcast packet sent >> name >>" + Username + " Adrs >> " + packet.getAddress().toString() + "   To >> " + SERVER_IP + ":" + G.CONTACTSYNC_PORT);
                         Thread.sleep(BROADCAST_INTERVAL);
                     }
                     Logger.d("MainActivity", "broadcastName", "Broadcaster ending!");

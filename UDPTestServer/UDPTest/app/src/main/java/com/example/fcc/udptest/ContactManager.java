@@ -20,10 +20,8 @@ public class ContactManager {
     public static boolean LISTEN = true;
     private InetAddress broadcastIP;
 
-
     public ContactManager() {
     }
-
 
     public void addContact(String name, InetAddress address) {
 
@@ -32,9 +30,11 @@ public class ContactManager {
         for (int i = 0; i < G.contactsList.size(); i++) {
 
             if (G.contactsList.get(i).getC_Ip().equals(address)) {
+                Logger.d("ContactManager", "addContact", "Exist >> "+G.contactsList.get(i).getC_Ip());
+                Logger.d("ContactManager", "addContact", "Receive >> "+address);
                 G.contactsList.get(i).setC_Name(name);
                 CheckContactExist = true;
-                break;
+//                break;
             }
         }
         if (!CheckContactExist) {
@@ -48,57 +48,25 @@ public class ContactManager {
 
 
     }
-    //\\\\\\\\\\
 
-    public void removeContact(String name) {
-    /*    // If the contact is known to us, remove it
-        if (contacts.containsKey(name)) {
+    public void removeContact(String name, InetAddress address) {
+        for (int i = 0; i < G.contactsList.size(); i++) {
 
-            Log.i(LOG_TAG, "Removing contact: " + name);
-            contacts.remove(name);
-
-            Log.d(LOG_TAG, "remove1");
-            updateContact.onReceive();
-            Log.d(LOG_TAG, "remove2");
-
-            Log.i(LOG_TAG, "#Contacts: " + contacts.size());
-            return;
-        }
-        Log.i(LOG_TAG, "Cannot remove contact. " + name + " does not exist.");
-        return;*/
-    }
-
-    public void bye(final String name) {
-        // Sends a Bye notification to other devices
-        Thread byeThread = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-
-                try {
-                    Log.i(LOG_TAG, "Attempting to broadcast BYE notification!");
-                    String notification = "BYE:" + name;
-                    byte[] message = notification.getBytes();
-                    DatagramSocket socket = new DatagramSocket();
-                    socket.setBroadcast(true);
-                    DatagramPacket packet = new DatagramPacket(message, message.length, broadcastIP, G.CONTACTSYNC_PORT);
-                    socket.send(packet);
-                    Log.i(LOG_TAG, "Broadcast BYE notification!");
-                    socket.disconnect();
-                    socket.close();
-                    return;
-                } catch (SocketException e) {
-
-                    Log.e(LOG_TAG, "SocketException during BYE notification: " + e);
-                } catch (IOException e) {
-
-                    Log.e(LOG_TAG, "IOException during BYE notification: " + e);
-                }
+            if (G.contactsList.get(i).getC_Ip().equals(address)) {
+                CheckContactExist = true;
+                break;
             }
-        });
-        byeThread.start();
-    }
+        }
+        if (!CheckContactExist) {
+            Contacts contacts = new Contacts();
+            contacts.setC_Ip(address);
+            contacts.setC_Name(name);
+            G.contactsList.remove(contacts);
+            Logger.d("ContactManager", "remove contact", "remove >> Name = " + name + " & Ip = " + address);
+        }
+        Logger.d("ContactManager", "Remove failed", "Already Exist  >> Name = " + name + " & Ip = " + address);
 
+    }
 
     public void listen() {
         // Create the listener thread
@@ -126,7 +94,6 @@ public class ContactManager {
                 Log.i(LOG_TAG, "Listener ending!");
                 socket.disconnect();
                 socket.close();
-                return;
             }
 
             public void listen(DatagramSocket socket, byte[] buffer) {
@@ -152,7 +119,7 @@ public class ContactManager {
                     } else if (action.equals("BYE:")) {
                         // Bye notification received. Attempt to remove contact
                         Logger.d("ContactManager", "listen | listen", "Listener received BYE request from >> " + packet.getAddress());
-                        removeContact(data.substring(4, data.length()));
+                        removeContact(name, packet.getAddress());
 
                     } else {
                         // Invalid notification received

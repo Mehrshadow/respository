@@ -195,6 +195,7 @@ public class MainActivity extends Activity {
         super.onPause();
         Log.i(LOG_TAG, "App paused!");
         SERVER_RUNNING = false;
+        contactManager.stopListening();
     }
 
     @Override
@@ -204,6 +205,8 @@ public class MainActivity extends Activity {
         Log.i(LOG_TAG, "App stopped!");
         stopCallListener();
         stopVideoCallListener();
+        contactManager.stopListening();
+
         if (!G.IN_CALL) {
             finish();
         }
