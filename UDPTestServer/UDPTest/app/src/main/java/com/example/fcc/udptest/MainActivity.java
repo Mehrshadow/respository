@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.os.Looper;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -20,10 +19,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
 
-import classes.Contacts;
 import classes.Logger;
 import classes.RcyContactsAdapter;
 
@@ -36,11 +32,9 @@ public class MainActivity extends Activity {
     private static final int BUF_SIZE = 1024;
     private String displayName;
     private boolean STARTED = false;
-    private boolean IN_CALL = false;
     private boolean Refreshing = true;
     private boolean SERVER_RUNNING = true;
     private boolean RefreshRcy = true;
-    public static boolean IN_VIDEO_CALL = false;
     private boolean LISTEN = false;
     private boolean LISTEN_Video = true;
 
@@ -103,7 +97,7 @@ public class MainActivity extends Activity {
                     // Set up the socket and packet to receive
                     Logger.i("MainActivity", "startCallListener", "Incoming call listener started");
                     DatagramSocket socket = new DatagramSocket(CALL_LISTENER_PORT);
-                    socket.setSoTimeout(1000);
+                    socket.setSoTimeout(10000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
                     while (LISTEN) {
@@ -122,7 +116,7 @@ public class MainActivity extends Activity {
                                 Intent intent = new Intent(MainActivity.this, ReceiveCallActivity.class);
                                 intent.putExtra(EXTRA_C_Name, name);
                                 intent.putExtra(EXTRA_C_Ip, address.substring(1, address.length()));
-                                IN_CALL = true;
+                                G.IN_CALL = true;
                                 startActivity(intent);
                             } else {
                                 // Received an invalid request
@@ -181,7 +175,7 @@ public class MainActivity extends Activity {
                                 Intent intent = new Intent(MainActivity.this, ReceiveVideoCallActivity.class);
                                 intent.putExtra(EXTRA_C_Name, name);
                                 intent.putExtra(EXTRA_C_Ip, address.substring(1, address.length()));
-                                IN_VIDEO_CALL = true;
+                                G.IN_CALL = true;
 
                                 startActivity(intent);
                             } else {
@@ -222,7 +216,7 @@ public class MainActivity extends Activity {
         Log.i(LOG_TAG, "App stopped!");
         stopCallListener();
         stopVideoCallListener();
-        if (!IN_CALL && !IN_VIDEO_CALL) {
+        if (!G.IN_CALL) {
             finish();
         }
     }
@@ -232,8 +226,7 @@ public class MainActivity extends Activity {
 
         super.onRestart();
         Log.i(LOG_TAG, "App restarted!");
-        IN_CALL = false;
-        IN_VIDEO_CALL = false;
+        G.IN_CALL = false;
         STARTED = true;
         SERVER_RUNNING = true;
 
@@ -242,10 +235,6 @@ public class MainActivity extends Activity {
         startVideoCallListener();
         // refreshContacts();
     }
-
-
-
-
 
     private void refreshContacts() {
 
@@ -265,22 +254,19 @@ public class MainActivity extends Activity {
                         for (int i = 0; i < G.contactsList.size(); i++) {
                             Socket socket = null;
                             try {
-                                    socket = new Socket(G.contactsList.get(i).getC_Ip(), CheckStatus);
-                                    socket.setSoTimeout(2000);
-                                    if (!socket.isConnected()) {
-                                        socket.close();
-                                        G.contactsList.remove(i);
-                                        socket.close();
-                                    }
+                                socket = new Socket(G.contactsList.get(i).getC_Ip(), CheckStatus);
+                                socket.setSoTimeout(2000);
+                                if (!socket.isConnected()) {
                                     socket.close();
+                                    G.contactsList.remove(i);
+                                    socket.close();
+                                }
+                                socket.close();
 
                             } catch (IOException e) {
                                 G.contactsList.remove(i);
                                 e.printStackTrace();
                             }
-
-
-
 
 
                         }
@@ -306,13 +292,12 @@ public class MainActivity extends Activity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                RcyContactsAdapter adapter = new RcyContactsAdapter(G.contactsList,MainActivity.this);
+                RcyContactsAdapter adapter = new RcyContactsAdapter(G.contactsList, MainActivity.this);
                 rcy_contacts.setAdapter(adapter);
                 Logger.i("MainActivity", "refreshRcy", "Start");
             }
         });
     }
-
 
     private InetAddress getBroadcastIp() {
         Logger.d("MainActivity", "getBroadcastIp", "Start");
@@ -341,6 +326,4 @@ public class MainActivity extends Activity {
                 ((ip >> 24) & 0xFF);
 
     }
-
-
 }
