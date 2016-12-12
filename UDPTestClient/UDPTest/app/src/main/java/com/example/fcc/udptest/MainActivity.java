@@ -32,9 +32,6 @@ public class MainActivity extends Activity implements OnClickListener {
     private static final int BROADCAST_PORT = 50002;
     private static final int CheckStatus = 50006;
     private static final int BROADCAST_INTERVAL = 10000; // Milliseconds
-    private boolean STARTED = false;
-    private boolean IN_CALL = false;
-    public static boolean IN_VIDEO_CALL = false;
     public static boolean Online = false;
     private boolean BROADCAST = true;
     private boolean LISTEN = false;
@@ -138,7 +135,7 @@ public class MainActivity extends Activity implements OnClickListener {
                                 Intent intent = new Intent(MainActivity.this, ReceiveCallActivity.class);
                                 intent.putExtra(EXTRA_CONTACT, name);
                                 intent.putExtra(EXTRA_IP, address.substring(1, address.length()));
-                                IN_CALL = true;
+                                G.IN_CALL = true;
                                 //LISTEN = false;
                                 //stopCallListener();
                                 startActivity(intent);
@@ -199,7 +196,7 @@ public class MainActivity extends Activity implements OnClickListener {
                                 Intent intent = new Intent(MainActivity.this, ReceiveVideoCallActivity.class);
                                 intent.putExtra(EXTRA_CONTACT, name);
                                 intent.putExtra(EXTRA_IP, address.substring(1, address.length()));
-                                IN_VIDEO_CALL = true;
+                                G.IN_CALL = true;
 
                                 startActivity(intent);
                             } else {
@@ -250,7 +247,7 @@ public class MainActivity extends Activity implements OnClickListener {
         Log.i(LOG_TAG, "App stopped!");
         stopCallListener();
         stopVideoCallListener();
-        if (!IN_CALL && !IN_VIDEO_CALL) {
+        if (!G.IN_CALL) {
             finish();
         }
 
@@ -261,9 +258,7 @@ public class MainActivity extends Activity implements OnClickListener {
 
         super.onRestart();
         Log.i(LOG_TAG, "App restarted!");
-        IN_CALL = false;
-        IN_VIDEO_CALL = false;
-        STARTED = true;
+        G.IN_CALL = false;
         startCallListener();
         startVideoCallListener();
     }
@@ -276,8 +271,6 @@ public class MainActivity extends Activity implements OnClickListener {
 
             case R.id.buttonStart:
                 Logger.d("MainActivity", "onClick", "Start button pressed");
-
-                STARTED = true;
 
                 Username = Edit_Username.getText().toString();
                 SERVER_IP = Edit_Server_Port.getText().toString();
@@ -317,15 +310,23 @@ public class MainActivity extends Activity implements OnClickListener {
                 break;
 
             case R.id.buttonCall:
-
-
+                if (CheckInput()) {
+                    SERVER_IP = Edit_Server_Port.getText().toString();
+                    Username = Edit_Username.getText().toString();
+                    try {
+                        InetAddress inetAddress = InetAddress.getByName(SERVER_IP);
+                        MakeVoiceCall(Username, inetAddress);
+                    } catch (UnknownHostException e) {
+                        e.printStackTrace();
+                    }
+                }
                 break;
         }
     }
 
     public void MakeVoiceCall(String Username, InetAddress SERVER_IP) {
         Logger.d("MainActivity", "MakeVoiceCall", "Start");
-        IN_CALL = true;
+        G.IN_CALL = true;
 
         // Send this information to the MakeCallActivity and start that activity
         Intent intent = new Intent(MainActivity.this, MakeCallActivity.class);
@@ -338,7 +339,7 @@ public class MainActivity extends Activity implements OnClickListener {
 
     public void MakeVideoCall(String C_Name, InetAddress C_Ip) {
         Logger.d("MainActivity", "MakeVideoCall", "Start");
-        IN_VIDEO_CALL = true;
+        G.IN_CALL = true;
 
         Intent i = new Intent(MainActivity.this, MakeVideoCallActivity.class);
         i.putExtra(EXTRA_CONTACT, C_Name);
@@ -378,7 +379,7 @@ public class MainActivity extends Activity implements OnClickListener {
                     while (BROADCAST) {
 
                         socket.send(packet);
-                        Logger.d("MainActivity", "broadcastName", "Broadcast packet sent >> name >>"+Username+" Adrs >> " + packet.getAddress().toString() +"   To >> "+SERVER_IP + ":"+BROADCAST_PORT);
+                        Logger.d("MainActivity", "broadcastName", "Broadcast packet sent >> name >>" + Username + " Adrs >> " + packet.getAddress().toString() + "   To >> " + SERVER_IP + ":" + BROADCAST_PORT);
                         Thread.sleep(BROADCAST_INTERVAL);
                     }
                     Logger.d("MainActivity", "broadcastName", "Broadcaster ending!");
@@ -406,13 +407,13 @@ public class MainActivity extends Activity implements OnClickListener {
         broadcastThread.start();
     }
 
-    private void CheckOnline(){
+    private void CheckOnline() {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 Logger.d("MainActivity", "CheckOnline", "Start");
                 Online = true;
-                while (Online){
+                while (Online) {
                     try {
                         ServerSocket serverSocket = new ServerSocket(CheckStatus);
                         Socket socket = serverSocket.accept();

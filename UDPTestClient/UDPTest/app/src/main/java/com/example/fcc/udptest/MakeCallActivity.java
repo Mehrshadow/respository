@@ -31,7 +31,6 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
     private String contactName;
     private String contactIp;
     private boolean LISTEN = true;
-    private boolean IN_CALL = false;
     private AudioCall call;
 
 
@@ -76,9 +75,10 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
     private void endCall() {
         // Ends the chat sessions
         stopListener();
-        if (IN_CALL) {
+        if (G.IN_CALL) {
 
             call.endCall();
+            G.IN_CALL = false;
         }
         sendMessage("END:", BROADCAST_PORT);
         finish();
@@ -113,7 +113,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                                 call = new AudioCall(packet.getAddress());
                                 call.startCall();
 
-                                IN_CALL = true;
+                                G.IN_CALL = true;
                             } else if (action.equals("REJ:")) {
                                 // Reject notification received. End call
                                 endCall();
@@ -125,7 +125,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                                 Log.w(LOG_TAG, packet.getAddress() + " sent invalid message: " + data);
                             }
                         } catch (SocketTimeoutException e) {
-                            if (!IN_CALL) {
+                            if (!G.IN_CALL) {
 
                                 Log.i(LOG_TAG, "No reply from contact. Ending call");
                                 endCall();
@@ -195,8 +195,8 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
 
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        Log.d(LOG_TAG, "IN CALL: " + IN_CALL);
-        if (IN_CALL) {
+        Log.d(LOG_TAG, "IN CALL: " + G.IN_CALL);
+        if (G.IN_CALL) {
 
             AudioManager m_amAudioManager;
             m_amAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);

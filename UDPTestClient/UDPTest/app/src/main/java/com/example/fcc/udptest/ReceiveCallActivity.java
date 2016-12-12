@@ -3,9 +3,7 @@ package com.example.fcc.udptest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-
 import android.media.AudioManager;
-
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -33,7 +31,6 @@ public class ReceiveCallActivity extends Activity {
     private String contactIp;
     private String contactName;
     private boolean LISTEN = true;
-    private boolean IN_CALL = false;
     private AudioCall call;
     AudioManager audioManager;
 
@@ -43,7 +40,7 @@ public class ReceiveCallActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_receive_call);
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        final LinearLayout linearLayout = (LinearLayout)findViewById(R.id.layout_call);
+        final LinearLayout linearLayout = (LinearLayout) findViewById(R.id.layout_call);
 
 
         final ToggleButton Tgl_Speaker = (ToggleButton) findViewById(R.id.tgl_speaker);
@@ -52,12 +49,12 @@ public class ReceiveCallActivity extends Activity {
 
                 if (isChecked) {
 
-                    Log.i(LOG_TAG,"Toggle isChecked)");
+                    Log.i(LOG_TAG, "Toggle isChecked)");
                     audioManager.setMode(AudioManager.MODE_IN_CALL);
                     audioManager.setSpeakerphoneOn(false);
 
                 } else {
-                    Log.i(LOG_TAG,"Toggle is not Checked)");
+                    Log.i(LOG_TAG, "Toggle is not Checked)");
                     audioManager.setMode(AudioManager.MODE_NORMAL);
                     audioManager.setSpeakerphoneOn(true);
 
@@ -90,7 +87,7 @@ public class ReceiveCallActivity extends Activity {
                     sendMessage("ACC:");
                     InetAddress address = InetAddress.getByName(contactIp);
                     Log.i(LOG_TAG, "Calling " + address.toString());
-                    IN_CALL = true;
+                    G.IN_CALL = true;
                     call = new AudioCall(address);
                     call.startCall();
                     // Hide the buttons as they're not longer required
@@ -137,9 +134,10 @@ public class ReceiveCallActivity extends Activity {
     private void endCall() {
         // End the call and send a notification
         stopListener();
-        if (IN_CALL) {
+        if (G.IN_CALL) {
 
             call.endCall();
+            G.IN_CALL = false;
         }
         sendMessage("END:");
         finish();
