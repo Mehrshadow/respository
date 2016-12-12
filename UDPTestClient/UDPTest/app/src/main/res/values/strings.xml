@@ -26,5 +26,9 @@
     <string name="settings_name_hint">enter your name</string>
     <string name="settings_server_ip">enter server\'s ip</string>
     <string name="lbl_save">Save</string>
+    <string name="call_accepted">Call accepted</string>
+    <string name="call_rejected">Call rejected</string>
+    <string name="call_ended">Call ended</string>
+    <string name="server_not_reachable">Server is busy. Connection failed</string>
 
 </resources>

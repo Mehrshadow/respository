@@ -30,7 +30,6 @@ public class ReceiveCallActivity extends Activity {
     private String contactIp;
     private String contactName;
     private boolean LISTEN = true;
-    private boolean IN_CALL = false;
     private AudioCall call;
     AudioManager audioManager;
 
@@ -87,7 +86,7 @@ public class ReceiveCallActivity extends Activity {
                     sendMessage("ACC:");
                     InetAddress address = InetAddress.getByName(contactIp);
                     Log.i(LOG_TAG, "Calling " + address.toString());
-                    IN_CALL = true;
+                    G.IN_CALL = true;
                     call = new AudioCall(address);
                     call.startCall();
                     // Hide the buttons as they're not longer required
@@ -134,7 +133,7 @@ public class ReceiveCallActivity extends Activity {
     private void endCall() {
         // End the call and send a notification
         stopListener();
-        if (IN_CALL) {
+        if (G.IN_CALL) {
 
             call.endCall();
         }

@@ -19,13 +19,23 @@ public class ContactManager {
     private boolean CheckContactExist = false;
     public static boolean LISTEN = true;
     private InetAddress broadcastIP;
+    private IRefreshRecycler iRefreshRecycler;
+
+    public interface IRefreshRecycler{
+        void OnRefresh();
+    }
+
+    public void setRefreshRcyclerListener(IRefreshRecycler iRefreshRecycler){
+        this.iRefreshRecycler = iRefreshRecycler;
+    }
+
 
     public ContactManager() {
     }
 
     public void addContact(String name, InetAddress address) {
 
-        //\\\\\\\\\\\\\\\\\\\\
+        CheckContactExist = false;
 
         for (int i = 0; i < G.contactsList.size(); i++) {
 
@@ -34,7 +44,7 @@ public class ContactManager {
                 Logger.d("ContactManager", "addContact", "Receive >> "+address);
                 G.contactsList.get(i).setC_Name(name);
                 CheckContactExist = true;
-//                break;
+                break;
             }
         }
         if (!CheckContactExist) {
@@ -114,6 +124,10 @@ public class ContactManager {
                         // Add notification received. Attempt to add contact
                         Logger.d("ContactManager", "listen | listen", "Listener received ADD request from >> " + packet.getAddress());
                         addContact(name, packet.getAddress());
+
+
+                        iRefreshRecycler.OnRefresh();
+
                         Logger.d("ContactManager", "listen | listen", "Users >> " + G.contactsList.size());
 
                     } else if (action.equals("BYE:")) {

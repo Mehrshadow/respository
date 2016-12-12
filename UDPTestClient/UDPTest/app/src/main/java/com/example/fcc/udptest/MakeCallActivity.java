@@ -6,12 +6,12 @@ import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import java.io.IOException;
@@ -96,7 +96,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
 
                     Log.i(LOG_TAG, "Listener started!");
                     DatagramSocket socket = new DatagramSocket(BROADCAST_PORT);
-                    socket.setSoTimeout(15000);
+                    socket.setSoTimeout(10000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
                     while (LISTEN) {
@@ -109,16 +109,38 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                             Log.i(LOG_TAG, "Packet received from " + packet.getAddress() + " with contents: " + data);
                             String action = data.substring(0, 4);
                             if (action.equals("ACC:")) {
+
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(MakeCallActivity.this, R.string.call_accepted, Toast.LENGTH_LONG).show();
+                                    }
+                                });
                                 // Accept notification received. Start call
                                 call = new AudioCall(packet.getAddress());
                                 call.startCall();
 
                                 G.IN_CALL = true;
                             } else if (action.equals("REJ:")) {
+
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(MakeCallActivity.this, R.string.call_rejected, Toast.LENGTH_LONG).show();
+                                    }
+                                });
+
                                 // Reject notification received. End call
                                 endCall();
                             } else if (action.equals("END:")) {
                                 // End call notification received. End call
+
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(MakeCallActivity.this, R.string.call_ended, Toast.LENGTH_LONG).show();
+                                    }
+                                });
                                 endCall();
                             } else {
                                 // Invalid notification received
@@ -128,6 +150,13 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                             if (!G.IN_CALL) {
 
                                 Log.i(LOG_TAG, "No reply from contact. Ending call");
+
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(MakeCallActivity.this, R.string.server_not_reachable, Toast.LENGTH_LONG).show();
+                                    }
+                                });
                                 endCall();
                             }
                         } catch (IOException e) {
@@ -186,12 +215,15 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.make_call, menu);
-        return true;
-    }
+    public void onBackPressed() {
+        if (G.IN_CALL) {
+            return;
+        }
 
+        sendMessage("END:", BROADCAST_PORT);
+
+        super.onBackPressed();
+    }
 
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {

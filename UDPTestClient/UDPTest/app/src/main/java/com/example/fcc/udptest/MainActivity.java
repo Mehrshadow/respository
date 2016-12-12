@@ -76,7 +76,6 @@ public class MainActivity extends Activity implements OnClickListener {
         startButton.setOnClickListener(this);
     }
 
-
     private InetAddress getBroadcastIp() {
         Logger.d("MainActivity", "getBroadcastIp", "Start");
         // Function to return the broadcast address, based on the IP address of the device
@@ -229,6 +228,9 @@ public class MainActivity extends Activity implements OnClickListener {
     public void onPause() {
 
         super.onPause();
+
+        Online = false;
+
         if (started) {
 
             removeContact(getBroadcastIp());
@@ -278,10 +280,14 @@ public class MainActivity extends Activity implements OnClickListener {
         Log.i(LOG_TAG, "App stopped!");
         stopCallListener();
         stopVideoCallListener();
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
         if (!G.IN_CALL) {
             finish();
         }
-
     }
 
     @Override
@@ -352,7 +358,7 @@ public class MainActivity extends Activity implements OnClickListener {
                     Username = Edit_Username.getText().toString();
                     try {
                         InetAddress inetAddress = InetAddress.getByName(SERVER_IP);
-                        MakeVoiceCall(Username, inetAddress);
+                        MakeVoiceCall(Username, inetAddress.toString().substring(1));
                     } catch (UnknownHostException e) {
                         e.printStackTrace();
                     }
@@ -362,9 +368,8 @@ public class MainActivity extends Activity implements OnClickListener {
         }
     }
 
-    public void MakeVoiceCall(String Username, InetAddress SERVER_IP) {
+    public void MakeVoiceCall(String Username, String SERVER_IP) {
         Logger.d("MainActivity", "MakeVoiceCall", "Start");
-        G.IN_CALL = true;
 
         // Send this information to the MakeCallActivity and start that activity
         Intent intent = new Intent(MainActivity.this, MakeCallActivity.class);
@@ -372,7 +377,6 @@ public class MainActivity extends Activity implements OnClickListener {
         intent.putExtra(EXTRA_IP, SERVER_IP);
         intent.putExtra(EXTRA_DISPLAYNAME, Username);
         startActivity(intent);
-
     }
 
     public void MakeVideoCall(String C_Name, InetAddress C_Ip) {
@@ -461,11 +465,7 @@ public class MainActivity extends Activity implements OnClickListener {
                         e.printStackTrace();
 
                     }
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    //                        Thread.sleep(1000);
                 }
 
             }

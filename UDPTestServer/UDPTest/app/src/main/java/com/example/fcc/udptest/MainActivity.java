@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -23,7 +24,7 @@ import classes.RcyContactsAdapter;
 import static com.example.fcc.udptest.G.EXTRA_C_Ip;
 import static com.example.fcc.udptest.G.EXTRA_C_Name;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements ContactManager.IRefreshRecycler {
 
     static final String LOG_TAG = "UDPchat";
     private static final int CALL_LISTENER_PORT = 50003;
@@ -51,6 +52,7 @@ public class MainActivity extends Activity {
 
         initViews();
         contactManager.listen();
+        contactManager.setRefreshRcyclerListener(MainActivity.this);
         refreshContacts();
         startCallListener();
         startVideoCallListener();
@@ -104,7 +106,6 @@ public class MainActivity extends Activity {
                                 Intent intent = new Intent(MainActivity.this, ReceiveCallActivity.class);
                                 intent.putExtra(G.EXTRA_C_Name, name);
                                 intent.putExtra(G.EXTRA_C_Ip, address.substring(1, address.length()));
-                                G.IN_CALL = true;
                                 startActivity(intent);
                             } else {
                                 // Received an invalid request
@@ -206,7 +207,11 @@ public class MainActivity extends Activity {
         stopCallListener();
         stopVideoCallListener();
         contactManager.stopListening();
+    }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
         if (!G.IN_CALL) {
             finish();
         }
@@ -222,6 +227,7 @@ public class MainActivity extends Activity {
         SERVER_RUNNING = true;
 
         contactManager.listen();
+        refreshContacts();
         startCallListener();
         startVideoCallListener();
         // refreshContacts();
@@ -243,23 +249,24 @@ public class MainActivity extends Activity {
                         Logger.i("MainActivity", "refreshContacts", "Start");
 
                         for (int i = 0; i < G.contactsList.size(); i++) {
-                            Socket socket = null;
+                            Socket socket = new Socket();
                             try {
-                                socket = new Socket(G.contactsList.get(i).getC_Ip(), CheckStatus);
-                                socket.setSoTimeout(1000);
+                                socket.connect(new InetSocketAddress(G.contactsList.get(i).getC_Ip(), CheckStatus), 1000);
+
                                 if (!socket.isConnected()) {
                                     socket.close();
                                     G.contactsList.remove(i);
-                                    socket.close();
+
+                                    refreshRcy();
                                 }
                                 socket.close();
 
                             } catch (IOException e) {
                                 G.contactsList.remove(i);
+                                refreshRcy();
+
                                 e.printStackTrace();
                             }
-
-
                         }
                         Refreshing = false;
                         Logger.i("MainActivity", "refreshContacts", "Online Users >> " + G.contactsList.size());
@@ -316,5 +323,10 @@ public class MainActivity extends Activity {
                 ((ip >> 16) & 0xFF) + "." +
                 ((ip >> 24) & 0xFF);
 
+    }
+
+    @Override
+    public void OnRefresh() {
+        refreshRcy();
     }
 }
