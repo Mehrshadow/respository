@@ -33,7 +33,6 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
     private boolean IN_CALL = false;
     private AudioCall call;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -65,7 +64,6 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
             }
         });
     }
-
 
     private void makeCall() {
         // Send a request to start a call

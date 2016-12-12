@@ -1,23 +1,15 @@
 package com.example.fcc.udptest;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
-import android.widget.ScrollView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -28,7 +20,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.HashMap;
 
 import classes.Logger;
 
@@ -128,7 +119,7 @@ public class MainActivity extends Activity implements OnClickListener {
                     // Set up the socket and packet to receive
                     Log.i(LOG_TAG, "Incoming call listener started");
                     DatagramSocket socket = new DatagramSocket(CALL_LISTENER_PORT);
-                    socket.setSoTimeout(1000);
+                    socket.setSoTimeout(10000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
                     while (LISTEN) {
