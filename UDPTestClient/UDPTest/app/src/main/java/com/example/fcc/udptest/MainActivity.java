@@ -320,10 +320,7 @@ public class MainActivity extends Activity implements OnClickListener {
                         e.printStackTrace();
                     }
                 }
-<<<<<<< HEAD
 
-=======
->>>>>>> udpBranch
                 break;
         }
     }
