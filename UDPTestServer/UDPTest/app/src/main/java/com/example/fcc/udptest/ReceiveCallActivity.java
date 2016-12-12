@@ -3,12 +3,9 @@ package com.example.fcc.udptest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-
 import android.media.AudioManager;
-
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -157,7 +154,7 @@ public class ReceiveCallActivity extends Activity {
 
                     Log.i(LOG_TAG, "Listener started!");
                     DatagramSocket socket = new DatagramSocket(G.BROADCAST_PORT);
-                    socket.setSoTimeout(1500);
+                    socket.setSoTimeout(15000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
                     while (LISTEN) {
@@ -233,12 +230,4 @@ public class ReceiveCallActivity extends Activity {
         });
         replyThread.start();
     }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.receive_call, menu);
-        return true;
-    }
-
 }

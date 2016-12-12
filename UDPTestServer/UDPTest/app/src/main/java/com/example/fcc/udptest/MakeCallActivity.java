@@ -22,8 +22,6 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
-import static com.example.fcc.udptest.ContactManager.BROADCAST_PORT;
-
 public class MakeCallActivity extends Activity implements CompoundButton.OnCheckedChangeListener {
 
     private static final String LOG_TAG = "MakeCall";
