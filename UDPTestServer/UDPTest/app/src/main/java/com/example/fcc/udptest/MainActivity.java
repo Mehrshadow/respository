@@ -244,29 +244,8 @@ public class MainActivity extends Activity {
     }
 
 
-    public void MakeVoiceCall(String C_Name, InetAddress C_Ip) {
 
-        IN_CALL = true;
 
-        // Send this information to the MakeCallActivity and start that activity
-        Intent intent = new Intent(MainActivity.this, MakeCallActivity.class);
-        intent.putExtra(EXTRA_C_Name, C_Name);
-        intent.putExtra(EXTRA_C_Ip, C_Ip);
-        intent.putExtra(EXTRA_DISPLAYNAME, "SERVER");
-        startActivity(intent);
-    }
-
-    public void MakeVideoCall(String C_Name, InetAddress C_Ip) {
-
-        IN_VIDEO_CALL = true;
-
-        Intent i = new Intent(MainActivity.this, MakeVideoCallActivity.class);
-        i.putExtra(EXTRA_C_Name, C_Name);
-        i.putExtra(EXTRA_C_Ip, C_Ip);
-        i.putExtra(EXTRA_DISPLAYNAME, "SERVER");
-        startActivity(i);
-        ;
-    }
 
     private void refreshContacts() {
 
@@ -275,30 +254,35 @@ public class MainActivity extends Activity {
             @Override
             public void run() {
                 while (SERVER_RUNNING) {
-                    Logger.i("MainActivity", "refreshContacts","SERVER_RUNNING >> "+ SERVER_RUNNING);
+                    Logger.i("MainActivity", "refreshContacts", "SERVER_RUNNING >> " + SERVER_RUNNING);
                     // Looper.prepare();
                     Refreshing = true;
 
                     refreshRcy();
                     while (Refreshing) {
                         Logger.i("MainActivity", "refreshContacts", "Start");
-                        for (int i = 0; i < G.contactsList.size(); i++) {
-                            try {
-                                Socket socket = new Socket(G.contactsList.get(i).getC_Ip(), CheckStatus);
-                                socket.setSoTimeout(2000);
-                                if (!socket.isConnected()) {
-                                    socket.close();
-                                    G.contactsList.remove(i);
-                                }
-                                socket.close();
 
-                            } catch (SocketException e) {
-                                e.printStackTrace();
-                                Refreshing = false;
+                        for (int i = 0; i < G.contactsList.size(); i++) {
+                            Socket socket = null;
+                            try {
+                                    socket = new Socket(G.contactsList.get(i).getC_Ip(), CheckStatus);
+                                    socket.setSoTimeout(2000);
+                                    if (!socket.isConnected()) {
+                                        socket.close();
+                                        G.contactsList.remove(i);
+                                        socket.close();
+                                    }
+                                    socket.close();
+
                             } catch (IOException e) {
+                                G.contactsList.remove(i);
                                 e.printStackTrace();
-                                Refreshing = false;
                             }
+
+
+
+
+
                         }
                         Refreshing = false;
                         Logger.i("MainActivity", "refreshContacts", "Online Users >> " + G.contactsList.size());
@@ -322,7 +306,7 @@ public class MainActivity extends Activity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                RcyContactsAdapter adapter = new RcyContactsAdapter(G.contactsList);
+                RcyContactsAdapter adapter = new RcyContactsAdapter(G.contactsList,MainActivity.this);
                 rcy_contacts.setAdapter(adapter);
                 Logger.i("MainActivity", "refreshRcy", "Start");
             }
