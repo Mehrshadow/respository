@@ -246,7 +246,7 @@ public class MainActivity extends Activity {
                             Socket socket = null;
                             try {
                                 socket = new Socket(G.contactsList.get(i).getC_Ip(), CheckStatus);
-                                socket.setSoTimeout(2000);
+                                socket.setSoTimeout(1000);
                                 if (!socket.isConnected()) {
                                     socket.close();
                                     G.contactsList.remove(i);
