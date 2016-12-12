@@ -16,4 +16,5 @@ public class G extends Application {
     public static final String sendVideoPath = Environment.getExternalStorageDirectory() + "/Send_videoTest.flv";
     public static final String ReceiveVideoPath = Environment.getExternalStorageDirectory() + "/Receive_videoTest.flv";
     public static List<Contacts> contactsList = new ArrayList<>();
+    public static final int BROADCAST_PORT = 50002;
 }

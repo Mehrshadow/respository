@@ -37,6 +37,7 @@ import java.net.UnknownHostException;
 public class ReceiveVideoCallActivity extends AppCompatActivity implements View.OnClickListener, SurfaceHolder.Callback {
 
     private final static String LOG_TAG = "UDP:ReceiveVideoCall";
+    public final static String EXTRA_BUFF_SIZE = "BUFF_SIZE";
     private static final int SLEEP_TIME = 100;
     private String contactIp;
     private String displayName;
@@ -54,6 +55,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     private SurfaceHolder surfaceHolder;
     private Camera camera;
     private VideoView videoView;
+    private int Camera_Buff_Sise;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +74,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         Intent intent = getIntent();
         displayName = intent.getStringExtra(MainActivity.EXTRA_CONTACT);
         contactIp = intent.getStringExtra(MainActivity.EXTRA_IP);
+        Camera_Buff_Sise = intent.getIntExtra(EXTRA_BUFF_SIZE, 0);
 
         TextView textView = (TextView) findViewById(R.id.textViewIncomingCall);
         textView.setText("Incoming call: " + displayName);
@@ -207,7 +210,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                     Log.i(LOG_TAG, "Listener ending");
                     socket.disconnect();
                     socket.close();
-                    return;
                 } catch (SocketException e) {
 
                     Log.e(LOG_TAG, "SocketException in Listener");
@@ -317,8 +319,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         if (!receiving) {
             receiving = true;
 
-//            createReceiveVideoFileOrRecreateExiting();
-
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -326,37 +326,20 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 //                        DatagramSocket socket = new DatagramSocket(port_VideoCall);
 //                        socket.setSoTimeout(5000);
 
-                        Thread.sleep(2000);
+                        Socket socket = null;
 
                         while (receiving) {
 
-                        Log.d(LOG_TAG, "***********trying to connect to server");
-                        InetAddress address = InetAddress.getByName(contactIp);
-
-                        Socket socket = new Socket(address, port_VideoCall);
-
-                        if (socket.isConnected()) {
-                            Log.d(LOG_TAG, "************Receiver socket connected");
-                        }
-
-//                        byte[] buffer = new byte[BUF_SIZE];
-//                        int bytesSaved = 0;
+                            Log.d(LOG_TAG, "***********trying to connect to server");
+                            InetAddress address = InetAddress.getByName(contactIp);
 //
-//                        videoView.start();
+                            socket = new Socket(address, port_VideoCall);
 
-//                        Log.d(LOG_TAG, "Listening for video packets");
+                            if (socket.isConnected()) {
+                                Log.d(LOG_TAG, "************Receiver socket connected");
 
-//                            DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
-//                            socket.receive(packet);
-//                            Log.i(LOG_TAG, "Packet received from " + packet.getAddress());
-
-//                            saveReceivedVideoBytesToFile(packet.getData());
-
-//                            playReceivedVideo(socket, packet.getLength());
 //
-//                            bytesSaved += buffer.length;
-//
-//                            Log.d(LOG_TAG, bytesSaved + " bytes saved");
+                            }
                         }
 
 //                        videoView.stopPlayback();
@@ -364,13 +347,13 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 //                        socket.close();
                         receiving = false;
 
+                        socket.close();
+
                     } catch (SocketException e) {
                         receiving = false;
                         e.printStackTrace();
                     } catch (IOException e) {
                         receiving = false;
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
@@ -475,13 +458,13 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         }
     }
 
-    private void playReceivedVideo(DatagramSocket socket, int packetLength) {
+    private void playReceivedVideo(Socket socket, int packetLength) {
         try {
             MediaPlayer mediaPlayer = new MediaPlayer();
-            ParcelFileDescriptor pfd = ParcelFileDescriptor.fromDatagramSocket(socket);
+            ParcelFileDescriptor pfd = ParcelFileDescriptor.fromSocket(socket);
             Log.d(LOG_TAG, "parcel size: " + pfd.getStatSize());
 
-            mediaPlayer.setDataSource(pfd.getFileDescriptor(), 0, packetLength);
+            mediaPlayer.setDataSource(pfd.getFileDescriptor());
 
             mediaPlayer.setDisplay(surfaceHolder);
 //            mediaPlayer.prepare();

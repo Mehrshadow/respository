@@ -27,7 +27,7 @@ import java.net.UnknownHostException;
 public class ReceiveCallActivity extends Activity {
 
     private static final String LOG_TAG = "ReceiveCall";
-    private static final int BROADCAST_PORT = 50002;
+
     private static final int BUF_SIZE = 1024;
     private static final int SAMPLE_RATE = 8000; // Hertz
     private String contactIp;
@@ -156,7 +156,7 @@ public class ReceiveCallActivity extends Activity {
                 try {
 
                     Log.i(LOG_TAG, "Listener started!");
-                    DatagramSocket socket = new DatagramSocket(BROADCAST_PORT);
+                    DatagramSocket socket = new DatagramSocket(G.BROADCAST_PORT);
                     socket.setSoTimeout(1500);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
@@ -212,7 +212,9 @@ public class ReceiveCallActivity extends Activity {
                     InetAddress address = InetAddress.getByName(contactIp);
                     byte[] data = message.getBytes();
                     DatagramSocket socket = new DatagramSocket();
-                    DatagramPacket packet = new DatagramPacket(data, data.length, address, BROADCAST_PORT);
+
+                    DatagramPacket packet = new DatagramPacket(data, data.length, address, G.BROADCAST_PORT);
+
                     socket.send(packet);
                     Log.i(LOG_TAG, "Sent message( " + message + " ) to " + contactIp);
                     socket.disconnect();

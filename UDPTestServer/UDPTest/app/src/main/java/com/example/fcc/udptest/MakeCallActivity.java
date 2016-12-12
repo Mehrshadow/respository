@@ -22,10 +22,11 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
+import static com.example.fcc.udptest.ContactManager.BROADCAST_PORT;
+
 public class MakeCallActivity extends Activity implements CompoundButton.OnCheckedChangeListener {
 
     private static final String LOG_TAG = "MakeCall";
-    private static final int BROADCAST_PORT = 50002;
     private static final int BUF_SIZE = 1024;
     private String displayName;
     private String contactName;
@@ -79,9 +80,10 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         if (IN_CALL) {
 
             call.endCall();
+
+            sendMessage("END:", G.BROADCAST_PORT);
+            finish();
         }
-        sendMessage("END:", BROADCAST_PORT);
-        finish();
     }
 
     private void startListener() {
@@ -95,7 +97,8 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                 try {
 
                     Log.i(LOG_TAG, "Listener started!");
-                    DatagramSocket socket = new DatagramSocket(BROADCAST_PORT);
+
+                    DatagramSocket socket = new DatagramSocket(G.BROADCAST_PORT);
                     socket.setSoTimeout(15000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
