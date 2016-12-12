@@ -354,7 +354,8 @@ public class MainActivity extends Activity {
         return (ip & 0xFF) + "." +
                 ((ip >> 8) & 0xFF) + "." +
                 ((ip >> 16) & 0xFF) + "." +
-                "255";
+                ((ip >> 24) & 0xFF);
+
     }
 
 

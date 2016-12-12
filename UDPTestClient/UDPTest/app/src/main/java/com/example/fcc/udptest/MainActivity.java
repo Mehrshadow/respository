@@ -70,6 +70,7 @@ public class MainActivity extends Activity implements OnClickListener {
 
         initViews();
         CheckOnline();
+        Logger.i("MainActivity", "onCreate", "IP is >> " + getBroadcastIp());
 
     }
 
@@ -111,7 +112,8 @@ public class MainActivity extends Activity implements OnClickListener {
         return (ip & 0xFF) + "." +
                 ((ip >> 8) & 0xFF) + "." +
                 ((ip >> 16) & 0xFF) + "." +
-                "255";
+                ((ip >> 24) & 0xff);
+
     }
 
     private void startCallListener() {
@@ -385,7 +387,7 @@ public class MainActivity extends Activity implements OnClickListener {
                     while (BROADCAST) {
 
                         socket.send(packet);
-                        Logger.d("MainActivity", "broadcastName", "Broadcast packet sent >> name >>"+Username+" Adrs >> " + packet.getAddress().toString() +" On Port >> "+BROADCAST_PORT);
+                        Logger.d("MainActivity", "broadcastName", "Broadcast packet sent >> name >>"+Username+" Adrs >> " + packet.getAddress().toString() +"   To >> "+SERVER_IP + ":"+BROADCAST_PORT);
                         Thread.sleep(BROADCAST_INTERVAL);
                     }
                     Logger.d("MainActivity", "broadcastName", "Broadcaster ending!");
@@ -417,11 +419,13 @@ public class MainActivity extends Activity implements OnClickListener {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
+                Logger.d("MainActivity", "CheckOnline", "Start");
                 Online = true;
                 while (Online){
                     try {
                         ServerSocket serverSocket = new ServerSocket(CheckStatus);
                         Socket socket = serverSocket.accept();
+                        Logger.d("MainActivity", "CheckOnline", "Socket Accepted . . .");
                         Online = false;
                     } catch (IOException e) {
                         e.printStackTrace();

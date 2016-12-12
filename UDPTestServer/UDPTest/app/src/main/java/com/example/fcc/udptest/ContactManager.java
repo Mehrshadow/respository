@@ -39,7 +39,9 @@ public class ContactManager {
     public  void addContact(String name, InetAddress address) {
 
         //\\\\\\\\\\\\\\\\\\\\
-        Contacts contacts = new Contacts(address, name);
+        Contacts contacts = new Contacts();
+        contacts.setC_Ip(address);
+        contacts.setC_Name(name);
         for (int i =0;i<G.contactsList.size();i++){
             if(G.contactsList.get(i).getC_Ip().equals(address)){
                 G.contactsList.get(i).setC_Name(name);
