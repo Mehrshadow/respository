@@ -136,6 +136,7 @@ public class ReceiveCallActivity extends Activity {
         if (G.IN_CALL) {
 
             call.endCall();
+            G.IN_CALL = false;
         }
         sendMessage("END:");
         finish();

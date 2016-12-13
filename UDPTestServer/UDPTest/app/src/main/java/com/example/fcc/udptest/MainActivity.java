@@ -31,11 +31,9 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
     private static final int VIDEOCALL_LISTENER_PORT = 50004;
     private static final int CheckStatus = 50006;
     private static final int BUF_SIZE = 1024;
-    private String displayName;
     private boolean STARTED = false;
     private boolean Refreshing = true;
     private boolean SERVER_RUNNING = true;
-    private boolean RefreshRcy = true;
     private boolean LISTEN = false;
     private boolean LISTEN_Video = true;
 

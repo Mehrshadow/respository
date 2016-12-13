@@ -1,10 +1,13 @@
 package com.example.fcc.udptest;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -23,7 +26,7 @@ import java.net.UnknownHostException;
 
 import classes.Logger;
 
-public class MainActivity extends Activity implements OnClickListener {
+public class MainActivity extends Activity implements OnClickListener, DialogInterface.OnCancelListener {
 
     static final String LOG_TAG = "UDPchat";
     private static final int CALL_LISTENER_PORT = 50003;
@@ -49,7 +52,12 @@ public class MainActivity extends Activity implements OnClickListener {
     private String SERVER_IP;
     private String Username;
     private boolean started = false;
-
+    private boolean shouldCheckServer = true;
+    private int checkServerSleepInterval = 10;
+    private boolean isServerReachable = false;
+    private int times_server_checked = 0;
+    private ProgressDialog progressDialog;
+    private CountDownTimer countDownTimer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -271,7 +279,6 @@ public class MainActivity extends Activity implements OnClickListener {
         byeThread.start();
     }
 
-
     @Override
     public void onStop() {
 
@@ -300,7 +307,6 @@ public class MainActivity extends Activity implements OnClickListener {
         startVideoCallListener();
     }
 
-
     @Override
     public void onClick(View v) {
 
@@ -316,25 +322,26 @@ public class MainActivity extends Activity implements OnClickListener {
                 SERVER_IP = Edit_Server_Port.getText().toString();
                 if (CheckInput()) {
 
-                    startButton.setEnabled(false);
+                    if (isServerReachable) {
+                        startButton.setEnabled(false);
 
-                    startCallListener();
-                    startVideoCallListener();
-                    callButton.setVisibility(View.VISIBLE);
-                    videoCallButton.setVisibility(View.VISIBLE);
-                    Thread thread = new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                InetAddress ServerIp = InetAddress.getByName(SERVER_IP);
-                                broadcastName(Username, ServerIp);
-                            } catch (UnknownHostException e) {
-                                e.printStackTrace();
+                        startCallListener();
+                        startVideoCallListener();
+                        callButton.setVisibility(View.VISIBLE);
+                        videoCallButton.setVisibility(View.VISIBLE);
+                        Thread thread = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    InetAddress ServerIp = InetAddress.getByName(SERVER_IP);
+                                    broadcastName(Username, ServerIp);
+                                } catch (UnknownHostException e) {
+                                    e.printStackTrace();
+                                }
                             }
-                        }
-                    });
-                    thread.start();
-
+                        });
+                        thread.start();
+                    }
                 }
 
                 break;
@@ -404,49 +411,111 @@ public class MainActivity extends Activity implements OnClickListener {
     }
 
     public void broadcastName(final String Username, final InetAddress SERVER_IP) {
-        // Broadcasts the name of the device at a regular interval
-        Logger.d("MainActivity", "broadcastName", "Broadcasting started!");
-        Thread broadcastThread = new Thread(new Runnable() {
 
-            @Override
-            public void run() {
+        if (checkServerReachable()) {
+            // Broadcasts the name of the device at a regular interval
+            Logger.d("MainActivity", "broadcastName", "Broadcasting started!");
+            Thread broadcastThread = new Thread(new Runnable() {
 
-                try {
+                @Override
+                public void run() {
 
-                    String request = "ADD:" + Username;
-                    byte[] message = request.getBytes();
-                    DatagramSocket socket = new DatagramSocket();
-                    socket.setBroadcast(true);
-                    DatagramPacket packet = new DatagramPacket(message, message.length, SERVER_IP, G.CONTACTSYNC_PORT);
-                    while (BROADCAST) {
+                    try {
+
+                        String request = "ADD:" + Username;
+                        byte[] message = request.getBytes();
+                        DatagramSocket socket = new DatagramSocket();
+                        socket.setBroadcast(true);
+                        DatagramPacket packet = new DatagramPacket(message, message.length, SERVER_IP, G.CONTACTSYNC_PORT);
+//                        while (BROADCAST) {
 
                         socket.send(packet);
                         Logger.d("MainActivity", "broadcastName", "Broadcast packet sent >> name >>" + Username + " Adrs >> " + packet.getAddress().toString() + "   To >> " + SERVER_IP + ":" + G.CONTACTSYNC_PORT);
-                        Thread.sleep(BROADCAST_INTERVAL);
+//                        Thread.sleep(BROADCAST_INTERVAL);
+//                        }
+                        Logger.d("MainActivity", "broadcastName", "Broadcaster ending!");
+                        socket.disconnect();
+                        socket.close();
+                        return;
+                    } catch (SocketException e) {
+
+                        Log.e(LOG_TAG, "SocketException in broadcast: " + e);
+                        Log.i(LOG_TAG, "Broadcaster ending!");
+                        return;
+                    } catch (IOException e) {
+
+                        Log.e(LOG_TAG, "IOException in broadcast: " + e);
+                        Log.i(LOG_TAG, "Broadcaster ending!");
+                        return;
                     }
-                    Logger.d("MainActivity", "broadcastName", "Broadcaster ending!");
-                    socket.disconnect();
-                    socket.close();
-                    return;
-                } catch (SocketException e) {
-
-                    Log.e(LOG_TAG, "SocketException in broadcast: " + e);
-                    Log.i(LOG_TAG, "Broadcaster ending!");
-                    return;
-                } catch (IOException e) {
-
-                    Log.e(LOG_TAG, "IOException in broadcast: " + e);
-                    Log.i(LOG_TAG, "Broadcaster ending!");
-                    return;
-                } catch (InterruptedException e) {
-
-                    Log.e(LOG_TAG, "InterruptedException in broadcast: " + e);
-                    Log.i(LOG_TAG, "Broadcaster ending!");
-                    return;
                 }
+            });
+            broadcastThread.start();
+        } else {
+            Toast.makeText(MainActivity.this, R.string.server_not_reachable, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private boolean checkServerReachable() {
+
+        showProgressDialog();
+
+
+        while (shouldCheckServer) {
+
+            times_server_checked += 1;
+
+            try {
+
+                isServerReachable = InetAddress.getByName(SERVER_IP).isReachable(2000);
+
+                if (isServerReachable) {
+
+                    shouldCheckServer = false;
+                } else {
+
+                    int sleep_time = checkServerSleepInterval * times_server_checked;
+
+                    Thread.sleep(sleep_time);
+
+                    setCountDownTimer(sleep_time);
+
+                }
+            } catch (IOException | InterruptedException e) {
+                e.printStackTrace();
+
+                hideProgressDialog();
             }
-        });
-        broadcastThread.start();
+        }
+        hideProgressDialog();
+
+        return isServerReachable;
+    }
+
+    private void setCountDownTimer(int sleepTime) {
+        countDownTimer = new CountDownTimer(sleepTime, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                progressDialog.setMessage(getString(R.string.checkingSever) + " in " + millisUntilFinished);
+            }
+
+            @Override
+            public void onFinish() {
+            }
+        }.start();
+    }
+
+    private void showProgressDialog() {
+        progressDialog = new ProgressDialog(MainActivity.this);
+        progressDialog.setTitle(R.string.wait);
+        progressDialog.setMessage(getString(R.string.checkingSever));
+        progressDialog.setCancelable(true);
+        progressDialog.setOnCancelListener(this);
+        progressDialog.show();
+    }
+
+    private void hideProgressDialog() {
+        progressDialog.dismiss();
     }
 
     private void CheckOnline() {
@@ -473,5 +542,10 @@ public class MainActivity extends Activity implements OnClickListener {
         thread.start();
 
 
+    }
+
+    @Override
+    public void onCancel(DialogInterface dialog) {
+        shouldCheckServer = false;
     }
 }

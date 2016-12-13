@@ -30,5 +30,7 @@
     <string name="call_rejected">Call rejected</string>
     <string name="call_ended">Call ended</string>
     <string name="server_not_reachable">Server is busy. Connection failed</string>
+    <string name="wait">Please wait</string>
+    <string name="checkingSever">Checking server\'s reachability</string>
 
 </resources>

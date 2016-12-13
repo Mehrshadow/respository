@@ -75,6 +75,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         if (G.IN_CALL) {
 
             call.endCall();
+            G.IN_CALL = false;
 
             sendMessage("END:", G.BROADCAST_PORT);
             finish();
