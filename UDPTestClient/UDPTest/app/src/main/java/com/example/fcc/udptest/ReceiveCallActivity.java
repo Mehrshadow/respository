@@ -22,7 +22,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
-public class ReceiveCallActivity extends Activity {
+public class ReceiveCallActivity extends Activity implements OnClickListener {
 
     private static final String LOG_TAG = "ReceiveCall";
     private static final int BROADCAST_PORT = 50002;
@@ -33,6 +33,8 @@ public class ReceiveCallActivity extends Activity {
     private boolean LISTEN = true;
     private AudioCall call;
     AudioManager audioManager;
+    private LinearLayout linearLayout;
+    private Button endButton, rejectButton, acceptButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +42,7 @@ public class ReceiveCallActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_receive_call);
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        final LinearLayout linearLayout = (LinearLayout) findViewById(R.id.layout_call);
+        linearLayout = (LinearLayout) findViewById(R.id.layout_call);
 
 
         final ToggleButton Tgl_Speaker = (ToggleButton) findViewById(R.id.tgl_speaker);
@@ -69,66 +71,17 @@ public class ReceiveCallActivity extends Activity {
         TextView textView = (TextView) findViewById(R.id.textViewIncomingCall);
         textView.setText("Incoming call: " + contactName);
 
-        final Button endButton = (Button) findViewById(R.id.buttonEndCall1);
+        endButton = (Button) findViewById(R.id.buttonEndCall);
+        rejectButton = (Button) findViewById(R.id.buttonReject);
+        acceptButton = (Button) findViewById(R.id.buttonAccept);
         endButton.setVisibility(View.INVISIBLE);
 
+        acceptButton.setOnClickListener(this);
+        rejectButton.setOnClickListener(this);
+        endButton.setOnClickListener(this);
+
+
         startListener();
-
-        // ACCEPT BUTTON
-        Button acceptButton = (Button) findViewById(R.id.buttonAccept);
-        acceptButton.setOnClickListener(new OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-
-                try {
-                    linearLayout.setVisibility(View.INVISIBLE);
-                    // Accepting call. Send a notification and start the call
-                    sendMessage("ACC:");
-                    InetAddress address = InetAddress.getByName(contactIp);
-                    Log.i(LOG_TAG, "Calling " + address.toString());
-                    G.IN_CALL = true;
-                    call = new AudioCall(address);
-                    call.startCall();
-                    // Hide the buttons as they're not longer required
-                    Button accept = (Button) findViewById(R.id.buttonAccept);
-                    accept.setEnabled(false);
-
-                    Button reject = (Button) findViewById(R.id.buttonReject);
-                    reject.setEnabled(false);
-
-                    endButton.setVisibility(View.VISIBLE);
-                } catch (UnknownHostException e) {
-
-                    Log.e(LOG_TAG, "UnknownHostException in acceptButton: " + e);
-                } catch (Exception e) {
-
-                    Log.e(LOG_TAG, "Exception in acceptButton: " + e);
-                }
-            }
-        });
-
-        // REJECT BUTTON
-        Button rejectButton = (Button) findViewById(R.id.buttonReject);
-        rejectButton.setOnClickListener(new OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                // Send a reject notification and end the call
-                sendMessage("REJ:");
-                endCall();
-            }
-        });
-
-        // END BUTTON
-        endButton.setOnClickListener(new OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-
-                endCall();
-            }
-        });
     }
 
     private void endCall() {
@@ -237,4 +190,44 @@ public class ReceiveCallActivity extends Activity {
         return true;
     }
 
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.buttonAccept:
+                try {
+                    linearLayout.setVisibility(View.INVISIBLE);
+                    // Accepting call. Send a notification and start the call
+                    sendMessage("ACC:");
+                    InetAddress address = InetAddress.getByName(contactIp);
+                    Log.i(LOG_TAG, "Calling " + address.toString());
+                    G.IN_CALL = true;
+                    call = new AudioCall(address);
+                    call.startCall();
+                    // Hide the buttons as they're not longer required
+                    Button accept = (Button) findViewById(R.id.buttonAccept);
+                    accept.setEnabled(false);
+
+                    Button reject = (Button) findViewById(R.id.buttonReject);
+                    reject.setEnabled(false);
+
+                    endButton.setVisibility(View.VISIBLE);
+                } catch (UnknownHostException e) {
+
+                    Log.e(LOG_TAG, "UnknownHostException in acceptButton: " + e);
+                } catch (Exception e) {
+
+                    Log.e(LOG_TAG, "Exception in acceptButton: " + e);
+                }
+                break;
+
+            case R.id.buttonEndCall:
+                endCall();
+                break;
+
+            case R.id.buttonReject:
+                sendMessage("REJ:");
+                endCall();
+                break;
+        }
+    }
 }

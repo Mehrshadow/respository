@@ -72,7 +72,6 @@ public class RcyContactsAdapter extends RecyclerView.Adapter<RcyContactsHolder> 
 
     public void MakeVoiceCall(String C_Name, InetAddress C_Ip) {
 
-        G.IN_CALL = true;
 
         // Send this information to the MakeCallActivity and start that activity
         Intent intent = new Intent(context, MakeCallActivity.class);
@@ -84,7 +83,6 @@ public class RcyContactsAdapter extends RecyclerView.Adapter<RcyContactsHolder> 
 
     public void MakeVideoCall(String C_Name, InetAddress C_Ip) {
 
-        G.IN_CALL = true;
 
         Intent i = new Intent(context, MakeVideoCallActivity.class);
         i.putExtra(G.EXTRA_C_Name, C_Name);

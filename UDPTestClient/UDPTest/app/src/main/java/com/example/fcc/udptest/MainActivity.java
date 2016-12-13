@@ -12,7 +12,6 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -58,11 +57,8 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
     private boolean started = false;
 
     private boolean shouldCheckServer = true;
-    private int checkServerSleepInterval = 10 * 1000;
     private boolean isServerReachable = false;
-    private int times_server_checked = 0;
     private ProgressDialog progressDialog;
-    private CountDownTimer countDownTimer;
 
 
     TextView Txt_Username, Txt_Server_ip;
@@ -160,7 +156,6 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
                                 Intent intent = new Intent(MainActivity.this, ReceiveCallActivity.class);
                                 intent.putExtra(EXTRA_CONTACT, name);
                                 intent.putExtra(EXTRA_IP, address.substring(1, address.length()));
-                                G.IN_CALL = true;
                                 //LISTEN = false;
                                 //stopCallListener();
                                 startActivity(intent);
@@ -263,7 +258,6 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
 //        stopCallListener();
 //        stopVideoCallListener();
-
 
 
         Log.i(LOG_TAG, "App paused!");
@@ -519,18 +513,17 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
         Txt_Username.setText("UserName : " + Username);
         Txt_Server_ip.setText("Server ip : " + SERVER_IP);
-    }
-
-    private boolean CheckRunApp() {
-
-        initName_IP();
 
         if (Username.equals("0") ||
                 SERVER_IP.equals("0")) {
             Intent intent = new Intent(MainActivity.this, Settings.class);
             startActivity(intent);
-            return false;
         }
+    }
+
+    private boolean CheckRunApp() {
+
+        initName_IP();
 
         started = true;
 
