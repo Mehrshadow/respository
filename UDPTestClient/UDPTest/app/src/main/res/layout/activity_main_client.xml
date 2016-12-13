@@ -48,6 +48,13 @@
             android:layout_margin="8dp"
             android:textSize="18sp"
             android:textStyle="normal|bold" />
+
+        <Button
+            android:text="@string/connect"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/btn_main_connect"
+            android:background="@drawable/background_contacts" />
     </LinearLayout>
 
     <LinearLayout

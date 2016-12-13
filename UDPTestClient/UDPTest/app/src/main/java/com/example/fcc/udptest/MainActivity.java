@@ -2,9 +2,11 @@ package com.example.fcc.udptest;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -12,6 +14,7 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -31,6 +34,7 @@ import java.net.UnknownHostException;
 
 import classes.Logger;
 
+
 public class MainActivity extends Activity implements OnClickListener, DialogInterface.OnCancelListener {
 
     static final String LOG_TAG = "UDPchat";
@@ -49,7 +53,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
     private String contact;
     private InetAddress ip;
 
-    private Button callButton, videoCallButton, Btn_Setting;
+    private Button callButton, videoCallButton, Btn_Setting,Btn_Connect;
 
     private String SERVER_IP;
     private String Username;
@@ -78,7 +82,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
         initViews();
         CheckWifiStatus();
         CheckOnline();
-        CheckRunApp();
+       // CheckRunApp();
         Logger.i("MainActivity", "onCreate", "IP is >> " + getBroadcastIp());
 
     }
@@ -86,6 +90,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
     private void initViews() {
         callButton = (Button) findViewById(R.id.buttonCall);
         videoCallButton = (Button) findViewById(R.id.btnVideoCall);
+        Btn_Connect = (Button) findViewById(R.id.btn_main_connect);
         Btn_Setting = (Button) findViewById(R.id.btn_main_setting);
         Txt_Server_ip = (TextView) findViewById(R.id.txt_main_serverip);
         Txt_Username = (TextView) findViewById(R.id.txt_main_user);
@@ -96,6 +101,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
         callButton.setOnClickListener(this);
         videoCallButton.setOnClickListener(this);
         Btn_Setting.setOnClickListener(this);
+        Btn_Connect.setOnClickListener(this);
     }
 
     private InetAddress getBroadcastIp() {
@@ -314,7 +320,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
     @Override
     public void onRestart() {
 
-        CheckRunApp();
+       // CheckRunApp();
 
         super.onRestart();
         Log.i(LOG_TAG, "App restarted!");
@@ -351,6 +357,9 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
             case R.id.btn_main_setting:
                 Intent intent = new Intent(MainActivity.this, Settings.class);
                 startActivity(intent);
+                break;
+            case R.id.btn_main_connect :
+                CheckRunApp();
                 break;
         }
     }
@@ -432,8 +441,20 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
             times_server_checked += 1;
 
             try {
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            isServerReachable = InetAddress.getByName(SERVER_IP).isReachable(2000);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            hideProgressDialog();
+                        }
+                    }
+                });
+                thread.start();
 
-                isServerReachable = InetAddress.getByName(SERVER_IP).isReachable(2000);
+
 
                 if (isServerReachable) {
 
@@ -447,7 +468,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
                     setCountDownTimer(sleep_time);
 
                 }
-            } catch (IOException | InterruptedException e) {
+            } catch (InterruptedException e) {
                 e.printStackTrace();
 
                 hideProgressDialog();
@@ -563,4 +584,5 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
         return false;
 
     }
+
 }
