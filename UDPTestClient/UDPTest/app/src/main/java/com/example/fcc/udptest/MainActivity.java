@@ -2,9 +2,11 @@ package com.example.fcc.udptest;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -251,7 +253,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
     @Override
     public void onPause() {
-
+       // unregisterReceiver(receiver);
         super.onPause();
 
         Online = false;
@@ -343,6 +345,14 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
             G.isIPChanged = false;
         }
+    }
+
+    @Override
+    protected void onResume() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(G.BROADCAST_WIFI_STATUS);
+        registerReceiver(receiver, filter);
+        super.onResume();
     }
 
     @Override
@@ -577,5 +587,12 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
         return false;
 
     }
+
+    private BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Toast.makeText(getApplicationContext(), "received", Toast.LENGTH_SHORT);
+        }
+    };
 
 }
