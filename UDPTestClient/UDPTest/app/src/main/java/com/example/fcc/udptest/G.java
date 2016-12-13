@@ -15,4 +15,5 @@ public class G extends Application {
     public static final int CONTACTSYNC_PORT = 50001;
     public static String ServerIp = "";
     public static String UserName = "";
+    public static boolean isIPChanged = false;
 }

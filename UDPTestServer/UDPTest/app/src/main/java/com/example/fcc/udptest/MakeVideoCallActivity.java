@@ -128,7 +128,6 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
         makeVideoCall();
     }
 
-
     @Override
     protected void onStop() {
         super.onStop();

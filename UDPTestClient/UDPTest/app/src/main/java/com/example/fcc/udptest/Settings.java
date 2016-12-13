@@ -1,9 +1,8 @@
 package com.example.fcc.udptest;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -42,11 +41,19 @@ public class Settings extends AppCompatActivity implements View.OnClickListener 
         switch (v.getId()) {
 
             case R.id.btn_setting_save:
-                if (ckeckValeus()) {
+                if (checkValeus()) {
+
+                    String lastIP = G.ServerIp;
+
                     G.ServerIp = Edt_Setting_Ip.getText().toString();
                     G.UserName = Edt_Setting_name.getText().toString();
                     doSetting();
-                    Toast.makeText(getApplicationContext(),"Data Saved",Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "Data Saved", Toast.LENGTH_SHORT).show();
+
+
+                    if (!lastIP.equals(G.ServerIp)) {
+                        G.isIPChanged = true;
+                    }
                     finish();
                 }
                 break;
@@ -62,13 +69,34 @@ public class Settings extends AppCompatActivity implements View.OnClickListener 
         editor.apply();
     }
 
-    private boolean ckeckValeus() {
-        if (!Edt_Setting_Ip.getText().toString().isEmpty()
-                && !Edt_Setting_name.getText().toString().isEmpty()) {
-            return true;
+    public static boolean isNumeric(String string) {
+        for (char c : string.toCharArray()) {
+            if (c < '0' || c > '9') {
+                return false;
+            }
         }
-        Toast.makeText(getApplicationContext(),"Please Enter Info",Toast.LENGTH_LONG).show();
-        return false;
+        return true;
+    }
 
+    private boolean checkValeus() {
+        if (!Edt_Setting_Ip.getText().toString().isEmpty() && !Edt_Setting_name.getText().toString().isEmpty()) {
+            String[] splitedIP = Edt_Setting_Ip.getText().toString().split("\\.");
+            if (splitedIP.length == 4) {
+                for (int i = 0; i < splitedIP.length; i++) {
+                    if (!isNumeric(splitedIP[i]) && (splitedIP[i].length() > 3)) {
+                        Toast.makeText(getApplicationContext(), R.string.ip_not_valid, Toast.LENGTH_LONG).show();
+                        return false;
+                    }
+                }
+            } else {
+                Toast.makeText(getApplicationContext(), R.string.ip_not_valid, Toast.LENGTH_LONG).show();
+                return false;
+            }
+
+        } else {
+            Toast.makeText(getApplicationContext(), "Please Enter Info", Toast.LENGTH_LONG).show();
+            return false;
+        }
+        return true;
     }
 }

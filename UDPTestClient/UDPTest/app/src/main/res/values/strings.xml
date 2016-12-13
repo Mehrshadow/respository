@@ -33,5 +33,7 @@
     <string name="wait">Please wait</string>
     <string name="checkingSever">Checking server\'s reachability</string>
     <string name="connect">Connect</string>
+    <string name="network_not_available">Network not available</string>
+    <string name="ip_not_valid">Enter a valid ip address</string>
 
 </resources>

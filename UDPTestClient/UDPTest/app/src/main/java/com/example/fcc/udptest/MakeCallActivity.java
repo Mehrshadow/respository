@@ -50,7 +50,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         TextView textView = (TextView) findViewById(R.id.textViewCalling);
         ToggleButton btnSwtich = (ToggleButton) findViewById(R.id.toggleButton2);
         btnSwtich.setOnCheckedChangeListener(this);
-        textView.setText("Calling: " + contactName);
+        textView.setText("Calling Server: " + G.ServerIp);
 
         startListener();
         makeCall();

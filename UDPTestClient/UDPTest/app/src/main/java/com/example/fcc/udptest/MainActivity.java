@@ -2,24 +2,21 @@ package com.example.fcc.udptest;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,6 +28,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.concurrent.ExecutionException;
 
 import classes.Logger;
 
@@ -53,14 +51,14 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
     private String contact;
     private InetAddress ip;
 
-    private Button callButton, videoCallButton, Btn_Setting,Btn_Connect;
+    private Button callButton, videoCallButton, Btn_Setting, Btn_Connect;
 
     private String SERVER_IP;
     private String Username;
     private boolean started = false;
 
     private boolean shouldCheckServer = true;
-    private int checkServerSleepInterval = 10;
+    private int checkServerSleepInterval = 10 * 1000;
     private boolean isServerReachable = false;
     private int times_server_checked = 0;
     private ProgressDialog progressDialog;
@@ -80,9 +78,8 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
         preferences = getSharedPreferences("Setting", MODE_PRIVATE);
 
         initViews();
-        CheckWifiStatus();
         CheckOnline();
-       // CheckRunApp();
+        initName_IP();
         Logger.i("MainActivity", "onCreate", "IP is >> " + getBroadcastIp());
 
     }
@@ -263,8 +260,12 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
             removeContact(getBroadcastIp());
         }
-        stopCallListener();
-        stopVideoCallListener();
+
+//        stopCallListener();
+//        stopVideoCallListener();
+
+
+
         Log.i(LOG_TAG, "App paused!");
     }
 
@@ -305,6 +306,12 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
         super.onStop();
         Online = false;
         Log.i(LOG_TAG, "App stopped!");
+
+        if (started) {
+
+            removeContact(getBroadcastIp());
+        }
+
         stopCallListener();
         stopVideoCallListener();
     }
@@ -320,14 +327,22 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
     @Override
     public void onRestart() {
 
-       // CheckRunApp();
+        initName_IP();
 
         super.onRestart();
         Log.i(LOG_TAG, "App restarted!");
         G.IN_CALL = false;
+
         startCallListener();
         startVideoCallListener();
 
+        if (G.isIPChanged) {
+            Btn_Connect.setEnabled(true);
+            callButton.setVisibility(View.INVISIBLE);
+            videoCallButton.setVisibility(View.INVISIBLE);
+
+            G.isIPChanged = false;
+        }
     }
 
     @Override
@@ -358,7 +373,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
                 Intent intent = new Intent(MainActivity.this, Settings.class);
                 startActivity(intent);
                 break;
-            case R.id.btn_main_connect :
+            case R.id.btn_main_connect:
                 CheckRunApp();
                 break;
         }
@@ -388,7 +403,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
     public void broadcastName(final String Username, final InetAddress SERVER_IP) {
 
-        if (checkServerReachable()) {
+        if (isServerReachable) {
             // Broadcasts the name of the device at a regular interval
             Logger.d("MainActivity", "broadcastName", "Broadcasting started!");
             Thread broadcastThread = new Thread(new Runnable() {
@@ -432,72 +447,39 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
         }
     }
 
-    private boolean checkServerReachable() {
+    private void checkServerReachable() {
+        if (CheckWifiStatus()) {
+            AsyncTask asyncTask = new AsyncTask() {
 
-        showProgressDialog();
-
-        while (shouldCheckServer) {
-
-            times_server_checked += 1;
+                @Override
+                protected Object doInBackground(Object[] params) {
+                    try {
+                        isServerReachable = InetAddress.getByName(SERVER_IP).isReachable(2000);
+                        Logger.d("Main", "Thread", "server reachable: " + isServerReachable);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    return null;
+                }
+            };
 
             try {
-                Thread thread = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            isServerReachable = InetAddress.getByName(SERVER_IP).isReachable(2000);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            hideProgressDialog();
-                        }
-                    }
-                });
-                thread.start();
-
-
-
-                if (isServerReachable) {
-
-                    shouldCheckServer = false;
-                } else {
-
-                    int sleep_time = checkServerSleepInterval * times_server_checked;
-
-                    Thread.sleep(sleep_time);
-
-                    setCountDownTimer(sleep_time);
-
-                }
+                asyncTask.execute().get();
             } catch (InterruptedException e) {
                 e.printStackTrace();
-
-                hideProgressDialog();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
             }
         }
-        hideProgressDialog();
-
-        return isServerReachable;
-    }
-
-    private void setCountDownTimer(int sleepTime) {
-        countDownTimer = new CountDownTimer(sleepTime, 1000) {
-            @Override
-            public void onTick(long millisUntilFinished) {
-                progressDialog.setMessage(getString(R.string.checkingSever) + " in " + millisUntilFinished);
-            }
-
-            @Override
-            public void onFinish() {
-            }
-        }.start();
     }
 
     private void showProgressDialog() {
+
         progressDialog = new ProgressDialog(MainActivity.this);
         progressDialog.setTitle(R.string.wait);
         progressDialog.setMessage(getString(R.string.checkingSever));
         progressDialog.setCancelable(true);
-        progressDialog.setOnCancelListener(this);
+        progressDialog.setOnCancelListener(MainActivity.this);
         progressDialog.show();
     }
 
@@ -531,13 +513,17 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
         shouldCheckServer = false;
     }
 
-    private boolean CheckRunApp() {
-
+    private void initName_IP() {
         Username = preferences.getString("USER_NAME", "0");
         SERVER_IP = preferences.getString("SERVER_IP", "0");
 
         Txt_Username.setText("UserName : " + Username);
         Txt_Server_ip.setText("Server ip : " + SERVER_IP);
+    }
+
+    private boolean CheckRunApp() {
+
+        initName_IP();
 
         if (Username.equals("0") ||
                 SERVER_IP.equals("0")) {
@@ -548,7 +534,13 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
         started = true;
 
-        if (checkServerReachable()) {
+        showProgressDialog();
+        checkServerReachable();
+        hideProgressDialog();
+
+        if (isServerReachable) {
+
+            Btn_Connect.setEnabled(false);
 
             startCallListener();
             startVideoCallListener();
@@ -566,6 +558,8 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
                 }
             });
             thread.start();
+        } else {
+            Toast.makeText(MainActivity.this, R.string.server_not_reachable, Toast.LENGTH_SHORT).show();
         }
 
         return true;
@@ -575,11 +569,10 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo ni = cm.getActiveNetworkInfo();
         if (ni != null && ni.getType() == ConnectivityManager.TYPE_WIFI) {
-            Toast.makeText(getApplicationContext(), "Wifi On", Toast.LENGTH_LONG).show();
             Logger.i("MainActivity", "CheckWifiStatus", "Wifi On");
             return true;
         }
-        Toast.makeText(getApplicationContext(), "Turn On Wifi", Toast.LENGTH_LONG).show();
+        Toast.makeText(getApplicationContext(), R.string.network_not_available, Toast.LENGTH_LONG).show();
         Logger.i("MainActivity", "CheckWifiStatus", "Wifi Off");
         return false;
 
