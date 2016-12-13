@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    android:orientation="vertical"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_settings"
     android:layout_width="match_parent"
@@ -8,7 +10,8 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.example.fcc.udptest.Settings">
+    tools:context="com.example.fcc.udptest.Settings"
+    android:background="@drawable/background_oncall">
 
     <EditText
         android:layout_width="match_parent"
@@ -19,7 +22,9 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="151dp"
         android:id="@+id/etSettingsName"
-        android:hint="@string/settings_name_hint" />
+        android:hint="@string/settings_name_hint"
+        android:layout_gravity="center"
+        android:layout_margin="8dp" />
 
     <EditText
         android:layout_width="match_parent"
@@ -30,7 +35,15 @@
         android:id="@+id/etSetiingsServerIP"
         android:layout_below="@+id/etSettingsName"
         android:layout_centerHorizontal="true"
-        android:hint="@string/settings_server_ip" />
+        android:hint="@string/settings_server_ip"
+        android:layout_gravity="center"
+        android:layout_margin="8dp" />
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"></LinearLayout>
 
     <Button
         android:text="@string/lbl_save"
@@ -39,5 +52,9 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="85dp"
-        android:id="@+id/button" />
-</RelativeLayout>
+        android:id="@+id/btn_setting_save"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:background="@drawable/background_contacts"
+        android:layout_margin="8dp" />
+</LinearLayout>

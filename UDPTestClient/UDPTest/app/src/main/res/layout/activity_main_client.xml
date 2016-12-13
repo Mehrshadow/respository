@@ -26,43 +26,28 @@
         android:orientation="vertical"
         android:layout_margin="16dp">
 
-        <EditText
-            android:id="@+id/editText_name"
+
+        <TextView
+            android:text="TextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
-            android:inputType="textPersonName"
-            android:maxLength="15"
-            android:singleLine="true"
-            android:hint="Name">
+            android:id="@+id/txt_main_user"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:layout_margin="8dp"
+            android:textSize="18sp"
+            android:textStyle="normal|bold" />
 
-            <requestFocus />
-        </EditText>
-
-        <EditText
-            android:id="@+id/editText_ip"
+        <TextView
+            android:text="TextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
-            android:maxLength="15"
-            android:singleLine="true"
-            android:hint="Server IP"
-            android:inputType="text">
-
-            <requestFocus />
-        </EditText>
-
-
-        <Button
-            android:id="@+id/buttonStart"
-            style="?android:attr/buttonStyleSmall"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@drawable/call_end_call"
-            android:text="@string/submitName" />
+            android:id="@+id/txt_main_serverip"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:layout_margin="8dp"
+            android:textSize="18sp"
+            android:textStyle="normal|bold" />
     </LinearLayout>
 
     <LinearLayout
@@ -94,5 +79,18 @@
             android:padding="16dp"
             android:visibility="invisible" />
     </LinearLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"></LinearLayout>
+
+    <Button
+        android:text="Settings"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/btn_main_setting"
+        android:background="@drawable/background_contacts" />
 
 </LinearLayout>
