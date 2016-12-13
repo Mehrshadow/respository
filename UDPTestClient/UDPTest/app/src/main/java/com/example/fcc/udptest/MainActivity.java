@@ -1,7 +1,11 @@
 package com.example.fcc.udptest;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -10,6 +14,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -43,12 +48,16 @@ public class MainActivity extends Activity implements OnClickListener {
     private String contact;
     private InetAddress ip;
 
-    private Button startButton, callButton, videoCallButton;
-    private EditText Edit_Server_Port;
-    private EditText Edit_Username;
+    private Button  callButton, videoCallButton, Btn_Setting;
+    private EditText Edit_Server_Port,Edit_Username;
+
     private String SERVER_IP;
     private String Username;
     private boolean started = false;
+
+    TextView Txt_Username,Txt_Server_ip;
+
+    SharedPreferences preferences;
 
 
     @Override
@@ -57,23 +66,29 @@ public class MainActivity extends Activity implements OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_client);
 
+        preferences = getSharedPreferences("Setting", MODE_PRIVATE);
+
         initViews();
+        CheckWifiStatus();
         CheckOnline();
+        CheckRunApp();
         Logger.i("MainActivity", "onCreate", "IP is >> " + getBroadcastIp());
 
     }
 
     private void initViews() {
-        startButton = (Button) findViewById(R.id.buttonStart);
         callButton = (Button) findViewById(R.id.buttonCall);
         videoCallButton = (Button) findViewById(R.id.btnVideoCall);
-        Edit_Server_Port = (EditText) findViewById(R.id.editText_ip);
-        Edit_Username = (EditText) findViewById(R.id.editText_name);
+        Btn_Setting = (Button) findViewById(R.id.btn_main_setting);
+        Txt_Server_ip=(TextView)findViewById(R.id.txt_main_serverip);
+        Txt_Username = (TextView)findViewById(R.id.txt_main_user);
 
+        Txt_Username.setText(Username);
+        Txt_Server_ip.setText(SERVER_IP);
 
         callButton.setOnClickListener(this);
         videoCallButton.setOnClickListener(this);
-        startButton.setOnClickListener(this);
+        Btn_Setting.setOnClickListener(this);
     }
 
     private InetAddress getBroadcastIp() {
@@ -293,11 +308,16 @@ public class MainActivity extends Activity implements OnClickListener {
     @Override
     public void onRestart() {
 
+
+
+        CheckRunApp();
+
         super.onRestart();
         Log.i(LOG_TAG, "App restarted!");
         G.IN_CALL = false;
         startCallListener();
         startVideoCallListener();
+
     }
 
 
@@ -306,64 +326,30 @@ public class MainActivity extends Activity implements OnClickListener {
 
         switch (v.getId()) {
 
-            case R.id.buttonStart:
-
-                started = true;
-
-                Logger.d("MainActivity", "onClick", "Start button pressed");
-
-                Username = Edit_Username.getText().toString();
-                SERVER_IP = Edit_Server_Port.getText().toString();
-                if (CheckInput()) {
-
-                    startButton.setEnabled(false);
-
-                    startCallListener();
-                    startVideoCallListener();
-                    callButton.setVisibility(View.VISIBLE);
-                    videoCallButton.setVisibility(View.VISIBLE);
-                    Thread thread = new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                InetAddress ServerIp = InetAddress.getByName(SERVER_IP);
-                                broadcastName(Username, ServerIp);
-                            } catch (UnknownHostException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    });
-                    thread.start();
-
-                }
-
-                break;
 
             case R.id.btn_videocall:
-                if (CheckInput()) {
-                    SERVER_IP = Edit_Server_Port.getText().toString();
-                    Username = Edit_Username.getText().toString();
-                    try {
-                        InetAddress inetAddress = InetAddress.getByName(SERVER_IP);
-                        MakeVideoCall(Username, inetAddress);
-                    } catch (UnknownHostException e) {
-                        e.printStackTrace();
-                    }
+                try {
+                    InetAddress inetAddress = InetAddress.getByName(SERVER_IP);
+                    MakeVideoCall(Username, inetAddress);
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
                 }
                 break;
 
             case R.id.buttonCall:
-                if (CheckInput()) {
-                    SERVER_IP = Edit_Server_Port.getText().toString();
-                    Username = Edit_Username.getText().toString();
-                    try {
-                        InetAddress inetAddress = InetAddress.getByName(SERVER_IP);
-                        MakeVoiceCall(Username, inetAddress.toString().substring(1));
-                    } catch (UnknownHostException e) {
-                        e.printStackTrace();
-                    }
+
+                try {
+                    InetAddress inetAddress = InetAddress.getByName(SERVER_IP);
+                    MakeVoiceCall(Username, inetAddress.toString().substring(1));
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
                 }
 
+
+                break;
+            case R.id.btn_main_setting:
+                Intent intent = new Intent(MainActivity.this, Settings.class);
+                startActivity(intent);
                 break;
         }
     }
@@ -392,16 +378,6 @@ public class MainActivity extends Activity implements OnClickListener {
 
     }
 
-    private boolean CheckInput() {
-        if (
-                !Edit_Server_Port.getText().toString().isEmpty() &&
-                        !Edit_Username.getText().toString().isEmpty()) {
-            return true;
-        }
-        Toast.makeText(getApplicationContext(), "Please Enter your Info", Toast.LENGTH_LONG).show();
-        return false;
-
-    }
 
     public void broadcastName(final String Username, final InetAddress SERVER_IP) {
         // Broadcasts the name of the device at a regular interval
@@ -472,6 +448,61 @@ public class MainActivity extends Activity implements OnClickListener {
         });
         thread.start();
 
+
+    }
+
+    private boolean CheckRunApp() {
+
+        Username = preferences.getString("USER_NAME", "0");
+        SERVER_IP = preferences.getString("SERVER_IP", "0");
+
+        Txt_Username.setText("UserName : "+Username);
+        Txt_Server_ip.setText("Server ip : "+SERVER_IP);
+
+        if (Username.equals("0") ||
+                SERVER_IP.equals("0")) {
+            Intent intent = new Intent(MainActivity.this, Settings.class);
+            startActivity(intent);
+            return false;
+        }
+
+        started = true;
+
+
+
+        startCallListener();
+        startVideoCallListener();
+        callButton.setVisibility(View.VISIBLE);
+        videoCallButton.setVisibility(View.VISIBLE);
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    InetAddress ServerIp = InetAddress.getByName(SERVER_IP);
+                    broadcastName(Username, ServerIp);
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        thread.start();
+
+        return true;
+
+    }
+
+    private boolean CheckWifiStatus(){
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo ni = cm.getActiveNetworkInfo();
+        if (ni != null && ni.getType() == ConnectivityManager.TYPE_WIFI)
+        {
+            Toast.makeText(getApplicationContext(),"Wifi On",Toast.LENGTH_LONG).show();
+            Logger.i("MainActivity", "CheckWifiStatus", "Wifi On");
+           return true;
+        }
+        Toast.makeText(getApplicationContext(),"Turn On Wifi",Toast.LENGTH_LONG).show();
+        Logger.i("MainActivity", "CheckWifiStatus", "Wifi Off");
+        return false;
 
     }
 }

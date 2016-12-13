@@ -13,4 +13,6 @@ public class G extends Application {
     public static boolean IN_CALL = false;
     public static final int BROADCAST_PORT = 50002;
     public static final int CONTACTSYNC_PORT = 50001;
+    public static String ServerIp = "";
+    public static String UserName = "";
 }
