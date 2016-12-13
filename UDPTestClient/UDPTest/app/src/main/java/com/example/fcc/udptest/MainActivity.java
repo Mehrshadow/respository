@@ -50,7 +50,6 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
     private InetAddress ip;
 
     private Button callButton, videoCallButton, Btn_Setting;
-    private EditText Edit_Server_Port, Edit_Username;
 
     private String SERVER_IP;
     private String Username;
