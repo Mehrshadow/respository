@@ -1,12 +1,9 @@
 package com.example.fcc.udptest;
 
 import android.app.Activity;
-<<<<<<< HEAD
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
-=======
 import android.content.Context;
->>>>>>> udpBranch
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
@@ -42,9 +39,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
     private static final int BUF_SIZE = 1024;
 
     private static final int CheckStatus = 50006;
-    private static final int BROADCAST_INTERVAL = 10000; // Milliseconds
     public static boolean Online = false;
-    private boolean BROADCAST = true;
     private boolean LISTEN = false;
     private boolean LISTEN_Video = true;
 
@@ -54,26 +49,24 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
     private String contact;
     private InetAddress ip;
 
-    private Button  callButton, videoCallButton, Btn_Setting;
-    private EditText Edit_Server_Port,Edit_Username;
+    private Button callButton, videoCallButton, Btn_Setting;
+    private EditText Edit_Server_Port, Edit_Username;
 
     private String SERVER_IP;
     private String Username;
     private boolean started = false;
-<<<<<<< HEAD
+
     private boolean shouldCheckServer = true;
     private int checkServerSleepInterval = 10;
     private boolean isServerReachable = false;
     private int times_server_checked = 0;
     private ProgressDialog progressDialog;
     private CountDownTimer countDownTimer;
-=======
 
-    TextView Txt_Username,Txt_Server_ip;
+
+    TextView Txt_Username, Txt_Server_ip;
 
     SharedPreferences preferences;
-
->>>>>>> udpBranch
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,8 +88,8 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
         callButton = (Button) findViewById(R.id.buttonCall);
         videoCallButton = (Button) findViewById(R.id.btnVideoCall);
         Btn_Setting = (Button) findViewById(R.id.btn_main_setting);
-        Txt_Server_ip=(TextView)findViewById(R.id.txt_main_serverip);
-        Txt_Username = (TextView)findViewById(R.id.txt_main_user);
+        Txt_Server_ip = (TextView) findViewById(R.id.txt_main_serverip);
+        Txt_Username = (TextView) findViewById(R.id.txt_main_user);
 
         Txt_Username.setText(Username);
         Txt_Server_ip.setText(SERVER_IP);
@@ -322,8 +315,6 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
     @Override
     public void onRestart() {
 
-
-
         CheckRunApp();
 
         super.onRestart();
@@ -338,43 +329,6 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
     public void onClick(View v) {
 
         switch (v.getId()) {
-
-<<<<<<< HEAD
-            case R.id.buttonStart:
-
-                started = true;
-
-                Logger.d("MainActivity", "onClick", "Start button pressed");
-
-                Username = Edit_Username.getText().toString();
-                SERVER_IP = Edit_Server_Port.getText().toString();
-                if (CheckInput()) {
-
-                    if (isServerReachable) {
-                        startButton.setEnabled(false);
-
-                        startCallListener();
-                        startVideoCallListener();
-                        callButton.setVisibility(View.VISIBLE);
-                        videoCallButton.setVisibility(View.VISIBLE);
-                        Thread thread = new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    InetAddress ServerIp = InetAddress.getByName(SERVER_IP);
-                                    broadcastName(Username, ServerIp);
-                                } catch (UnknownHostException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        });
-                        thread.start();
-                    }
-                }
-
-                break;
-=======
->>>>>>> udpBranch
 
             case R.id.btn_videocall:
                 try {
@@ -393,7 +347,6 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
                 }
-
 
                 break;
             case R.id.btn_main_setting:
@@ -423,10 +376,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
         i.putExtra(EXTRA_IP, C_Ip);
         i.putExtra(EXTRA_DISPLAYNAME, "SERVER");
         startActivity(i);
-
-
     }
-
 
     public void broadcastName(final String Username, final InetAddress SERVER_IP) {
 
@@ -477,7 +427,6 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
     private boolean checkServerReachable() {
 
         showProgressDialog();
-
 
         while (shouldCheckServer) {
 
@@ -550,30 +499,25 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
                         Online = false;
                     } catch (IOException e) {
                         e.printStackTrace();
-
                     }
-                    //                        Thread.sleep(1000);
                 }
-
             }
         });
         thread.start();
-
-
     }
 
-<<<<<<< HEAD
     @Override
     public void onCancel(DialogInterface dialog) {
         shouldCheckServer = false;
-=======
+    }
+
     private boolean CheckRunApp() {
 
         Username = preferences.getString("USER_NAME", "0");
         SERVER_IP = preferences.getString("SERVER_IP", "0");
 
-        Txt_Username.setText("UserName : "+Username);
-        Txt_Server_ip.setText("Server ip : "+SERVER_IP);
+        Txt_Username.setText("UserName : " + Username);
+        Txt_Server_ip.setText("Server ip : " + SERVER_IP);
 
         if (Username.equals("0") ||
                 SERVER_IP.equals("0")) {
@@ -584,42 +528,40 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
         started = true;
 
+        if (checkServerReachable()) {
 
-
-        startCallListener();
-        startVideoCallListener();
-        callButton.setVisibility(View.VISIBLE);
-        videoCallButton.setVisibility(View.VISIBLE);
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    InetAddress ServerIp = InetAddress.getByName(SERVER_IP);
-                    broadcastName(Username, ServerIp);
-                } catch (UnknownHostException e) {
-                    e.printStackTrace();
+            startCallListener();
+            startVideoCallListener();
+            callButton.setVisibility(View.VISIBLE);
+            videoCallButton.setVisibility(View.VISIBLE);
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        InetAddress ServerIp = InetAddress.getByName(SERVER_IP);
+                        broadcastName(Username, ServerIp);
+                    } catch (UnknownHostException e) {
+                        e.printStackTrace();
+                    }
                 }
-            }
-        });
-        thread.start();
+            });
+            thread.start();
+        }
 
         return true;
-
     }
 
-    private boolean CheckWifiStatus(){
+    private boolean CheckWifiStatus() {
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo ni = cm.getActiveNetworkInfo();
-        if (ni != null && ni.getType() == ConnectivityManager.TYPE_WIFI)
-        {
-            Toast.makeText(getApplicationContext(),"Wifi On",Toast.LENGTH_LONG).show();
+        if (ni != null && ni.getType() == ConnectivityManager.TYPE_WIFI) {
+            Toast.makeText(getApplicationContext(), "Wifi On", Toast.LENGTH_LONG).show();
             Logger.i("MainActivity", "CheckWifiStatus", "Wifi On");
-           return true;
+            return true;
         }
-        Toast.makeText(getApplicationContext(),"Turn On Wifi",Toast.LENGTH_LONG).show();
+        Toast.makeText(getApplicationContext(), "Turn On Wifi", Toast.LENGTH_LONG).show();
         Logger.i("MainActivity", "CheckWifiStatus", "Wifi Off");
         return false;
 
->>>>>>> udpBranch
     }
 }
