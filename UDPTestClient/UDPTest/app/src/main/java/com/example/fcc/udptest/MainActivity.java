@@ -73,6 +73,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        registerReceiver(receiver,new IntentFilter(G.BROADCAST_WIFI_STATUS));
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_client);
@@ -253,21 +254,15 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
     @Override
     public void onPause() {
-       // unregisterReceiver(receiver);
+        unregisterReceiver(receiver);
         super.onPause();
-
         Online = false;
-
         if (started) {
-
             removeContact(getBroadcastIp());
         }
 
 //        stopCallListener();
 //        stopVideoCallListener();
-
-
-
         Log.i(LOG_TAG, "App paused!");
     }
 
@@ -328,7 +323,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
     @Override
     public void onRestart() {
-
+        registerReceiver(receiver,new IntentFilter(G.BROADCAST_WIFI_STATUS));
         initName_IP();
 
         super.onRestart();
@@ -349,9 +344,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
     @Override
     protected void onResume() {
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(G.BROADCAST_WIFI_STATUS);
-        registerReceiver(receiver, filter);
+        registerReceiver(receiver,new IntentFilter(G.BROADCAST_WIFI_STATUS));
         super.onResume();
     }
 
@@ -591,7 +584,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Toast.makeText(getApplicationContext(), "received", Toast.LENGTH_SHORT);
+            Toast.makeText(getApplicationContext(), "received", Toast.LENGTH_SHORT).show();
         }
     };
 
