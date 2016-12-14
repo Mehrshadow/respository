@@ -69,8 +69,6 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        registerReceiver(receiver, new IntentFilter(G.BROADCAST_WIFI_STATUS));
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_client);
 
@@ -280,7 +278,6 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
                     Log.i(LOG_TAG, "Broadcast BYE notification!");
                     socket.disconnect();
                     socket.close();
-                    return;
                 } catch (SocketException e) {
 
                     Log.e(LOG_TAG, "SocketException during BYE notification: " + e);
