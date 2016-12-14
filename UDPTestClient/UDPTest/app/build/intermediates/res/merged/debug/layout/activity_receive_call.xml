@@ -1,0 +1,84 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/LinearLayout1"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context=".ReceiveCallActivity"
+    android:background="@drawable/background_oncall">
+
+    <TextView
+        android:id="@+id/textViewIncomingCall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="@string/incomingCall"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:layout_margin="8dp" />
+
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+    </LinearLayout>
+
+    <ToggleButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/tgl_speaker"
+        android:layout_margin="8dp"
+        android:background="@drawable/toggle_background"
+        android:layout_gravity="center" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:gravity="center_horizontal"
+        android:id="@+id/layout_call">
+
+        <Button
+            android:id="@+id/buttonAccept"
+            android:background="@drawable/call_accept"
+            android:layout_margin="8dp"
+            android:layout_width="80dp"
+            android:layout_height="80dp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <Button
+            android:id="@+id/buttonReject"
+            android:layout_margin="8dp"
+            android:background="@drawable/call_reject"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginRight="24dp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal" >
+
+        <Button
+            android:id="@+id/buttonEndCall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/endCall"
+            android:background="@drawable/call_end_call"
+            android:padding="16dp" />
+
+    </LinearLayout>
+
+</LinearLayout>

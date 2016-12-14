@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<instant-run
+    abi="armeabi-v7a,armeabi"
+    api-level="21"
+    density="xxhdpi"
+    format="8"
+    plugin-version="2.2.3"
+    timestamp="528716421698794"
+    token="-6281362565709080986"
+    verifier="FULL_BUILD_REQUESTED" >
+
+    <task
+        name="javac"
+        duration="1166" />
+    <task
+        name="instant-run-dex"
+        duration="0" />
+    <task
+        name="instant-run-transform"
+        duration="824" />
+    <task
+        name="verifier"
+        duration="145" />
+
+    <artifact
+        location="C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\build\outputs\apk\app-debug.apk"
+        type="MAIN" />
+
+    <build
+        timestamp="528716421698794"
+        verifier="FULL_BUILD_REQUESTED" >
+        <artifact
+            location="C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\build\outputs\apk\app-debug.apk"
+            type="MAIN" />
+    </build>
+
+</instant-run>
