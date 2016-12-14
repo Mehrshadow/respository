@@ -135,7 +135,6 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
         stopListener();
     }
 
-
     private void initSurfaceView() {
         SurfaceView cameraView = (SurfaceView) findViewById(R.id.surfaceView);
         surfaceHolder = cameraView.getHolder();

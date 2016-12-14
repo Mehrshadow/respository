@@ -368,7 +368,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
                 startActivity(intent);
                 break;
             case R.id.btn_main_connect:
-                CheckRunApp();
+                CheckRunApp(false);
                 break;
         }
     }
@@ -521,7 +521,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
         }
     }
 
-    private boolean CheckRunApp() {
+    private boolean CheckRunApp(boolean isRunByBroadcastReceiver) {
 
         initName_IP();
 
@@ -533,7 +533,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
         if (isServerReachable) {
 
-            Btn_Connect.setEnabled(false);
+            Btn_Connect.setEnabled(isRunByBroadcastReceiver);
 
             startCallListener();
             startVideoCallListener();
