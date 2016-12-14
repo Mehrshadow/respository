@@ -2,9 +2,11 @@ package com.example.fcc.udptest;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -67,6 +69,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        registerReceiver(receiver, new IntentFilter(G.BROADCAST_WIFI_STATUS));
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_client);
@@ -246,19 +249,15 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
     @Override
     public void onPause() {
-
+        unregisterReceiver(receiver);
         super.onPause();
-
         Online = false;
-
         if (started) {
-
             removeContact(getBroadcastIp());
         }
 
 //        stopCallListener();
 //        stopVideoCallListener();
-
 
         Log.i(LOG_TAG, "App paused!");
     }
@@ -320,7 +319,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
     @Override
     public void onRestart() {
-
+        registerReceiver(receiver, new IntentFilter(G.BROADCAST_WIFI_STATUS));
         initName_IP();
 
         super.onRestart();
@@ -337,6 +336,12 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
             G.isIPChanged = false;
         }
+    }
+
+    @Override
+    protected void onResume() {
+        registerReceiver(receiver, new IntentFilter(G.BROADCAST_WIFI_STATUS));
+        super.onResume();
     }
 
     @Override
@@ -570,5 +575,12 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
         return false;
 
     }
+
+    private BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Toast.makeText(getApplicationContext(), "received", Toast.LENGTH_SHORT).show();
+        }
+    };
 
 }
