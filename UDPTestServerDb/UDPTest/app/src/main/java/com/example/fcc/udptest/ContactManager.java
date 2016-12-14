@@ -8,13 +8,9 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.util.jar.Attributes;
 
 import classes.Contacts;
-import classes.DatabaseManagement;
-import classes.DatabaseMap;
 import classes.Logger;
-import io.realm.Realm;
 
 public class ContactManager {
     private static final String LOG_TAG = "ContactManager";
@@ -38,37 +34,8 @@ public class ContactManager {
     }
 
     public void addContact(String name, InetAddress address) {
-        String ip = address.toString().substring(1);
-        DatabaseMap databaseMap = new DatabaseMap();
-        DatabaseManagement databaseManagement = new DatabaseManagement();
-        Realm realm = Realm.getInstance(G.myConfig);
+
         CheckContactExist = false;
-        databaseManagement.addContact(name,address);
-        int contactSize = realm.where(DatabaseMap.class).findAll().size();
-
-        for(int i = 0;i<contactSize;i++){
-
-        }
-
-
-       /* for (DatabaseMap Db : realm.where(DatabaseMap.class).findAll()) {
-            if (Db.getC_ip().equals(ip)) {
-                Db.setC_ip(ip);
-                CheckContactExist = true;
-                break;
-            }
-        }
-        if (!CheckContactExist) {
-            databaseManagement.addContact(name,address);
-          *//*  Contacts contacts = new Contacts();
-            contacts.setC_Ip(address);
-            contacts.setC_Name(name);
-            G.contactsList.add(contacts);*//*
-            Logger.d("ContactManager", "addContact", "Add >> Name = " + name + " & Ip = " + address);
-        }*/
-        Logger.d("ContactManager", "addContact", "Already Exist  >> Name = " + name + " & Ip = " + address);
-
-      /*  CheckContactExist = false;
 
         for (int i = 0; i < G.contactsList.size(); i++) {
 
@@ -88,30 +55,26 @@ public class ContactManager {
             Logger.d("ContactManager", "addContact", "Add >> Name = " + name + " & Ip = " + address);
         }
         Logger.d("ContactManager", "addContact", "Already Exist  >> Name = " + name + " & Ip = " + address);
-*/
+
 
     }
 
     public void removeContact(String name, InetAddress address) {
-        String ip = address.toString().substring(1);
-        DatabaseManagement databaseManagement = new DatabaseManagement();
-        Realm realm = Realm.getInstance(G.myConfig);
-        CheckContactExist = false;
-        for (DatabaseMap Db : realm.where(DatabaseMap.class).findAll()) {
-            if (Db.getC_ip().equals(address)) {
-                Db.setC_ip(ip);
+        for (int i = 0; i < G.contactsList.size(); i++) {
+
+            if (G.contactsList.get(i).getC_Ip().equals(address)) {
                 CheckContactExist = true;
                 break;
-
             }
         }
         if (!CheckContactExist) {
-            DatabaseMap databaseMap = new DatabaseMap();
-            databaseMap.setC_Name(name);
-            databaseMap.setC_ip(ip);
-            databaseManagement.removeContact(databaseMap);
-            Logger.d("ContactManager", "addContact", "Add >> Name = " + name + " & Ip = " + address);
+            Contacts contacts = new Contacts();
+            contacts.setC_Ip(address);
+            contacts.setC_Name(name);
+            G.contactsList.remove(contacts);
+            Logger.d("ContactManager", "remove contact", "remove >> Name = " + name + " & Ip = " + address);
         }
+        Logger.d("ContactManager", "Remove failed", "Already Exist  >> Name = " + name + " & Ip = " + address);
 
     }
 
@@ -165,7 +128,7 @@ public class ContactManager {
 
                         iRefreshRecycler.OnRefresh();
 
-                        //Logger.d("ContactManager", "listen | listen", "Users >> " + G.contactsList.size());
+                        Logger.d("ContactManager", "listen | listen", "Users >> " + G.contactsList.size());
 
                     } else if (action.equals("BYE:")) {
                         // Bye notification received. Attempt to remove contact

@@ -9,6 +9,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 
+import com.facebook.stetho.inspector.protocol.module.Database;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -19,13 +20,12 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
+import classes.Contacts;
 import classes.DatabaseManagement;
 import classes.DatabaseMap;
 import classes.Logger;
 import classes.RcyContactsAdapter;
 import io.realm.Realm;
-
-import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 
 import static com.example.fcc.udptest.G.EXTRA_C_Ip;
@@ -45,20 +45,16 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
     private boolean LISTEN_Video = true;
 
     private RecyclerView rcy_contacts;
-    Realm realm;
 
     ContactManager contactManager = new ContactManager();
+    DatabaseManagement databaseManagement = new DatabaseManagement();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-
+        Realm.init(getApplicationContext());
         setContentView(R.layout.activity_main_server);
-
-        initRealm();
-
-
         Logger.i("MainActivity", "onCreate", "onCreate");
 
         initViews();
@@ -69,15 +65,31 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
         startVideoCallListener();
         Logger.i("MainActivity", "onCreate", "IP is >> " + getBroadcastIp());
 
+        initRealm();
 
     }
 
     private void initRealm() {
 
-        Realm.init(getApplicationContext());
+        Realm mRealm = Realm.getInstance(G.myConfig);
+        for (DatabaseMap Db : mRealm.where(DatabaseMap.class).findAll()) {
+            Contacts contacts = new Contacts();
+            try {
+                InetAddress address = InetAddress.getByName(Db.getC_ip());
+                contacts.setC_Ip(address);
+                contacts.setC_Name(Db.getC_Name());
+                G.contactsList.add(contacts);
+                Logger.i("MainActivity", "initRealm", "Add from Db to List >> "+ Db.getC_Name() +" "+Db.getC_ip() );
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
 
 
-        realm = Realm.getInstance(G.myConfig);
+        }
+        mRealm.beginTransaction();
+        RealmResults<DatabaseMap> results = mRealm.where(DatabaseMap.class).findAll();
+        results.deleteAllFromRealm();
+        mRealm.commitTransaction();
     }
 
     private void initViews() {
@@ -91,15 +103,6 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
 
 
         Logger.i("MainActivity", "initViews", "Done");
-
-
-        try {
-            InetAddress inetAddress = InetAddress.getByName("192.168.1.48");
-            DatabaseManagement databaseManagement = new DatabaseManagement();
-            databaseManagement.addContact("name", inetAddress);
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
 
     }
 
@@ -220,16 +223,31 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+
+
+    }
+
+    @Override
     public void onPause() {
 
         super.onPause();
         Log.i(LOG_TAG, "App paused!");
         SERVER_RUNNING = false;
         contactManager.stopListening();
+        stopCallListener();
+        stopVideoCallListener();
     }
 
     @Override
     public void onStop() {
+
+        for (int i = 0; i < G.contactsList.size(); i++) {
+            databaseManagement.addContact(G.contactsList.get(i).getC_Name()
+                    , G.contactsList.get(i).getC_Ip());
+            Logger.i("MainActivity", "initRealm", "Add from List to Db >> "+ G.contactsList.get(i).getC_Name() +" "+G.contactsList.get(i).getC_Ip() );
+        }
 
         super.onStop();
         Log.i(LOG_TAG, "App stopped!");
@@ -263,9 +281,6 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
     }
 
     private void refreshContacts() {
-        final DatabaseManagement databaseManagement = new DatabaseManagement();
-
-
 
         Thread CheckStatusThread = new Thread(new Runnable() {
 
@@ -273,46 +288,35 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
             public void run() {
                 while (SERVER_RUNNING) {
                     Logger.i("MainActivity", "refreshContacts", "SERVER_RUNNING >> " + SERVER_RUNNING);
+                    // Looper.prepare();
                     Refreshing = true;
 
                     refreshRcy();
                     while (Refreshing) {
-                        Realm.init(getApplicationContext());
-                        final Realm realm = Realm.getInstance(G.myConfig);
                         Logger.i("MainActivity", "refreshContacts", "Start");
-                        for (DatabaseMap Db : realm.where(DatabaseMap.class).findAll()) {
-                            // Logger.i("MainActivity", "refreshContacts", "Online Users >> " + );
-                            try {
-                                InetAddress C_address = InetAddress.getByName(Db.getC_ip());
-                                Socket socket = new Socket();
-                                Logger.i("MainActivity", "refreshContacts", "try to connect >> "+C_address +" : "+CheckStatus);
-                                socket.connect(new InetSocketAddress(C_address, CheckStatus), 1000);
 
+                        for (int i = 0; i < G.contactsList.size(); i++) {
+                            Socket socket = new Socket();
+                            try {
+                                socket.connect(new InetSocketAddress(G.contactsList.get(i).getC_Ip(), CheckStatus), 1000);
 
                                 if (!socket.isConnected()) {
                                     socket.close();
-                                    DatabaseMap map = new DatabaseMap();
-                                    map.setC_Name(Db.getC_Name());
-                                    map.setC_ip(Db.getC_ip());
-                                    databaseManagement.removeContact(map);
-                                    //G.contactsList.remove(i);
+                                    G.contactsList.remove(i);
+
                                     refreshRcy();
                                 }
                                 socket.close();
 
                             } catch (IOException e) {
-                                DatabaseMap map = new DatabaseMap();
-                                map.setC_Name(Db.getC_Name());
-                                map.setC_ip(Db.getC_ip());
-                                databaseManagement.removeContact(map);
-                                //G.contactsList.remove(i);
+                                G.contactsList.remove(i);
                                 refreshRcy();
 
                                 e.printStackTrace();
                             }
                         }
                         Refreshing = false;
-
+                        Logger.i("MainActivity", "refreshContacts", "Online Users >> " + G.contactsList.size());
                         try {
                             Thread.sleep(5000);
                         } catch (InterruptedException e) {
@@ -333,17 +337,9 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                try {
-
-                    RealmResults<DatabaseMap> results = realm.where(DatabaseMap.class).findAll();
-                    RcyContactsAdapter adapter = new RcyContactsAdapter(results, MainActivity.this);
-                    rcy_contacts.setAdapter(adapter);
-                    Logger.i("MainActivity", "refreshRcy", "Start");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-
+                RcyContactsAdapter adapter = new RcyContactsAdapter(G.contactsList, MainActivity.this);
+                rcy_contacts.setAdapter(adapter);
+                Logger.i("MainActivity", "refreshRcy", "Start");
             }
         });
     }
@@ -381,9 +377,4 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
         refreshRcy();
     }
 
-    @Override
-    protected void onResume() {
-        Realm.init(getApplicationContext());
-        super.onResume();
-    }
 }

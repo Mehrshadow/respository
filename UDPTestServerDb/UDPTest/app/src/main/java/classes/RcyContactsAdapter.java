@@ -14,10 +14,7 @@ import com.example.fcc.udptest.MakeVideoCallActivity;
 import com.example.fcc.udptest.R;
 
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.List;
-
-import io.realm.RealmResults;
 
 /**
  * Created by HaMiD on 12/10/2016.
@@ -25,12 +22,11 @@ import io.realm.RealmResults;
 
 public class RcyContactsAdapter extends RecyclerView.Adapter<RcyContactsHolder> {
 
-    RealmResults<DatabaseMap> contactsList;
-   //List<Contacts> contactsList;
+    List<Contacts> contactsList;
     MainActivity mainActivity = new MainActivity();
     Context context;
 
-    public RcyContactsAdapter(RealmResults<DatabaseMap> contactList, Context context) {
+    public RcyContactsAdapter(List<Contacts> contactList, Context context) {
 
         this.contactsList = contactList;
         this.context = context;
@@ -46,17 +42,14 @@ public class RcyContactsAdapter extends RecyclerView.Adapter<RcyContactsHolder> 
 
     @Override
     public void onBindViewHolder(RcyContactsHolder holder, final int position) {
-        try {
-            final InetAddress address = InetAddress.getByName(contactsList.get(position).getC_ip());
-
 
         holder.Txt_C_Name.setText(contactsList.get(position).getC_Name());
 
         holder.Btn_VoiceCall.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                MakeVoiceCall(contactsList.get(position).getC_Name(), address);
-                Logger.i("RcyContactsAdapter", "onBindViewHolder", "Send MakeVoiceCall Req to >> " +address);
+                MakeVoiceCall(contactsList.get(position).getC_Name(), contactsList.get(position).getC_Ip());
+                Logger.i("RcyContactsAdapter", "onBindViewHolder", "Send MakeVoiceCall Req to >> " + contactsList.get(position).getC_Ip());
             }
         });
 
@@ -64,14 +57,11 @@ public class RcyContactsAdapter extends RecyclerView.Adapter<RcyContactsHolder> 
             @Override
             public void onClick(View v) {
 
-                MakeVideoCall(contactsList.get(position).getC_Name(),address);
-                Logger.i("RcyContactsAdapter", "onBindViewHolder", "Send MakeVideoCall Req to >> " + address);
+                MakeVideoCall(contactsList.get(position).getC_Name(), contactsList.get(position).getC_Ip());
+                Logger.i("RcyContactsAdapter", "onBindViewHolder", "Send MakeVideoCall Req to >> " + contactsList.get(position).getC_Ip());
 
             }
         });
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
 
     }
 
