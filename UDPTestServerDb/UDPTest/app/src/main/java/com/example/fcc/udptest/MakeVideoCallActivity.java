@@ -4,8 +4,10 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.ImageFormat;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
 import android.hardware.Camera;
-import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Bundle;
@@ -21,14 +23,18 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
-import java.io.BufferedOutputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
@@ -40,7 +46,7 @@ import static com.example.fcc.udptest.ContactManager.LISTEN;
 
 public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Callback, View.OnClickListener {
 
-    private static final String LOG_TAG = "UDP:MakeVideoCall";
+    private static final String LOG_TAG = "MakeVideoCall";
 
     private String contactIp;
     private String displayName;
@@ -55,7 +61,9 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
     private DatagramSocket socket;
     private DatagramPacket packet;
     private CameraPreview cameraPreview;
-
+    private int frameWidth, frameHeight, frameLength;
+    private byte[] frameData;
+    private boolean isSending = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,8 +114,30 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
 
     Camera.PreviewCallback previewCb = new Camera.PreviewCallback() {
         public void onPreviewFrame(byte[] data, Camera camera) {
+
+            Camera.Parameters parameters = camera.getParameters();
+            int format = parameters.getPreviewFormat();
+
+            //YUV formats require more conversion
+            if (format == ImageFormat.NV21 /*|| format == ImageFormat.YUY2 || format == ImageFormat.NV16*/) {
+                frameWidth = parameters.getPreviewSize().width;
+                frameHeight = parameters.getPreviewSize().height;
+                // Get the YuV image
+                YuvImage yuv_image = new YuvImage(data, format, frameWidth, frameHeight, null);
+
+                // Compress and Convert YuV to Jpeg
+                compress_YUVImage(yuv_image);
+
+            }
         }
     };
+
+    private void compress_YUVImage(YuvImage yuvImage) {
+        Rect rect = new Rect(0, 0, frameWidth, frameHeight);
+        ByteArrayOutputStream output_stream = new ByteArrayOutputStream();
+        yuvImage.compressToJpeg(rect, 50, output_stream);
+        frameData = output_stream.toByteArray();/** data is ready to send */
+    }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -179,24 +209,6 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
         }
     }
 
-    private void startRecorder() {
-
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
-        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
-        CamcorderProfile cpHigh = CamcorderProfile.get(CamcorderProfile.QUALITY_LOW);
-        mediaRecorder.setProfile(cpHigh);
-        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        mediaRecorder.setOutputFile(writeFD.getFileDescriptor());
-
-        try {
-            mediaRecorder.prepare();
-            mediaRecorder.start();
-            Log.d(LOG_TAG, "Media recorder started");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     private void stopRecorder() {
         try {
             releaseCamera();
@@ -253,8 +265,9 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
 
                                 Log.d(LOG_TAG, "video call accepted");
 
-                                sendVideo(socket);
-
+//                                Send Introduce and Listen to incoming value
+                                sendFrameIntoduceData(socket);
+                                startFrameIntroduceAcceptedListener();
 
                             } else if (action.equals("REJ:")) {
                                 // Reject notification received. End call
@@ -355,21 +368,142 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
         LISTEN = false;
     }
 
-    private void sendVideo(DatagramSocket socket) {
-        Logger.d(LOG_TAG, "Send video", "send video started");
+    private void sendFrameIntoduceData(final DatagramSocket datagramSocket) {
 
-        connectFPDToSocket(socket);
+        // Creates the thread for sending frames
+        isSending = true;
 
-        startRecorder();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                try {
+                    int byteSent = 0;
+
+                    String frameGSONData = getFrameGSONData();
+
+                    Socket socket = new Socket(datagramSocket.getInetAddress(), G.INTRODUCE_PORT);
+                    socket.setSoTimeout(10 * 1000);
+
+                    DataOutputStream writer = (DataOutputStream) socket.getOutputStream();
+
+                    if (socket.isConnected()) {
+
+                        writer.writeBytes(frameGSONData);
+
+                        byteSent += frameLength;
+
+                        Logger.d(LOG_TAG, "frame length sent: ", byteSent + "");
+
+                        socket.close();
+
+                        isSending = false;
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    isSending = false;
+                    socket.close();
+                }
+            }
+        }).start();
     }
 
-    private void connectFPDToSocket(DatagramSocket socket) {
-        writeFD = ParcelFileDescriptor.fromDatagramSocket(socket);
+    private void startFrameIntroduceAcceptedListener() {
+        new Thread(new Runnable() {
+
+            ServerSocket serverSocket;
+            Socket socket;
+
+            @Override
+            public void run() {
+                try {
+                    serverSocket = new ServerSocket(G.INTRODUCE_PORT);
+
+                    socket = serverSocket.accept();
+                    socket.setSoTimeout(10 * 1000);
+
+                    byte[] buf = new byte[1024];
+                    int bytesRead;
+
+                    DataInputStream is = (DataInputStream) socket.getInputStream();
+
+                    for (int i = 0; i < buf.length; i++) {
+
+                        bytesRead = is.read(buf, 0, buf.length);
+                        Logger.d(LOG_TAG, "startFrameIntroduceAcceptedListener", "Introduce bytes read: " + bytesRead);
+                    }
+
+                    String recievedValue = new String(buf);
+                    Logger.d(LOG_TAG, "startFrameIntroduceAcceptedListener", "ReceivedValue: " + recievedValue);
+
+                    socket.close();
+                    serverSocket.close();
+
+                    if (recievedValue.equals("OK")) {
+                        sendFrameData();
+                    }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    private void sendFrameData() {
+
+        isSending = true;
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                try {
+                    int byteSent = 0;
+
+                    String frameGSONData = getFrameGSONData();
+
+                    Socket socket = new Socket(datagramSocket.getInetAddress(), G.INTRODUCE_PORT);
+                    socket.setSoTimeout(10 * 1000);
+
+                    DataOutputStream writer = (DataOutputStream) socket.getOutputStream();
+
+                    if (socket.isConnected()) {
+
+                        writer.writeBytes(frameGSONData);
+
+                        byteSent += frameLength;
+
+                        Logger.d(LOG_TAG, "frame length sent: ", byteSent + "");
+
+                        socket.close();
+
+                        isSending = false;
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    isSending = false;
+                    socket.close();
+                }
+            }
+        }).start();
+    }
+
+    private String getFrameGSONData() {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("Width", frameWidth);
+            jsonObject.put("Height", frameHeight);
+            jsonObject.put("Size", frameLength);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return jsonObject.toString();
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        prepareRecorder();
     }
 
     @Override
@@ -390,38 +524,6 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
         } catch (Exception e) {
             Log.e(LOG_TAG, "Surface destroyed");
             e.printStackTrace();
-        }
-    }
-
-    private void prepareRecorder() {
-        Log.d(LOG_TAG, "preparing recorder");
-        mediaRecorder.setPreviewDisplay(surfaceHolder.getSurface());
-
-        /*try {
-            mediaRecorder.prepare();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        Log.d(LOG_TAG, "recorder prepare done");*/
-    }
-
-    private void saveReceivedVideoBytesToFile(byte[] data) {
-        Log.d(LOG_TAG, "saving bytes to file");
-
-        BufferedOutputStream bos = null;
-        try {
-            bos = new BufferedOutputStream(new FileOutputStream(G.ReceiveVideoPath));
-
-            bos.write(data);
-            bos.flush();
-            bos.close();
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            Log.d(LOG_TAG, "saving to file failed!!");
-        } catch (IOException e) {
-            e.printStackTrace();
-            Log.d(LOG_TAG, "saving to file failed!!");
         }
     }
 

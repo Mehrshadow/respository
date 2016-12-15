@@ -72,7 +72,7 @@
         android:gravity="center_horizontal" >
 
         <Button
-            android:id="@+id/buttonEndCall"
+            android:id="@+id/buttonEndCall1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/endCall"
