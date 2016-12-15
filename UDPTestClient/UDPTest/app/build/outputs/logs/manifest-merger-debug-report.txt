@@ -1,158 +1,158 @@
 -- Merging decision tree log ---
 manifest
-ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:2:1-55:12
+ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:2:1-55:12
 	package
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:3:5-38
-		INJECTED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml
-		INJECTED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:3:5-38
+		INJECTED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml
 	android:versionName
-		INJECTED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml
-		INJECTED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml
 	xmlns:android
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:2:11-69
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:2:11-69
 	android:versionCode
-		INJECTED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml
-		INJECTED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml
 uses-permission#android.permission.INTERNET
-ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:5:5-67
+ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:5:5-67
 	android:name
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:5:22-64
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:5:22-64
 uses-permission#android.permission.RECORD_AUDIO
-ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:6:5-71
+ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:6:5-71
 	android:name
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:6:22-68
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:6:22-68
 uses-permission#android.permission.ACCESS_WIFI_STATE
-ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:7:5-76
+ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:7:5-76
 	android:name
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:7:22-73
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:7:22-73
 uses-permission#android.permission.MODIFY_AUDIO_SETTINGS
-ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:8:5-80
+ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:8:5-80
 	android:name
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:8:22-77
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:8:22-77
 uses-permission#android.permission.VIBRATE
-ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:9:5-66
+ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:9:5-66
 	android:name
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:9:22-63
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:9:22-63
 uses-permission#android.permission.CAMERA
-ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:10:5-65
+ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:10:5-65
 	android:name
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:10:22-62
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:10:22-62
 uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
-ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:11:5-81
+ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:11:5-81
 	android:name
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:11:22-78
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:11:22-78
 uses-permission#android.permission.READ_EXTERNAL_STORAGE
-ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:12:5-80
+ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:12:5-80
 	android:name
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:12:22-77
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:12:22-77
 uses-permission#android.permission.WAKE_LOCK
-ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:13:5-68
+ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:13:5-68
 	android:name
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:13:22-65
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:13:22-65
 uses-permission#android.permission.ACCESS_NETWORK_STATE
-ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:14:5-78
+ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:14:5-78
 	android:name
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:14:22-76
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:14:22-76
 uses-permission#android.permission.CHANGE_WIFI_STATE
-ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:15:5-75
+ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:15:5-75
 	android:name
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:15:22-73
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:15:22-73
 uses-feature#android.hardware.camera
-ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:17:5-60
+ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:17:5-60
 	android:name
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:17:19-57
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:17:19-57
 uses-feature#android.hardware.camera.front
-ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:18:5-66
+ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:18:5-66
 	android:name
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:18:19-63
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:18:19-63
 uses-feature#android.hardware.camera.autofocus
-ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:19:5-70
+ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:19:5-70
 	android:name
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:19:19-67
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:19:19-67
 application
-ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:21:5-53:19
-MERGED from [com.android.support:appcompat-v7:24.0.0-alpha1] C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support\appcompat-v7\24.0.0-alpha1\AndroidManifest.xml:25:5-20
-MERGED from [com.android.support:animated-vector-drawable:24.0.0-alpha1] C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support\animated-vector-drawable\24.0.0-alpha1\AndroidManifest.xml:22:5-20
-MERGED from [com.android.support:support-vector-drawable:24.0.0-alpha1] C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support\support-vector-drawable\24.0.0-alpha1\AndroidManifest.xml:23:5-20
-MERGED from [com.android.support:support-v4:24.0.0-alpha1] C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support\support-v4\24.0.0-alpha1\AndroidManifest.xml:22:5-20
-MERGED from [com.android.support.test:runner:0.5] C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support.test\runner\0.5\AndroidManifest.xml:24:5-20
-MERGED from [com.android.support.test:exposed-instrumentation-api-publish:0.5] C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support.test\exposed-instrumentation-api-publish\0.5\AndroidManifest.xml:24:5-20
-MERGED from [com.android.support.test.espresso:espresso-idling-resource:2.2.2] C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support.test.espresso\espresso-idling-resource\2.2.2\AndroidManifest.xml:24:5-20
+ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:21:5-53:19
+MERGED from [com.android.support:appcompat-v7:24.0.0-alpha1] C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support\appcompat-v7\24.0.0-alpha1\AndroidManifest.xml:25:5-20
+MERGED from [com.android.support:animated-vector-drawable:24.0.0-alpha1] C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support\animated-vector-drawable\24.0.0-alpha1\AndroidManifest.xml:22:5-20
+MERGED from [com.android.support:support-vector-drawable:24.0.0-alpha1] C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support\support-vector-drawable\24.0.0-alpha1\AndroidManifest.xml:23:5-20
+MERGED from [com.android.support:support-v4:24.0.0] C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support\support-v4\24.0.0\AndroidManifest.xml:25:5-20
+MERGED from [com.android.support.test:runner:0.5] C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support.test\runner\0.5\AndroidManifest.xml:24:5-20
+MERGED from [com.android.support.test:exposed-instrumentation-api-publish:0.5] C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support.test\exposed-instrumentation-api-publish\0.5\AndroidManifest.xml:24:5-20
+MERGED from [com.android.support.test.espresso:espresso-idling-resource:2.2.2] C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support.test.espresso\espresso-idling-resource\2.2.2\AndroidManifest.xml:24:5-20
 	android:label
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:24:9-41
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:24:9-41
 	android:supportsRtl
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:25:9-35
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:25:9-35
 	android:allowBackup
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:22:9-35
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:22:9-35
 	android:icon
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:23:9-43
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:23:9-43
 	android:theme
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:26:9-59
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:26:9-59
 activity#com.example.fcc.udptest.MainActivity
-ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:29:9-36:20
+ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:29:9-36:20
 	android:screenOrientation
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:31:13-49
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:31:13-49
 	android:name
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:30:13-41
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:30:13-41
 intent-filter#android.intent.action.MAIN+android.intent.category.LAUNCHER
-ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:32:13-35:29
+ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:32:13-35:29
 action#android.intent.action.MAIN
-ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:33:17-69
+ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:33:17-69
 	android:name
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:33:25-66
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:33:25-66
 category#android.intent.category.LAUNCHER
-ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:34:17-77
+ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:34:17-77
 	android:name
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:34:27-74
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:34:27-74
 activity#com.example.fcc.udptest.MakeCallActivity
-ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:38:9-40:52
+ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:38:9-40:52
 	android:screenOrientation
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:40:13-49
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:40:13-49
 	android:name
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:39:13-45
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:39:13-45
 activity#com.example.fcc.udptest.ReceiveCallActivity
-ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:41:9-43:52
+ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:41:9-43:52
 	android:screenOrientation
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:43:13-49
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:43:13-49
 	android:name
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:42:13-48
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:42:13-48
 activity#com.example.fcc.udptest.MakeVideoCallActivity
-ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:44:9-47:52
+ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:44:9-47:52
 	android:screenOrientation
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:47:13-49
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:47:13-49
 	android:configChanges
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:46:13-48
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:46:13-48
 	android:name
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:45:13-50
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:45:13-50
 activity#com.example.fcc.udptest.ReceiveVideoCallActivity
-ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:48:9-51:52
+ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:48:9-51:52
 	android:screenOrientation
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:51:13-49
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:51:13-49
 	android:configChanges
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:50:13-48
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:50:13-48
 	android:name
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:49:13-53
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:49:13-53
 activity#com.example.fcc.udptest.Settings
-ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:52:9-55
+ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:52:9-55
 	android:name
-		ADDED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:52:19-43
+		ADDED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml:52:19-43
 uses-sdk
-INJECTED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
-MERGED from [com.android.support:appcompat-v7:24.0.0-alpha1] C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support\appcompat-v7\24.0.0-alpha1\AndroidManifest.xml:21:5-23:78
-MERGED from [com.android.support:animated-vector-drawable:24.0.0-alpha1] C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support\animated-vector-drawable\24.0.0-alpha1\AndroidManifest.xml:20:5-44
-MERGED from [com.android.support:support-vector-drawable:24.0.0-alpha1] C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support\support-vector-drawable\24.0.0-alpha1\AndroidManifest.xml:21:5-43
-MERGED from [com.android.support:recyclerview-v7:24.0.0-alpha1] C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support\recyclerview-v7\24.0.0-alpha1\AndroidManifest.xml:20:5-43
-MERGED from [com.android.support:support-v4:24.0.0-alpha1] C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support\support-v4\24.0.0-alpha1\AndroidManifest.xml:20:5-43
-MERGED from [com.android.support.test.espresso:espresso-core:2.2.2] C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support.test.espresso\espresso-core\2.2.2\AndroidManifest.xml:20:5-22:41
-MERGED from [com.android.support.test:rules:0.5] C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support.test\rules\0.5\AndroidManifest.xml:5:5-7:41
-MERGED from [com.android.support.test:runner:0.5] C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support.test\runner\0.5\AndroidManifest.xml:20:5-22:41
-MERGED from [com.android.support.test:exposed-instrumentation-api-publish:0.5] C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support.test\exposed-instrumentation-api-publish\0.5\AndroidManifest.xml:20:5-22:41
-MERGED from [com.android.support.test.espresso:espresso-idling-resource:2.2.2] C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support.test.espresso\espresso-idling-resource\2.2.2\AndroidManifest.xml:20:5-22:41
+INJECTED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
+MERGED from [com.android.support:appcompat-v7:24.0.0-alpha1] C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support\appcompat-v7\24.0.0-alpha1\AndroidManifest.xml:21:5-23:78
+MERGED from [com.android.support:animated-vector-drawable:24.0.0-alpha1] C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support\animated-vector-drawable\24.0.0-alpha1\AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-vector-drawable:24.0.0-alpha1] C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support\support-vector-drawable\24.0.0-alpha1\AndroidManifest.xml:21:5-43
+MERGED from [com.android.support:recyclerview-v7:24.0.0] C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support\recyclerview-v7\24.0.0\AndroidManifest.xml:20:5-43
+MERGED from [com.android.support:support-v4:24.0.0] C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support\support-v4\24.0.0\AndroidManifest.xml:21:5-23:54
+MERGED from [com.android.support.test.espresso:espresso-core:2.2.2] C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support.test.espresso\espresso-core\2.2.2\AndroidManifest.xml:20:5-22:41
+MERGED from [com.android.support.test:rules:0.5] C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support.test\rules\0.5\AndroidManifest.xml:5:5-7:41
+MERGED from [com.android.support.test:runner:0.5] C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support.test\runner\0.5\AndroidManifest.xml:20:5-22:41
+MERGED from [com.android.support.test:exposed-instrumentation-api-publish:0.5] C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support.test\exposed-instrumentation-api-publish\0.5\AndroidManifest.xml:20:5-22:41
+MERGED from [com.android.support.test.espresso:espresso-idling-resource:2.2.2] C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support.test.espresso\espresso-idling-resource\2.2.2\AndroidManifest.xml:20:5-22:41
 	tools:overrideLibrary
-		ADDED from [com.android.support:appcompat-v7:24.0.0-alpha1] C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support\appcompat-v7\24.0.0-alpha1\AndroidManifest.xml:23:9-75
+		ADDED from [com.android.support:appcompat-v7:24.0.0-alpha1] C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\build\intermediates\exploded-aar\com.android.support\appcompat-v7\24.0.0-alpha1\AndroidManifest.xml:23:9-75
 	android:targetSdkVersion
-		INJECTED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml
-		INJECTED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml
 	android:minSdkVersion
-		INJECTED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml
-		INJECTED from C:\Users\FCC\Desktop\respository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml
+		INJECTED from C:\Users\HaMiD\Desktop\GitRepository\UDPTestClient\UDPTest\app\src\main\AndroidManifest.xml

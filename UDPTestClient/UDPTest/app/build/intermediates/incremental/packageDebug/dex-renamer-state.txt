@@ -1,7 +1,4 @@
-#Wed Dec 14 11:58:46 IRST 2016
-base.0=C\:\\Users\\FCC\\Desktop\\respository\\UDPTestClient\\UDPTest\\app\\build\\intermediates\\transforms\\dex\\debug\\folders\\1000\\10\\instant-run-bootstrap_180e7a34a68438249e53519719368dede6d9032a
-renamed.1=classes2.dex
+#Wed Dec 14 17:22:06 IRST 2016
+base.0=C\:\\Users\\HaMiD\\Desktop\\GitRepository\\UDPTestClient\\UDPTest\\app\\build\\intermediates\\transforms\\dex\\debug\\folders\\1000\\1f\\main
 renamed.0=classes.dex
-file.1=C\:\\Users\\FCC\\Desktop\\respository\\UDPTestClient\\UDPTest\\app\\build\\intermediates\\transforms\\dex\\debug\\folders\\1000\\10\\instant-run_8329a7a6b1941f6b14de835688ab8bae27299f50\\classes.dex
-base.1=C\:\\Users\\FCC\\Desktop\\respository\\UDPTestClient\\UDPTest\\app\\build\\intermediates\\transforms\\dex\\debug\\folders\\1000\\10\\instant-run_8329a7a6b1941f6b14de835688ab8bae27299f50
-file.0=C\:\\Users\\FCC\\Desktop\\respository\\UDPTestClient\\UDPTest\\app\\build\\intermediates\\transforms\\dex\\debug\\folders\\1000\\10\\instant-run-bootstrap_180e7a34a68438249e53519719368dede6d9032a\\classes.dex
+file.0=C\:\\Users\\HaMiD\\Desktop\\GitRepository\\UDPTestClient\\UDPTest\\app\\build\\intermediates\\transforms\\dex\\debug\\folders\\1000\\1f\\main\\classes.dex

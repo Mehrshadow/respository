@@ -1751,7 +1751,7 @@ containing a value of this type.
     }
     public static final class id {
         public static final int LinearLayout1=0x7f0b0055;
-        public static final int action0=0x7f0b006f;
+        public static final int action0=0x7f0b0070;
         public static final int action_bar=0x7f0b0046;
         public static final int action_bar_activity_content=0x7f0b0000;
         public static final int action_bar_container=0x7f0b0045;
@@ -1760,16 +1760,16 @@ containing a value of this type.
         public static final int action_bar_subtitle=0x7f0b0026;
         public static final int action_bar_title=0x7f0b0025;
         public static final int action_context_bar=0x7f0b0047;
-        public static final int action_divider=0x7f0b0073;
+        public static final int action_divider=0x7f0b0074;
         public static final int action_menu_divider=0x7f0b0002;
         public static final int action_menu_presenter=0x7f0b0003;
         public static final int action_mode_bar=0x7f0b0043;
         public static final int action_mode_bar_stub=0x7f0b0042;
         public static final int action_mode_close_button=0x7f0b0027;
-        public static final int action_settings=0x7f0b007f;
+        public static final int action_settings=0x7f0b0080;
         public static final int activity_chooser_view_content=0x7f0b0028;
         public static final int activity_receive_video_call=0x7f0b0062;
-        public static final int activity_settings=0x7f0b006b;
+        public static final int activity_settings=0x7f0b006c;
         public static final int add=0x7f0b0014;
         public static final int alertTitle=0x7f0b0034;
         public static final int always=0x7f0b001e;
@@ -1778,17 +1778,18 @@ containing a value of this type.
         public static final int btnVideoCall=0x7f0b005b;
         public static final int btn_main_connect=0x7f0b0059;
         public static final int btn_main_setting=0x7f0b005c;
-        public static final int btn_setting_save=0x7f0b006e;
-        public static final int btn_videocall=0x7f0b007c;
-        public static final int btn_voicecall=0x7f0b007d;
+        public static final int btn_setting_save=0x7f0b006f;
+        public static final int btn_videocall=0x7f0b007d;
+        public static final int btn_voicecall=0x7f0b007e;
         public static final int buttonAccept=0x7f0b0069;
         public static final int buttonCall=0x7f0b005a;
         public static final int buttonEndCall=0x7f0b0061;
+        public static final int buttonEndCall1=0x7f0b006b;
         public static final int buttonPanel=0x7f0b002f;
         public static final int buttonReject=0x7f0b006a;
-        public static final int cancel_action=0x7f0b0070;
+        public static final int cancel_action=0x7f0b0071;
         public static final int checkbox=0x7f0b003d;
-        public static final int chronometer=0x7f0b0076;
+        public static final int chronometer=0x7f0b0077;
         public static final int collapseActionView=0x7f0b001f;
         public static final int contactName=0x7f0b0063;
         public static final int contentPanel=0x7f0b0035;
@@ -1799,9 +1800,9 @@ containing a value of this type.
         public static final int disableHome=0x7f0b000d;
         public static final int edit_query=0x7f0b0048;
         public static final int end=0x7f0b001c;
-        public static final int end_padder=0x7f0b007b;
-        public static final int etSetiingsServerIP=0x7f0b006d;
-        public static final int etSettingsName=0x7f0b006c;
+        public static final int end_padder=0x7f0b007c;
+        public static final int etSetiingsServerIP=0x7f0b006e;
+        public static final int etSettingsName=0x7f0b006d;
         public static final int expand_activities_button=0x7f0b0029;
         public static final int expanded_menu=0x7f0b003c;
         public static final int home=0x7f0b0004;
@@ -1809,14 +1810,14 @@ containing a value of this type.
         public static final int icon=0x7f0b002d;
         public static final int ifRoom=0x7f0b0020;
         public static final int image=0x7f0b002a;
-        public static final int info=0x7f0b007a;
+        public static final int info=0x7f0b007b;
         public static final int item_touch_helper_previous_elevation=0x7f0b0005;
         public static final int layout_call=0x7f0b0068;
-        public static final int line1=0x7f0b0074;
-        public static final int line3=0x7f0b0078;
+        public static final int line1=0x7f0b0075;
+        public static final int line3=0x7f0b0079;
         public static final int listMode=0x7f0b000a;
         public static final int list_item=0x7f0b002c;
-        public static final int media_actions=0x7f0b0072;
+        public static final int media_actions=0x7f0b0073;
         public static final int middle=0x7f0b001d;
         public static final int multiply=0x7f0b0015;
         public static final int never=0x7f0b0021;
@@ -1851,26 +1852,26 @@ containing a value of this type.
         public static final int src_atop=0x7f0b0017;
         public static final int src_in=0x7f0b0018;
         public static final int src_over=0x7f0b0019;
-        public static final int status_bar_latest_event_content=0x7f0b0071;
+        public static final int status_bar_latest_event_content=0x7f0b0072;
         public static final int submenuarrow=0x7f0b0040;
         public static final int submit_area=0x7f0b0051;
         public static final int surfaceView=0x7f0b0064;
         public static final int tabMode=0x7f0b000c;
-        public static final int text=0x7f0b0079;
-        public static final int text2=0x7f0b0077;
+        public static final int text=0x7f0b007a;
+        public static final int text2=0x7f0b0078;
         public static final int textSpacerNoButtons=0x7f0b0038;
         public static final int textViewCalling=0x7f0b005f;
         public static final int textViewEnterName=0x7f0b0056;
         public static final int textViewIncomingCall=0x7f0b0066;
         public static final int textViewSelectContact=0x7f0b005d;
         public static final int tgl_speaker=0x7f0b0067;
-        public static final int time=0x7f0b0075;
+        public static final int time=0x7f0b0076;
         public static final int title=0x7f0b002e;
         public static final int title_template=0x7f0b0033;
         public static final int toggleButton2=0x7f0b0060;
         public static final int top=0x7f0b0024;
         public static final int topPanel=0x7f0b0032;
-        public static final int txt_c_name=0x7f0b007e;
+        public static final int txt_c_name=0x7f0b007f;
         public static final int txt_main_serverip=0x7f0b0058;
         public static final int txt_main_user=0x7f0b0057;
         public static final int up=0x7f0b0009;
@@ -5650,12 +5651,14 @@ containing a value of this type.
            <colgroup align="left" />
            <colgroup align="left" />
            <tr><th>Attribute</th><th>Description</th></tr>
+           <tr><td><code>{@link #RecyclerView_android_descendantFocusability android:descendantFocusability}</code></td><td></td></tr>
            <tr><td><code>{@link #RecyclerView_android_orientation android:orientation}</code></td><td></td></tr>
            <tr><td><code>{@link #RecyclerView_layoutManager com.example.fcc.udptest:layoutManager}</code></td><td></td></tr>
            <tr><td><code>{@link #RecyclerView_reverseLayout com.example.fcc.udptest:reverseLayout}</code></td><td></td></tr>
            <tr><td><code>{@link #RecyclerView_spanCount com.example.fcc.udptest:spanCount}</code></td><td></td></tr>
            <tr><td><code>{@link #RecyclerView_stackFromEnd com.example.fcc.udptest:stackFromEnd}</code></td><td></td></tr>
            </table>
+           @see #RecyclerView_android_descendantFocusability
            @see #RecyclerView_android_orientation
            @see #RecyclerView_layoutManager
            @see #RecyclerView_reverseLayout
@@ -5663,9 +5666,15 @@ containing a value of this type.
            @see #RecyclerView_stackFromEnd
          */
         public static final int[] RecyclerView = {
-            0x010100c4, 0x7f0100b1, 0x7f0100b2, 0x7f0100b3,
-            0x7f0100b4
+            0x010100c4, 0x010100f1, 0x7f0100b1, 0x7f0100b2,
+            0x7f0100b3, 0x7f0100b4
         };
+        /**
+          <p>This symbol is the offset where the {@link android.R.attr#descendantFocusability}
+          attribute's value can be found in the {@link #RecyclerView} array.
+          @attr name android:descendantFocusability
+        */
+        public static final int RecyclerView_android_descendantFocusability = 1;
         /**
           <p>This symbol is the offset where the {@link android.R.attr#orientation}
           attribute's value can be found in the {@link #RecyclerView} array.
@@ -5685,7 +5694,7 @@ theme attribute (in the form
 containing a value of this type.
           @attr name com.example.fcc.udptest:layoutManager
         */
-        public static final int RecyclerView_layoutManager = 1;
+        public static final int RecyclerView_layoutManager = 2;
         /**
           <p>This symbol is the offset where the {@link com.example.fcc.udptest.R.attr#reverseLayout}
           attribute's value can be found in the {@link #RecyclerView} array.
@@ -5699,7 +5708,7 @@ theme attribute (in the form
 containing a value of this type.
           @attr name com.example.fcc.udptest:reverseLayout
         */
-        public static final int RecyclerView_reverseLayout = 3;
+        public static final int RecyclerView_reverseLayout = 4;
         /**
           <p>This symbol is the offset where the {@link com.example.fcc.udptest.R.attr#spanCount}
           attribute's value can be found in the {@link #RecyclerView} array.
@@ -5713,7 +5722,7 @@ theme attribute (in the form
 containing a value of this type.
           @attr name com.example.fcc.udptest:spanCount
         */
-        public static final int RecyclerView_spanCount = 2;
+        public static final int RecyclerView_spanCount = 3;
         /**
           <p>This symbol is the offset where the {@link com.example.fcc.udptest.R.attr#stackFromEnd}
           attribute's value can be found in the {@link #RecyclerView} array.
@@ -5727,7 +5736,7 @@ theme attribute (in the form
 containing a value of this type.
           @attr name com.example.fcc.udptest:stackFromEnd
         */
-        public static final int RecyclerView_stackFromEnd = 4;
+        public static final int RecyclerView_stackFromEnd = 5;
         /** Attributes that can be used with a SearchView.
            <p>Includes the following attributes:</p>
            <table>
