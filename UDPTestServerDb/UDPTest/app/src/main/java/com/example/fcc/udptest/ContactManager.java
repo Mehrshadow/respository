@@ -18,7 +18,6 @@ public class ContactManager {
     private static final int BROADCAST_BUF_SIZE = 1024;
     private boolean CheckContactExist = false;
     public static boolean LISTEN = true;
-    private InetAddress broadcastIP;
     private IRefreshRecycler iRefreshRecycler;
 
     public interface IRefreshRecycler{
