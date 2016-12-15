@@ -14,7 +14,6 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -60,11 +59,8 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
     private boolean started = false;
 
     private boolean shouldCheckServer = true;
-    private int checkServerSleepInterval = 10 * 1000;
     private boolean isServerReachable = false;
-    private int times_server_checked = 0;
     private ProgressDialog progressDialog;
-    private CountDownTimer countDownTimer;
 
 
     TextView Txt_Username, Txt_Server_ip;

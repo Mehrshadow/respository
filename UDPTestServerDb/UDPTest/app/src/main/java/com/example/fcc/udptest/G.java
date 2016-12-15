@@ -25,6 +25,7 @@ public class G extends Application {
     public static final int BROADCAST_PORT = 50002;
     public static final int CONTACTSYNC_PORT = 50001; // Socket on which packets are sent/received
     public static final int INTRODUCE_PORT = 60001; // Socket on which frame dimension and sizes are sent
+    public static final int VIDEO_CALL_PORT = 60000;
     public static boolean IN_CALL = false;
 
     public final static String EXTRA_C_Name = "CNAME";
@@ -40,7 +41,7 @@ public class G extends Application {
     public void onCreate() {
         super.onCreate();
 
-      //  Realm.init(getApplicationContext());
+        //  Realm.init(getApplicationContext());
 
         Stetho.initialize(
                 Stetho.newInitializerBuilder(this)

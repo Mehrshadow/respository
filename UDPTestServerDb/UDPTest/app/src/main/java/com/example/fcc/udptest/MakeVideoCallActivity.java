@@ -11,7 +11,6 @@ import android.hardware.Camera;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.ParcelFileDescriptor;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.SurfaceHolder;
@@ -26,6 +25,7 @@ import android.widget.VideoView;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -57,13 +57,13 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
     private static final int BUF_SIZE = 1024;
     private Camera camera = null;
     private Button buttonEndCall;
-    private ParcelFileDescriptor writeFD;
     private DatagramSocket socket;
     private DatagramPacket packet;
     private CameraPreview cameraPreview;
-    private int frameWidth, frameHeight, frameLength;
+    private int mFrameWidth, mFrameHeight, mFrameLength;
     private byte[] frameData;
     private boolean isSending = false;
+    private Camera.Parameters parameters;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,24 +84,8 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
         buttonEndCall = (Button) findViewById(R.id.buttonEndCall);
         buttonEndCall.setOnClickListener(this);
 
-        camera = getCameraInstance();
-
-        cameraPreview = new CameraPreview(MakeVideoCallActivity.this, camera, mediaRecorder, previewCb);
-
-        mediaRecorder = new MediaRecorder();
 
         initSurfaceView();
-
-    }
-
-    private void initViewVideo() {
-        videoView = (VideoView) findViewById(R.id.videoView);
-        videoView.setVideoURI(Uri.parse(G.ReceiveVideoPath));
-
-        MediaController mc = new MediaController(this);
-        videoView.setMediaController(mc);
-
-        Log.d(LOG_TAG, "VideoView initialized");
     }
 
     private void releaseCamera() {
@@ -115,15 +99,16 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
     Camera.PreviewCallback previewCb = new Camera.PreviewCallback() {
         public void onPreviewFrame(byte[] data, Camera camera) {
 
-            Camera.Parameters parameters = camera.getParameters();
+            parameters = camera.getParameters();
+
             int format = parameters.getPreviewFormat();
 
             //YUV formats require more conversion
             if (format == ImageFormat.NV21 /*|| format == ImageFormat.YUY2 || format == ImageFormat.NV16*/) {
-                frameWidth = parameters.getPreviewSize().width;
-                frameHeight = parameters.getPreviewSize().height;
+                mFrameWidth = parameters.getPreviewSize().width;
+                mFrameHeight = parameters.getPreviewSize().height;
                 // Get the YuV image
-                YuvImage yuv_image = new YuvImage(data, format, frameWidth, frameHeight, null);
+                YuvImage yuv_image = new YuvImage(data, format, mFrameWidth, mFrameHeight, null);
 
                 // Compress and Convert YuV to Jpeg
                 compress_YUVImage(yuv_image);
@@ -133,7 +118,7 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
     };
 
     private void compress_YUVImage(YuvImage yuvImage) {
-        Rect rect = new Rect(0, 0, frameWidth, frameHeight);
+        Rect rect = new Rect(0, 0, mFrameWidth, mFrameHeight);
         ByteArrayOutputStream output_stream = new ByteArrayOutputStream();
         yuvImage.compressToJpeg(rect, 50, output_stream);
         frameData = output_stream.toByteArray();/** data is ready to send */
@@ -143,7 +128,6 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             releaseCamera();
-            stopRecorder();
         }
         return super.onKeyDown(keyCode, event);
     }
@@ -209,19 +193,6 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
         }
     }
 
-    private void stopRecorder() {
-        try {
-            releaseCamera();
-
-            writeFD.close();
-            mediaRecorder.stop();
-            mediaRecorder.release();
-        } catch (Exception e) {
-            Log.e(LOG_TAG, "Error in Stop Recorder");
-            e.printStackTrace();
-        }
-    }
-
     private boolean checkCameraHardware(Context context) {
         if (context.getPackageManager().hasSystemFeature(
                 PackageManager.FEATURE_CAMERA)) {
@@ -266,7 +237,7 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
                                 Log.d(LOG_TAG, "video call accepted");
 
 //                                Send Introduce and Listen to incoming value
-                                sendFrameIntoduceData(socket);
+                                sendFrameIntroduceData(socket);
                                 startFrameIntroduceAcceptedListener();
 
                             } else if (action.equals("REJ:")) {
@@ -351,14 +322,19 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
         // Ends the chat sessions
         Log.d(LOG_TAG, "end call");
 
-        stopRecorder();
-
         stopListener();
+
+        StopSendingFrames();
 
         sendMessage("END:", G.BROADCAST_PORT);
 
-
         finish();
+    }
+
+    private void StopSendingFrames() {
+        isSending = false;
+
+        releaseCamera();
     }
 
     private void stopListener() {
@@ -368,7 +344,7 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
         LISTEN = false;
     }
 
-    private void sendFrameIntoduceData(final DatagramSocket datagramSocket) {
+    private void sendFrameIntroduceData(final DatagramSocket datagramSocket) {
 
         // Creates the thread for sending frames
         isSending = true;
@@ -383,7 +359,7 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
                     String frameGSONData = getFrameGSONData();
 
                     Socket socket = new Socket(datagramSocket.getInetAddress(), G.INTRODUCE_PORT);
-                    socket.setSoTimeout(10 * 1000);
+                    socket.setSoTimeout(2 * 1000);
 
                     DataOutputStream writer = (DataOutputStream) socket.getOutputStream();
 
@@ -391,9 +367,9 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
 
                         writer.writeBytes(frameGSONData);
 
-                        byteSent += frameLength;
+                        byteSent += mFrameLength;
 
-                        Logger.d(LOG_TAG, "frame length sent: ", byteSent + "");
+                        Logger.d(LOG_TAG, "bytes sent: ", byteSent + "");
 
                         socket.close();
 
@@ -440,7 +416,11 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
                     serverSocket.close();
 
                     if (recievedValue.equals("OK")) {
-                        sendFrameData();
+
+                        startCameraPreview();
+
+                        // Client is ready to receive the frames... so send it!
+                        sendFrameData(socket.getInetAddress());
                     }
 
                 } catch (IOException e) {
@@ -450,9 +430,17 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
         }).start();
     }
 
-    private void sendFrameData() {
+    private void startCameraPreview() {
+        camera = getCameraInstance();
+
+        cameraPreview = new CameraPreview(MakeVideoCallActivity.this, camera, mediaRecorder, previewCb);
+    }
+
+    private void sendFrameData(final InetAddress inetAddress) {
 
         isSending = true;
+
+        Logger.d(LOG_TAG, "Frame rate is: ", parameters.getPreviewFrameRate() + "");
 
         new Thread(new Runnable() {
             @Override
@@ -461,25 +449,25 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
                 try {
                     int byteSent = 0;
 
-                    String frameGSONData = getFrameGSONData();
+                    Socket socket = new Socket(inetAddress, G.VIDEO_CALL_PORT);
+                    socket.setSoTimeout(5 * 1000);
 
-                    Socket socket = new Socket(datagramSocket.getInetAddress(), G.INTRODUCE_PORT);
-                    socket.setSoTimeout(10 * 1000);
-
-                    DataOutputStream writer = (DataOutputStream) socket.getOutputStream();
+                    BufferedOutputStream os = (BufferedOutputStream) socket.getOutputStream();
 
                     if (socket.isConnected()) {
+                        while (isSending) {
 
-                        writer.writeBytes(frameGSONData);
+                            os.write(frameData);
 
-                        byteSent += frameLength;
+                            byteSent += mFrameLength;
 
-                        Logger.d(LOG_TAG, "frame length sent: ", byteSent + "");
-
-                        socket.close();
-
-                        isSending = false;
+                            Logger.d(LOG_TAG, "frame length sent: ", byteSent + "");
+                        }
                     }
+
+                    socket.close();
+                    isSending = false;
+
                 } catch (IOException e) {
                     e.printStackTrace();
                     isSending = false;
@@ -492,9 +480,9 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
     private String getFrameGSONData() {
         JSONObject jsonObject = new JSONObject();
         try {
-            jsonObject.put("Width", frameWidth);
-            jsonObject.put("Height", frameHeight);
-            jsonObject.put("Size", frameLength);
+            jsonObject.put("Width", mFrameWidth);
+            jsonObject.put("Height", mFrameHeight);
+            jsonObject.put("Size", mFrameLength);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -512,19 +500,7 @@ public class MakeVideoCallActivity extends Activity implements SurfaceHolder.Cal
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        Log.d(LOG_TAG, "surface destroyed");
-        try {
-
-//            if (recording) {
-////                mediaRecorder.stop();
-//                recording = false;
-//            }
-
-            mediaRecorder.release();
-        } catch (Exception e) {
-            Log.e(LOG_TAG, "Surface destroyed");
-            e.printStackTrace();
-        }
+        Log.e(LOG_TAG, "Surface destroyed");
     }
 
     @Override
