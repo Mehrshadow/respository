@@ -351,14 +351,16 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                 public void run() {
                     try {
                         ServerSocket serverSocket = new ServerSocket(G.VIDEO_CALL_PORT);
-                        Socket socket = serverSocket.accept();
-                        socket.setSoTimeout(5000);
+
+                        //socket.setSoTimeout(5000);
 
                         while (receiving) {
+                            Socket socket = serverSocket.accept();
                             if (socket.isConnected()) {
                                 byte[] buff = new byte[mFrameBuffSize];
                                 InputStream inputStream = socket.getInputStream();
                                 int count = inputStream.read(buff);
+                                Logger.d("ReceiveVideoCallActivity", "receiveVideo", "buff size >> " + count);
                                 previewBitmap(buff);
                             }
                         }
@@ -504,14 +506,14 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                     socket = serverSocket.accept();
                     Logger.d("ReceiveVideoCallActivity", "introListener", "Socket Connected");
                     socket.setSoTimeout(2000);
-                    bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream(),"UTF-8"));
+                    bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
                     String read = bufferedReader.readLine();
                     JSONObject jsonObject = new JSONObject(read);
                     mFrameWidth = jsonObject.getInt("Width");
                     mFrameHeight = jsonObject.getInt("Height");
                     mFrameBuffSize = jsonObject.getInt("Size");
                     Logger.d("ReceiveVideoCallActivity", "introListener", "Received Data " +
-                            ">> width ="+ mFrameWidth +
+                            ">> width =" + mFrameWidth +
                             " height = " + mFrameHeight +
                             " buffSize = " + mFrameBuffSize);
                     socket.close();
