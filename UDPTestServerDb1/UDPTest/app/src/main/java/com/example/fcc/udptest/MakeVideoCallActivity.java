@@ -5,11 +5,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.os.Bundle;
+import android.renderscript.Allocation;
+import android.renderscript.Element;
+import android.renderscript.RenderScript;
+import android.renderscript.ScriptIntrinsicYuvToRGB;
+import android.renderscript.Type;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.SurfaceHolder;
@@ -22,7 +27,6 @@ import android.widget.Toast;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -36,7 +40,6 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
 
 import classes.CameraPreview;
 import classes.Logger;
@@ -63,7 +66,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private Camera.Parameters parameters;
     private FrameLayout cameraView;
     private InetAddress address;
-
+    private boolean shouldSendVideo = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,27 +103,39 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
             parameters = camera.getParameters();
             int format = parameters.getPreviewFormat();
+            parameters.setPreviewFrameRate(1);
 
-            byte[] resized = resizeImage(data);
-            mFrameLength = resized.length;
-
-
-
-           /* //YUV formats require more conversion
+            //YUV formats require more conversion
             if (format == ImageFormat.NV21 || format == ImageFormat.YUY2 || format == ImageFormat.NV16) {
                 mFrameWidth = parameters.getPreviewSize().width;
                 mFrameHeight = parameters.getPreviewSize().height;
-                mFrameLength = data.length;
+//                mFrameLength = data.length;
 
-                Logger.d("MakeVideoCall", "PreviewCB", "Width: " + mFrameWidth + " Height: " + mFrameHeight);
+                byte[] resized = resizeImage(data);
+                mFrameLength = resized.length;
 
-                // Get the YuV image
-                YuvImage yuv_image = new YuvImage(data, format, mFrameWidth, mFrameHeight, null);
+//                Logger.d("MakeVideoCall", "PreviewCB", "Width: " + mFrameWidth + " Height: " + mFrameHeight);
+//
+//                 Get the YuV image
+//                YuvImage yuv_image = new YuvImage(data, format, mFrameWidth, mFrameHeight, null);
+//
+//                 Compress and Convert YuV to Jpeg
+//                compress_YUVImage(yuv_image);
+            }
+            if (shouldSendVideo) {
 
-                // Compress and Convert YuV to Jpeg
-                compress_YUVImage(yuv_image);
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
 
-            }*/
+                Logger.d(LOG_TAG, "OnPreviewFrame", "sending frames started...");
+
+                sendFrameData();
+
+                Logger.d(LOG_TAG, "sendFrameData", "sleep");
+            }
         }
     };
 
@@ -132,14 +147,19 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     }
 
     byte[] resizeImage(byte[] input) {
-        Bitmap original = BitmapFactory.decodeByteArray(input, 0, input.length);
 
-        Bitmap resized = Bitmap.createScaledBitmap(original, parameters.getPreviewSize().width / 10, parameters.getPreviewSize().height / 10, true);
+        Bitmap original = previewBitmap(input);
 
-        ByteArrayOutputStream blob = new ByteArrayOutputStream();
-        resized.compress(Bitmap.CompressFormat.JPEG, 50, blob);
+//        Bitmap original = BitmapFactory.decodeByteArray(input, 0, input.length);
 
-        return blob.toByteArray();
+        Bitmap resized = Bitmap.createScaledBitmap(original, original.getWidth() / 100, original.getHeight() / 100, true);
+
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        resized.compress(Bitmap.CompressFormat.JPEG, 50, os);
+
+        frameData = os.toByteArray();/** data is ready to send */
+
+        return os.toByteArray();
     }
 
     @Override
@@ -279,6 +299,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
                         } catch (IOException e) {
                             Log.e(LOG_TAG, e.toString());
+                            e.printStackTrace();
                             endCall();
                         }
                     }
@@ -290,6 +311,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                 } catch (SocketException e) {
 
                     Log.e(LOG_TAG, e.toString());
+                    e.printStackTrace();
                     endCall();
                 }
             }
@@ -321,12 +343,15 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                 } catch (UnknownHostException e) {
 
                     Log.e(LOG_TAG, "Failure. UnknownHostException in sendMessage: " + contactIp);
+                    e.printStackTrace();
                 } catch (SocketException e) {
 
                     Log.e(LOG_TAG, "Failure. SocketException in sendMessage: " + e);
+                    e.printStackTrace();
                 } catch (IOException e) {
 
                     Log.e(LOG_TAG, "Failure. IOException in sendMessage: " + e);
+                    e.printStackTrace();
                 }
             }
         });
@@ -434,7 +459,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                     if (receivedValue.equals("OK")) {
 
                         // Client is ready to receive the frames... so send it!
-                        sendFrameData();
+                        shouldSendVideo = true;
                     }
 
                 } catch (Exception e) {
@@ -467,20 +492,21 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                     Socket socket = new Socket(address, G.VIDEO_CALL_PORT);
                     socket.setSoTimeout(5 * 1000);
 
-                    BufferedOutputStream os = (BufferedOutputStream) socket.getOutputStream();
+                    OutputStream os = socket.getOutputStream();
 
                     if (socket.isConnected()) {
-                        while (isSending) {
 
-                            os.write(frameData);
+                        os.write(frameData);
 
-                            byteSent += mFrameLength;
+                        byteSent += frameData.length;
 
-                            Logger.d(LOG_TAG, "frame length sent: ", byteSent + "");
-                        }
+                        Logger.d(LOG_TAG, "frame length sent: ", byteSent + "");
+
+
                     }
 
                     socket.close();
+
                     isSending = false;
 
                 } catch (IOException e) {
@@ -503,6 +529,38 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         }
 
         return jsonObject.toString();
+    }
+
+    private Bitmap previewBitmap(byte[] data) {
+        Logger.d("ReceiveVideoCallActivity", "previewBitmap", "Start");
+
+        Bitmap bitmap = Bitmap.createBitmap(mFrameWidth, mFrameHeight, Bitmap.Config.ARGB_8888);
+
+        Allocation bmData = renderScriptNV21ToRGBA888(
+                getApplicationContext(),
+                mFrameWidth,
+                mFrameHeight,
+                data);
+        bmData.copyTo(bitmap);
+
+        return bitmap;
+    }
+
+    public Allocation renderScriptNV21ToRGBA888(Context context, int width, int height, byte[] nv21) {
+        RenderScript rs = RenderScript.create(context);
+        ScriptIntrinsicYuvToRGB yuvToRgbIntrinsic = ScriptIntrinsicYuvToRGB.create(rs, Element.U8_4(rs));
+
+        Type.Builder yuvType = new Type.Builder(rs, Element.U8(rs)).setX(nv21.length);
+        Allocation in = Allocation.createTyped(rs, yuvType.create(), Allocation.USAGE_SCRIPT);
+
+        Type.Builder rgbaType = new Type.Builder(rs, Element.RGBA_8888(rs)).setX(width).setY(height);
+        Allocation out = Allocation.createTyped(rs, rgbaType.create(), Allocation.USAGE_SCRIPT);
+
+        in.copyFrom(nv21);
+
+        yuvToRgbIntrinsic.setInput(in);
+        yuvToRgbIntrinsic.forEach(out);
+        return out;
     }
 
     @Override
