@@ -3,32 +3,26 @@ package classes;
 
 import android.content.Context;
 import android.hardware.Camera;
-import android.media.CamcorderProfile;
-import android.media.MediaRecorder;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import java.io.IOException;
+
 
 public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 
-    private MediaRecorder mediaRecorder;
     private SurfaceHolder mHolder;
     private Camera mCamera;
     private Camera.PreviewCallback previewCallback;
-    private Camera.AutoFocusCallback autoFocusCallback;
+//    private Camera.AutoFocusCallback autoFocusCallback;
     private String LOG_TAG = "Camera Preview";
 
-    public CameraPreview(Context context, Camera camera, MediaRecorder mediaRecorder,
+    public CameraPreview(Context context, Camera camera,
                          Camera.PreviewCallback previewCb) {
         super(context);
         mCamera = camera;
         previewCallback = previewCb;
-//        autoFocusCallback = autoFocusCb;
-        this.mediaRecorder = mediaRecorder;
-
-        initMediaRecorder();
-
 
         // Install a SurfaceHolder.Callback so we get notified when the
         // underlying surface is created and destroyed.
@@ -39,26 +33,14 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
     }
 
-    private void initMediaRecorder() {
-        mediaRecorder.setCamera(mCamera);
-//        mediaRecorder.setOutputFile(writeFD.getFileDescriptor());
-//        File f = new File(G.sendVideoPath);
-//        try {
-//            f.createNewFile();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
-        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
-        CamcorderProfile cp = CamcorderProfile.get(CamcorderProfile.QUALITY_LOW);
-        mediaRecorder.setProfile(cp);
-    }
-
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
 
-        //            mCamera.setPreviewDisplay(holder);
-        mediaRecorder.setPreviewDisplay(holder.getSurface());
+        try {
+            mCamera.setPreviewDisplay(holder);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -83,8 +65,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
             // Hard code camera surface rotation 90 degs to match Activity view in portrait
             mCamera.setDisplayOrientation(90);
             mCamera.setPreviewDisplay(mHolder);
-            mediaRecorder.setPreviewDisplay(mHolder.getSurface());
-//            mCamera.setPreviewCallback(previewCallback);
+//            mediaRecorder.setPreviewDisplay(mHolder.getSurface());
             mCamera.setPreviewCallback(previewCallback);
             mCamera.startPreview();
 //            mCamera.autoFocus(autoFocusCallback);
@@ -105,7 +86,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     public void surfaceDestroyed(SurfaceHolder holder) {
 
         Log.d(LOG_TAG, "surface destroyed");
-        mediaRecorder.release();
+        mCamera.release();
     }
 
     public SurfaceHolder getmHolder() {
