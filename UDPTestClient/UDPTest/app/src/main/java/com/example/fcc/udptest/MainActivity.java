@@ -309,8 +309,8 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
             removeContact(getBroadcastIp());
         }
 
-        stopCallListener();
-        stopVideoCallListener();
+        //stopCallListener();
+        //stopVideoCallListener();
     }
 
     @Override
