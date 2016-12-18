@@ -18,13 +18,15 @@ public class ContactManager {
     private static final int BROADCAST_BUF_SIZE = 1024;
     private boolean CheckContactExist = false;
     public static boolean LISTEN = true;
+    private InetAddress broadcastIP;
     private IRefreshRecycler iRefreshRecycler;
+    DatagramSocket socket;
 
-    public interface IRefreshRecycler{
+    public interface IRefreshRecycler {
         void OnRefresh();
     }
 
-    public void setRefreshRcyclerListener(IRefreshRecycler iRefreshRecycler){
+    public void setRefreshRcyclerListener(IRefreshRecycler iRefreshRecycler) {
         this.iRefreshRecycler = iRefreshRecycler;
     }
 
@@ -39,8 +41,8 @@ public class ContactManager {
         for (int i = 0; i < G.contactsList.size(); i++) {
 
             if (G.contactsList.get(i).getC_Ip().equals(address)) {
-                Logger.d("ContactManager", "addContact", "Exist >> "+G.contactsList.get(i).getC_Ip());
-                Logger.d("ContactManager", "addContact", "Receive >> "+address);
+                Logger.d("ContactManager", "addContact", "Exist >> " + G.contactsList.get(i).getC_Ip());
+                Logger.d("ContactManager", "addContact", "Receive >> " + address);
                 G.contactsList.get(i).setC_Name(name);
                 CheckContactExist = true;
                 break;
@@ -79,19 +81,22 @@ public class ContactManager {
 
     public void listen() {
         // Create the listener thread
+
+        LISTEN = true;
+
         Log.i(LOG_TAG, "Listening started!");
         Thread listenThread = new Thread(new Runnable() {
 
             @Override
             public void run() {
+                Logger.d("ContactManager", "listen | listen", "Listening started!");
 
-                DatagramSocket socket;
                 try {
 
                     socket = new DatagramSocket(G.CONTACTSYNC_PORT);
                 } catch (SocketException e) {
 
-                    Log.e(LOG_TAG, "SocketExcepion in listener: " + e);
+                    Log.e(LOG_TAG, "SocketException in listener: " + e);
                     return;
                 }
                 byte[] buffer = new byte[BROADCAST_BUF_SIZE];
@@ -101,8 +106,6 @@ public class ContactManager {
                     listen(socket, buffer);
                 }
                 Log.i(LOG_TAG, "Listener ending!");
-                socket.disconnect();
-                socket.close();
             }
 
             public void listen(DatagramSocket socket, byte[] buffer) {
@@ -123,7 +126,6 @@ public class ContactManager {
                         // Add notification received. Attempt to add contact
                         Logger.d("ContactManager", "listen | listen", "Listener received ADD request from >> " + packet.getAddress());
                         addContact(name, packet.getAddress());
-
 
                         iRefreshRecycler.OnRefresh();
 
@@ -146,17 +148,15 @@ public class ContactManager {
 
                         listen(socket, buffer);
                     }
-                    return;
                 } catch (SocketException e) {
 
-                    Log.e(LOG_TAG, "SocketException in listen: " + e);
-                    Log.i(LOG_TAG, "Listener ending!");
-                    return;
+                    Logger.d("ContactManager", "listen | listen", "Listener ending!");
+                    Logger.d("ContactManager", "listen | listen", "SocketException in listen:" + e);
+
                 } catch (IOException e) {
 
-                    Log.e(LOG_TAG, "IOException in listen: " + e);
-                    Log.i(LOG_TAG, "Listener ending!");
-                    return;
+                    Logger.d("ContactManager", "listen | listen", "IOException in listen: " + e);
+                    Logger.d("ContactManager", "listen | listen", "Listener ending!");
                 }
             }
         });
@@ -164,7 +164,19 @@ public class ContactManager {
     }
 
     public void stopListening() {
+        Logger.d("ContactManager", "stopListening", "stopListening");
         // Stops the listener thread
         LISTEN = false;
+        socket.disconnect();
+        socket.close();
+
+    }
+
+
+    /////////////\\\\\\\\\\\\\\\\\\\
+    public void startListening() {
+        Logger.d("ContactManager", "startListening", "startListening");
+        // Stops the listener thread
+        listen();
     }
 }

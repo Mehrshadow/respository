@@ -48,18 +48,21 @@ public class RcyContactsAdapter extends RecyclerView.Adapter<RcyContactsHolder> 
         holder.Btn_VoiceCall.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                MakeVoiceCall(contactsList.get(position).getC_Name(), contactsList.get(position).getC_Ip());
-                Logger.i("RcyContactsAdapter", "onBindViewHolder", "Send MakeVoiceCall Req to >> " + contactsList.get(position).getC_Ip());
+                if (contactsList.size() != 0) {
+                    MakeVoiceCall(contactsList.get(position).getC_Name(), contactsList.get(position).getC_Ip());
+                    Logger.i("RcyContactsAdapter", "onBindViewHolder", "Send MakeVoiceCall Req to >> " + contactsList.get(position).getC_Ip());
+                }
             }
         });
 
         holder.Btn_VideoCall.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (contactsList.size() != 0) {
+                    MakeVideoCall(contactsList.get(position).getC_Name(), contactsList.get(position).getC_Ip());
+                    Logger.i("RcyContactsAdapter", "onBindViewHolder", "Send MakeVideoCall Req to >> " + contactsList.get(position).getC_Ip());
 
-                MakeVideoCall(contactsList.get(position).getC_Name(), contactsList.get(position).getC_Ip());
-                Logger.i("RcyContactsAdapter", "onBindViewHolder", "Send MakeVideoCall Req to >> " + contactsList.get(position).getC_Ip());
-
+                }
             }
         });
 
@@ -86,7 +89,7 @@ public class RcyContactsAdapter extends RecyclerView.Adapter<RcyContactsHolder> 
 
         Intent i = new Intent(context, MakeVideoCallActivity.class);
         i.putExtra(G.EXTRA_C_Name, C_Name);
-        i.putExtra(G.EXTRA_C_Ip, C_Ip);
+        i.putExtra(G.EXTRA_C_Ip, C_Ip.toString().substring(1));
         i.putExtra(G.EXTRA_DISPLAYNAME, "SERVER");
         context.startActivity(i);
     }

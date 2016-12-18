@@ -1,5 +1,0 @@
-httpstackoverflow.comquestions1893072getting-frames-from-video-image-in-android
-
-
-
-http://grokbase.com/t/gg/android-developers/11ca4m5g3x/how-to-reduce-the-size-of-image-in-kb-from-camera-onpreviewframe
