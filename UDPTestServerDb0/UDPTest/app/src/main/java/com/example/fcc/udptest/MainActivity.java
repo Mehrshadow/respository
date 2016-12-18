@@ -45,15 +45,18 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
     private boolean LISTEN_Video = true;
 
     private RecyclerView rcy_contacts;
+    RcyContactsAdapter adapter;
 
     ContactManager contactManager = new ContactManager();
     DatabaseManagement databaseManagement = new DatabaseManagement();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
-        super.onCreate(savedInstanceState);
         Realm.init(getApplicationContext());
+        Logger.i("MainActivity", "onCreate", "Before Db G.contactsList.size()>> "+G.contactsList.size());
+        initRealm();
+        Logger.i("MainActivity", "onCreate", "After Db G.contactsList.size()>> "+G.contactsList.size());
+        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_server);
         Logger.i("MainActivity", "onCreate", "onCreate");
 
@@ -65,7 +68,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
         startVideoCallListener();
         Logger.i("MainActivity", "onCreate", "IP is >> " + getBroadcastIp());
 
-        initRealm();
+
 
     }
 
@@ -79,7 +82,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
                 contacts.setC_Ip(address);
                 contacts.setC_Name(Db.getC_Name());
                 G.contactsList.add(contacts);
-                Logger.i("MainActivity", "initRealm", "Add from Db to List >> "+ Db.getC_Name() +" "+Db.getC_ip() );
+                Logger.i("MainActivity", "initRealm", "Add from Db to List >> " + Db.getC_Name() + " " + Db.getC_ip());
             } catch (UnknownHostException e) {
                 e.printStackTrace();
             }
@@ -97,8 +100,11 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
         rcy_contacts = (RecyclerView) findViewById(R.id.rcy_contactslist);
 
         rcy_contacts.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
-        // RcyContactsAdapter adapter = new RcyContactsAdapter(G.contactsList);
-        // rcy_contacts.setAdapter(adapter);
+        adapter = new RcyContactsAdapter(G.contactsList,MainActivity.this);
+        rcy_contacts.setAdapter(adapter);
+       // rcy_contacts.invalidate();
+        rcy_contacts.swapAdapter(adapter,true);
+        //adapter.notifyAll();
         //refreshRcy();
 
 
@@ -224,14 +230,14 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
 
     @Override
     protected void onResume() {
+        contactManager.startListening();
+        Logger.i("MainActivity", "onResume", "G.contactsList.size()>> "+G.contactsList.size());
         super.onResume();
-
-
     }
 
     @Override
     public void onPause() {
-
+        Logger.i("MainActivity", "onPause", "G.contactsList.size()>> "+G.contactsList.size());
         super.onPause();
         Log.i(LOG_TAG, "App paused!");
         SERVER_RUNNING = false;
@@ -242,18 +248,23 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
 
     @Override
     public void onStop() {
-
-        for (int i = 0; i < G.contactsList.size(); i++) {
-            databaseManagement.addContact(G.contactsList.get(i).getC_Name()
-                    , G.contactsList.get(i).getC_Ip());
-            Logger.i("MainActivity", "initRealm", "Add from List to Db >> "+ G.contactsList.get(i).getC_Name() +" "+G.contactsList.get(i).getC_Ip() );
-        }
-
-        super.onStop();
+        Logger.i("MainActivity", "onStop", "G.contactsList.size()>> "+G.contactsList.size());
         Log.i(LOG_TAG, "App stopped!");
         stopCallListener();
         stopVideoCallListener();
         contactManager.stopListening();
+        super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        Logger.i("MainActivity", "onDestroy", "G.contactsList.size()>> "+G.contactsList.size());
+        for (int i = 0; i < G.contactsList.size(); i++) {
+            databaseManagement.addContact(G.contactsList.get(i).getC_Name()
+                    , G.contactsList.get(i).getC_Ip());
+            Logger.i("MainActivity", "initRealm", "Add from List to Db >> " + G.contactsList.get(i).getC_Name() + " " + G.contactsList.get(i).getC_Ip());
+        }
+        super.onDestroy();
     }
 
     @Override
@@ -266,13 +277,13 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
 
     @Override
     public void onRestart() {
+        Logger.i("MainActivity", "onRestart", "G.contactsList.size()>> "+G.contactsList.size());
 
         super.onRestart();
         Log.i(LOG_TAG, "App restarted!");
         G.IN_CALL = false;
         STARTED = true;
         SERVER_RUNNING = true;
-
         contactManager.listen();
         refreshContacts();
         startCallListener();
@@ -303,14 +314,11 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
                                 if (!socket.isConnected()) {
                                     socket.close();
                                     G.contactsList.remove(i);
-
-                                    refreshRcy();
                                 }
                                 socket.close();
 
                             } catch (IOException e) {
                                 G.contactsList.remove(i);
-                                refreshRcy();
 
                                 e.printStackTrace();
                             }
@@ -334,11 +342,17 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
     }
 
     private void refreshRcy() {
+
+
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                RcyContactsAdapter adapter = new RcyContactsAdapter(G.contactsList, MainActivity.this);
-                rcy_contacts.setAdapter(adapter);
+                rcy_contacts.swapAdapter(adapter,true);
+
+
+               /* RcyContactsAdapter adapter = new RcyContactsAdapter(G.contactsList, MainActivity.this);
+                adapter.notifyAll();
+                rcy_contacts.setAdapter(adapter);*/
                 Logger.i("MainActivity", "refreshRcy", "Start");
             }
         });

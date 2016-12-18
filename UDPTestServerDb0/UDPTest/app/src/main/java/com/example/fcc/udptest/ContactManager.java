@@ -18,6 +18,7 @@ public class ContactManager {
     private static final int BROADCAST_BUF_SIZE = 1024;
     private boolean CheckContactExist = false;
     public static boolean LISTEN = true;
+    private InetAddress broadcastIP;
     private IRefreshRecycler iRefreshRecycler;
 
     public interface IRefreshRecycler{
@@ -84,6 +85,7 @@ public class ContactManager {
 
             @Override
             public void run() {
+                Logger.d("ContactManager", "listen | listen", "Listening started!");
 
                 DatagramSocket socket;
                 try {
@@ -98,14 +100,15 @@ public class ContactManager {
 
                 while (LISTEN) {
 
-                    listen(socket, buffer);
+                    listen0(socket, buffer);
                 }
                 Log.i(LOG_TAG, "Listener ending!");
                 socket.disconnect();
                 socket.close();
+                listen();
             }
 
-            public void listen(DatagramSocket socket, byte[] buffer) {
+            public void listen0(DatagramSocket socket, byte[] buffer) {
 
                 try {
                     //Listen in for new notifications
@@ -144,18 +147,19 @@ public class ContactManager {
                     Log.i(LOG_TAG, "No packet received!");
                     if (LISTEN) {
 
-                        listen(socket, buffer);
+                        listen0(socket, buffer);
                     }
                     return;
                 } catch (SocketException e) {
 
-                    Log.e(LOG_TAG, "SocketException in listen: " + e);
-                    Log.i(LOG_TAG, "Listener ending!");
+                    Logger.d("ContactManager", "listen | listen", "Listener ending!");
+                    Logger.d("ContactManager", "listen | listen", "SocketException in listen: \" + e");
+
                     return;
                 } catch (IOException e) {
 
-                    Log.e(LOG_TAG, "IOException in listen: " + e);
-                    Log.i(LOG_TAG, "Listener ending!");
+                    Logger.d("ContactManager", "listen | listen", "IOException in listen: " + e);
+                    Logger.d("ContactManager", "listen | listen", "Listener ending!");
                     return;
                 }
             }
@@ -164,7 +168,17 @@ public class ContactManager {
     }
 
     public void stopListening() {
+        Logger.d("ContactManager", "stopListening", "stopListening");
         // Stops the listener thread
         LISTEN = false;
     }
+
+
+    /////////////\\\\\\\\\\\\\\\\\\\
+    public void startListening() {
+        Logger.d("ContactManager", "startListening", "startListening");
+        // Stops the listener thread
+        LISTEN = true;
+    }
+
 }
