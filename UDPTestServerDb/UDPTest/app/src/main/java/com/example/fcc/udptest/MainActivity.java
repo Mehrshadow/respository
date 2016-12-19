@@ -73,7 +73,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
     }
 
     private void initRealm() {
-
+        Logger.i("MainActivity", "initRealm", "Before Db G.contactsList.size()>> "+G.contactsList.size());
         Realm mRealm = Realm.getInstance(G.myConfig);
         for (DatabaseMap Db : mRealm.where(DatabaseMap.class).findAll()) {
             Contacts contacts = new Contacts();
@@ -93,6 +93,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
         RealmResults<DatabaseMap> results = mRealm.where(DatabaseMap.class).findAll();
         results.deleteAllFromRealm();
         mRealm.commitTransaction();
+        Logger.i("MainActivity", "initRealm", "After Db G.contactsList.size()>> "+G.contactsList.size());
     }
 
     private void initViews() {
@@ -248,6 +249,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
 
     @Override
     public void onStop() {
+        addToDb();
         Logger.i("MainActivity", "onStop", "G.contactsList.size()>> "+G.contactsList.size());
         Log.i(LOG_TAG, "App stopped!");
         stopCallListener();
@@ -259,11 +261,6 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
     @Override
     protected void onDestroy() {
         Logger.i("MainActivity", "onDestroy", "G.contactsList.size()>> "+G.contactsList.size());
-        for (int i = 0; i < G.contactsList.size(); i++) {
-            databaseManagement.addContact(G.contactsList.get(i).getC_Name()
-                    , G.contactsList.get(i).getC_Ip());
-            Logger.i("MainActivity", "initRealm", "Add from List to Db >> " + G.contactsList.get(i).getC_Name() + " " + G.contactsList.get(i).getC_Ip());
-        }
         super.onDestroy();
     }
 
@@ -389,6 +386,41 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
     @Override
     public void OnRefresh() {
         refreshRcy();
+    }
+
+    private void addToDb(){
+        Logger.i("MainActivity", "addToDb", "Start");
+        for (int i = 0; i < G.contactsList.size(); i++) {
+            databaseManagement.addContact(G.contactsList.get(i).getC_Name()
+                    , G.contactsList.get(i).getC_Ip());
+            Logger.i("MainActivity", "initRealm", "Add from List to Db >> " + G.contactsList.get(i).getC_Name() + " " + G.contactsList.get(i).getC_Ip());
+        }
+
+     /*   Realm mRealm = Realm.getInstance(G.myConfig);
+        for (DatabaseMap Db : mRealm.where(DatabaseMap.class).findAll()) {
+            Contacts contacts = new Contacts();
+            try {
+                InetAddress address = InetAddress.getByName(Db.getC_ip());
+                contacts.setC_Ip(address);
+                contacts.setC_Name(Db.getC_Name());
+                G.contactsList.add(contacts);
+                Logger.i("MainActivity", "initRealm", "Add from Db to List >> "+ Db.getC_Name() +" "+Db.getC_ip() );
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
+
+
+        }
+        mRealm.beginTransaction();
+        RealmResults<DatabaseMap> results = mRealm.where(DatabaseMap.class).findAll();
+        results.deleteAllFromRealm();
+        mRealm.commitTransaction();*/
+
+    }
+
+    private void readDb(){
+
+
     }
 
 }

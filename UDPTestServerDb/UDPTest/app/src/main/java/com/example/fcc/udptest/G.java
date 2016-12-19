@@ -33,6 +33,7 @@ public class G extends Application {
     public final static String EXTRA_DISPLAYNAME = "DISPNAME";
 
     public static RealmConfiguration myConfig = new RealmConfiguration.Builder()
+            .deleteRealmIfMigrationNeeded()
             .name("Contacts")
             .schemaVersion(1)
             .build();

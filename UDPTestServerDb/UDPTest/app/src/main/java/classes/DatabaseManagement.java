@@ -18,21 +18,22 @@ import io.realm.RealmResults;
 public class DatabaseManagement {
 
     public void addContact(final String Name, final InetAddress Ip) {
-
-        final Realm mRealm = Realm.getInstance(G.myConfig);
-        final DatabaseMap Db = new DatabaseMap();
+        Logger.d("DatabaseManagement", "AddContact", "Start");
         String ip = Ip.toString().substring(1);
-        Db.setC_Name(Name);
-        Db.setC_ip(ip);
+        Realm mRealm = Realm.getInstance(G.myConfig);
+        final RealmResults<DatabaseMap> results = mRealm.where(DatabaseMap.class).equalTo("C_ip",ip).findAll();
+        Logger.d("DatabaseManagement", "AddContact", "results.size()>>"+results.size());
+        if(results.size()==0){
+            mRealm.beginTransaction();
+            final DatabaseMap Db = mRealm.createObject(DatabaseMap.class);
+            Db.setC_Name(Name);
+            Db.setC_ip(ip);
+            //mRealm.copyToRealm(Db1);
+            mRealm.commitTransaction();
+            Logger.d("DatabaseManagement", "addContact", "Added to Db >> " + Name + " >> " + Ip);
 
-        Logger.d("DatabaseManagement", "ddContact", "Start");
-        mRealm.beginTransaction();
-        DatabaseMap Db1 = mRealm.createObject(DatabaseMap.class);
-        Db1.setC_Name(Name);
-        Db1.setC_ip(ip);
-        mRealm.commitTransaction();
-        Logger.d("DatabaseManagement", "addContact", "Added to Db >> " + Name + " >> " + Ip);
-
+        }
+        Logger.d("DatabaseManagement", "AddContact", "Is Already Exist >> " + Name + " >> " + Ip);
 
     }
 
