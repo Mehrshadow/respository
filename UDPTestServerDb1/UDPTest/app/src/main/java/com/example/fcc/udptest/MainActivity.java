@@ -19,6 +19,7 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 
 import classes.Contacts;
+import classes.DatabaseManagement;
 import classes.DatabaseMap;
 import classes.Logger;
 import classes.RcyContactsAdapter;
