@@ -67,6 +67,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private FrameLayout cameraView;
     private InetAddress address;
     private boolean shouldSendVideo = false;
+    private Socket socket_sendFrameData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,13 +124,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 //                compress_YUVImage(yuv_image);
             }
             if (shouldSendVideo) {
-
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
+                
                 Logger.d(LOG_TAG, "OnPreviewFrame", "sending frames started...");
 
                 sendFrameData();
@@ -380,6 +375,8 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private void StopSendingFrames() {
         isSending = false;
 
+        closeSendFrameSocket();
+
         releaseCamera();
     }
 
@@ -459,6 +456,9 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                     if (receivedValue.equals("OK")) {
 
                         // Client is ready to receive the frames... so send it!
+
+                        initSendFrameSocket();
+
                         shouldSendVideo = true;
                     }
 
@@ -467,6 +467,26 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                 }
             }
         }).start();
+    }
+
+    private void initSendFrameSocket() {
+        try {
+            if (socket_sendFrameData != null) {
+                socket_sendFrameData = new Socket(address, G.VIDEO_CALL_PORT);
+                socket_sendFrameData.setSoTimeout(5 * 1000);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void closeSendFrameSocket() {
+        try {
+            socket_sendFrameData.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void startCameraPreview() {
@@ -489,10 +509,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                 try {
                     int byteSent = 0;
 
-                    Socket socket = new Socket(address, G.VIDEO_CALL_PORT);
-                    socket.setSoTimeout(5 * 1000);
-
-                    OutputStream os = socket.getOutputStream();
+                    OutputStream os = socket_sendFrameData.getOutputStream();
 
                     if (socket.isConnected()) {
 
@@ -501,18 +518,15 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                         byteSent += frameData.length;
 
                         Logger.d(LOG_TAG, "frame length sent: ", byteSent + "");
-
-
                     }
-
-                    socket.close();
 
                     isSending = false;
 
                 } catch (IOException e) {
                     e.printStackTrace();
                     isSending = false;
-                    socket.close();
+
+                    closeSendFrameSocket();
                 }
             }
         }).start();
