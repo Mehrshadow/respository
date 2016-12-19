@@ -351,11 +351,11 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                 public void run() {
                     try {
                         ServerSocket serverSocket = new ServerSocket(G.VIDEO_CALL_PORT);
-
+                        Socket socket = serverSocket.accept();
                         //socket.setSoTimeout(5000);
 
                         while (receiving) {
-                            Socket socket = serverSocket.accept();
+
                             if (socket.isConnected()) {
                                 byte[] buff = new byte[mFrameBuffSize];
                                 InputStream inputStream = socket.getInputStream();
