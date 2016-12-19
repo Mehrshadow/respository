@@ -20,7 +20,6 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -59,7 +58,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private DatagramSocket socket;
     private DatagramPacket packet;
     private CameraPreview cameraPreview;
-    private int mFrameWidth = 100, mFrameHeight = 200, mFrameLength;
+    private int mFrameWidth, mFrameHeight, mFrameLength;
     private byte[] frameData;
     private boolean isSending = false;
     private FrameLayout cameraView;
@@ -104,23 +103,22 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     Camera.PreviewCallback previewCb = new Camera.PreviewCallback() {
         public void onPreviewFrame(byte[] data, Camera camera) {
 
-            final Bitmap bitmap = getBitmap(data);
+            if (data != null && data.length != 0) {
+//                frameData = data;
+                parameters = camera.getParameters();
+                mFrameHeight = parameters.getPreviewSize().height;
+                mFrameWidth = parameters.getPreviewSize().width;
+//                mFrameLength = data.length;
 
-            runOnUiThread(new Runnable() {
+                frameData = resizeImage(data, mFrameWidth, mFrameHeight);
 
-                @Override
-                public void run() {
-                    ((ImageView) findViewById(R.id.img)).setImageBitmap(bitmap);
-                }
-            });
-
+            }
 //
-            /*if (shouldSendVideo) {
+            if (shouldSendVideo) {
 
-                Logger.d(LOG_TAG, "OnPreviewFrame", "sending frames started...");
-
-                sendFrameData();
-            }*/
+//                sendFrameData();
+                sendFrameDataUDP();
+            }
         }
     };
 
@@ -137,27 +135,30 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     }
 
 
-
-    /*byte[] resizeImage(byte[] input, int width, int height) {
+    byte[] resizeImage(byte[] input, int width, int height) {
 
         Bitmap original = previewBitmap(input);
 
 //        Bitmap original = BitmapFactory.decodeByteArray(input, 0, input.length);
 
-        Bitmap resized = Bitmap.createScaledBitmap(original, width / 10, height / 10, false);
-
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        resized.compress(Bitmap.CompressFormat.JPEG, 50, os);
+        Bitmap resized = Bitmap.createScaledBitmap(original, width / 2, height / 2, false);
 
         mFrameWidth = resized.getWidth();
         mFrameHeight = resized.getHeight();
 
-        frameData = os.toByteArray();/** data is ready to send
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        resized.compress(Bitmap.CompressFormat.JPEG, 50, os);
 
-        mFrameLength = frameData.length;
+        mFrameLength = os.toByteArray().length;
+//        mFrameWidth = resized.getWidth();
+//        mFrameHeight = resized.getHeight();
+
+//        frameData = os.toByteArray();//** data is ready to send
+
+//        mFrameLength = frameData.length;
 
         return os.toByteArray();
-    }*/
+    }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -179,23 +180,16 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     protected void onStop() {
         super.onStop();
 
+        releaseCamera();
+
         stopListener();
     }
-
-    /*private void initSurfaceView() {
-        SurfaceView cameraView = (SurfaceView) findViewById(R.id.surfaceView);
-        surfaceHolder = cameraView.getHolder();
-        surfaceHolder.addCallback(this);
-        surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-
-        Log.d(LOG_TAG, "surface holder done");
-    }*/
 
     private static Camera getCameraInstance() {
         Camera c = null;
 
         try {
-            c = Camera.open(1);
+            c = Camera.open(0);
         } catch (Exception e) {
             Log.e(LOG_TAG, e.toString());
             e.printStackTrace();
@@ -252,7 +246,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                     Log.i(LOG_TAG, "Listener started!");
 
                     socket = new DatagramSocket(G.BROADCAST_PORT);
-                    socket.setSoTimeout(10000);
                     byte[] buffer = new byte[BUF_SIZE];
                     packet = new DatagramPacket(buffer, BUF_SIZE);
 
@@ -373,7 +366,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private void StopSendingFrames() {
         isSending = false;
 
-        closeSendFrameSocket();
+//        closeSendFrameSocket();
 
         releaseCamera();
     }
@@ -399,7 +392,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                     String frameGSONData = getFrameGSONData();
 
                     Socket socket = new Socket(address, G.INTRODUCE_PORT);
-                    socket.setSoTimeout(2 * 1000);
 
                     OutputStream writer = socket.getOutputStream();
 //                    DataOutputStream writer = (DataOutputStream) socket.getOutputStream();
@@ -408,7 +400,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
                         writer.write(frameGSONData.getBytes());
 
-                        Logger.d(LOG_TAG, "SendFrameIntroduce", frameGSONData.toString());
+                        Logger.d(LOG_TAG, "SendFrameIntroduce", frameGSONData);
 
                         byteSent += frameGSONData.getBytes().length;
 
@@ -439,7 +431,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                     serverSocket = new ServerSocket(G.INTRODUCE_PORT);
 
                     socket = serverSocket.accept();
-                    socket.setSoTimeout(10 * 1000);
 
 //                    DataInputStream is = (DataInputStream) socket.getInputStream();
                     BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -453,8 +444,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                     if (receivedValue.equals("OK")) {
 
                         // Client is ready to receive the frames... so send it!
-
-                        initSendFrameSocket();
+//                        initSendFrameSocket();
 
                         shouldSendVideo = true;
                     }
@@ -470,7 +460,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         try {
             if (socket_sendFrameData == null) {
                 socket_sendFrameData = new Socket(address, G.VIDEO_CALL_PORT);
-//                socket_sendFrameData.setSoTimeout(5 * 1000);
             }
 
         } catch (IOException e) {
@@ -504,11 +493,13 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
             public void run() {
 
                 try {
-                    int byteSent = 0;
+                    int byteSent;
 
                     OutputStream os = socket_sendFrameData.getOutputStream();
 
                     if (socket_sendFrameData.isConnected()) {
+
+                        Logger.d(LOG_TAG, "sendFrameData ", "connected");
 
                         os.write(frameData);
 
@@ -524,6 +515,32 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                     isSending = false;
 
                     closeSendFrameSocket();
+                }
+            }
+        }).start();
+    }
+
+    private void sendFrameDataUDP() {
+
+        isSending = true;
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                try {
+                    Logger.d(LOG_TAG, "address: ", address + "");
+
+                    DatagramSocket socket = new DatagramSocket();
+                    DatagramPacket packet = new DatagramPacket(frameData, frameData.length, address, G.VIDEO_CALL_PORT);
+
+                    Logger.d(LOG_TAG, "frame length sent: ", frameData.length + "");
+
+                    socket.send(packet);
+
+                } catch (IOException e) {
+                    releaseCamera();
+                    e.printStackTrace();
                 }
             }
         }).start();

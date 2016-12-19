@@ -41,7 +41,7 @@ public class RcyContactsAdapter extends RecyclerView.Adapter<RcyContactsHolder> 
     }
 
     @Override
-    public void onBindViewHolder(RcyContactsHolder holder, final int position) {
+    public void onBindViewHolder(final RcyContactsHolder holder, final int position) {
 
         holder.Txt_C_Name.setText(contactsList.get(position).getC_Name());
 
@@ -51,6 +51,7 @@ public class RcyContactsAdapter extends RecyclerView.Adapter<RcyContactsHolder> 
                 if (contactsList.size() != 0) {
                     MakeVoiceCall(contactsList.get(position).getC_Name(), contactsList.get(position).getC_Ip());
                     Logger.i("RcyContactsAdapter", "onBindViewHolder", "Send MakeVoiceCall Req to >> " + contactsList.get(position).getC_Ip());
+                    holder.Btn_VoiceCall.setEnabled(false);
                 }
             }
         });
@@ -61,7 +62,7 @@ public class RcyContactsAdapter extends RecyclerView.Adapter<RcyContactsHolder> 
                 if (contactsList.size() != 0) {
                     MakeVideoCall(contactsList.get(position).getC_Name(), contactsList.get(position).getC_Ip());
                     Logger.i("RcyContactsAdapter", "onBindViewHolder", "Send MakeVideoCall Req to >> " + contactsList.get(position).getC_Ip());
-
+                    holder.Btn_VideoCall.setEnabled(false);
                 }
             }
         });
