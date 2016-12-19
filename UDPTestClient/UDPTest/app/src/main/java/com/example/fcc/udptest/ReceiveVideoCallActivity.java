@@ -22,6 +22,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -54,6 +55,8 @@ import java.net.UnknownHostException;
 import classes.Logger;
 
 import static android.R.attr.data;
+import static android.R.attr.maxHeight;
+import static android.R.attr.maxWidth;
 
 public class ReceiveVideoCallActivity extends AppCompatActivity implements View.OnClickListener, SurfaceHolder.Callback {
 
@@ -68,6 +71,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     private boolean IN_CALL = false;
     private boolean receiving = false;
     private Button accept, reject, endCall;
+    private ImageView mImgReceive;
     private int BUF_SIZE = 1024;
     private MediaRecorder mediaRecorder;
     private SurfaceHolder surfaceHolder;
@@ -89,6 +93,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         accept = (Button) findViewById(R.id.buttonAccept);
         reject = (Button) findViewById(R.id.buttonReject);
         endCall = (Button) findViewById(R.id.buttonEndCall);
+        mImgReceive = (ImageView) findViewById(R.id.img_receive);
         accept.setOnClickListener(this);
         reject.setOnClickListener(this);
         endCall.setOnClickListener(this);
@@ -358,9 +363,19 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
                             if (socket.isConnected()) {
                                 byte[] buff = new byte[mFrameBuffSize];
+                                Logger.d("ReceiveVideoCallActivity", "receiveVideo", "socket.getReceiveBufferSize(); >> " + socket.getReceiveBufferSize());
+                                socket.getReceiveBufferSize();
+
+                                //\\\\\\\\
+                                //BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                                //int lenght = bufferedReader.readLine().length();
+                                //Logger.d("ReceiveVideoCallActivity", "receiveVideo", "bufferedReader size >> " + lenght);
+                                //\\\\\\\\\\
                                 InputStream inputStream = socket.getInputStream();
+                                Logger.d("ReceiveVideoCallActivity", "receiveVideo", "inputStream size >> " + inputStream.toString().length());
                                 int count = inputStream.read(buff);
-                                Logger.d("ReceiveVideoCallActivity", "receiveVideo", "buff size >> " + count);
+                                Logger.d("ReceiveVideoCallActivity", "receiveVideo", "buff size count >> " + count);
+                                //\\\\\\\\\
                                 previewBitmap(buff);
                             }
                         }
@@ -522,7 +537,9 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                         sendACC();
                         Logger.d("ReceiveVideoCallActivity", "introListener", "mIsFrameReceived is true Sent ACC");
                     } else {
+                        finish();
                         Logger.d("ReceiveVideoCallActivity", "introListener", "mIsFrameReceived is false");
+                        Logger.d("ReceiveVideoCallActivity", "introListener", "finish Activity");
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -555,7 +572,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
             outputStream.write(data.getBytes());
             outputStream.flush();
             socket.close();
-            Logger.d("ReceiveVideoCallActivity", "sendACC", " ACC Sent To >> " + address + " : " + G.INTRODUCE_PORT);
+            Logger.d("ReceiveVideoCallActivity", "sendACC", "ACC Sent To >> " + address + " : " + G.INTRODUCE_PORT);
         } catch (UnknownHostException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -571,7 +588,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     private void previewBitmap(byte[] data) {
         Logger.d("ReceiveVideoCallActivity", "previewBitmap", "Start");
 
-        Bitmap bitmap = Bitmap.createBitmap(mFrameWidth, mFrameHeight, Bitmap.Config.ARGB_8888);
+        final Bitmap bitmap = Bitmap.createBitmap(mFrameWidth, mFrameHeight, Bitmap.Config.ARGB_8888);
 
         Allocation bmData = renderScriptNV21ToRGBA888(
                 getApplicationContext(),
@@ -579,6 +596,13 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                 mFrameHeight,
                 data);
         bmData.copyTo(bitmap);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mImgReceive.setImageBitmap(bitmap);
+            }
+        });
+
 
     }
 
