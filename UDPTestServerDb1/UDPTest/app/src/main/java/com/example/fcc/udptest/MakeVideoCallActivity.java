@@ -107,7 +107,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
             parameters.setPreviewFrameRate(1);
 
             //YUV formats require more conversion
-            if (format == ImageFormat.NV21 || format == ImageFormat.YUY2 || format == ImageFormat.NV16) {
+            if (format == ImageFormat.NV21 /*|| format == ImageFormat.YUY2 || format == ImageFormat.NV16*/) {
                 mFrameWidth = parameters.getPreviewSize().width;
                 mFrameHeight = parameters.getPreviewSize().height;
 //                mFrameLength = data.length;
@@ -124,12 +124,10 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 //                compress_YUVImage(yuv_image);
             }
             if (shouldSendVideo) {
-                
+
                 Logger.d(LOG_TAG, "OnPreviewFrame", "sending frames started...");
 
                 sendFrameData();
-
-                Logger.d(LOG_TAG, "sendFrameData", "sleep");
             }
         }
     };
@@ -147,7 +145,10 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
 //        Bitmap original = BitmapFactory.decodeByteArray(input, 0, input.length);
 
-        Bitmap resized = Bitmap.createScaledBitmap(original, original.getWidth() / 100, original.getHeight() / 100, true);
+        mFrameWidth = original.getWidth() / 10;
+        mFrameHeight = original.getHeight() / 10;
+
+        Bitmap resized = Bitmap.createScaledBitmap(original, mFrameWidth, mFrameHeight, true);
 
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         resized.compress(Bitmap.CompressFormat.JPEG, 50, os);
@@ -471,9 +472,9 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
     private void initSendFrameSocket() {
         try {
-            if (socket_sendFrameData != null) {
+            if (socket_sendFrameData == null) {
                 socket_sendFrameData = new Socket(address, G.VIDEO_CALL_PORT);
-                socket_sendFrameData.setSoTimeout(5 * 1000);
+//                socket_sendFrameData.setSoTimeout(5 * 1000);
             }
 
         } catch (IOException e) {
@@ -511,7 +512,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
                     OutputStream os = socket_sendFrameData.getOutputStream();
 
-                    if (socket.isConnected()) {
+                    if (socket_sendFrameData.isConnected()) {
 
                         os.write(frameData);
 
