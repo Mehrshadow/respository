@@ -74,15 +74,18 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         registerReceiver(receiver, new IntentFilter(G.BROADCAST_WIFI_STATUS));
-
         super.onCreate(savedInstanceState);
+        if (!initName_IP()) {
+            Intent intent = new Intent(MainActivity.this, Settings.class);
+            startActivity(intent);
+            return;
+        }
         setContentView(R.layout.activity_main_client);
 
-        preferences = getSharedPreferences("Setting", MODE_PRIVATE);
+
 
         initViews();
         CheckOnline();
-        initName_IP();
         Logger.i("MainActivity", "onCreate", "IP is >> " + getBroadcastIp());
 
     }
@@ -97,6 +100,8 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
         Txt_Username.setText(Username);
         Txt_Server_ip.setText(SERVER_IP);
+        Txt_Username.setText("UserName : " + Username);
+        Txt_Server_ip.setText("Server ip : " + SERVER_IP);
 
         callButton.setOnClickListener(this);
         videoCallButton.setOnClickListener(this);
@@ -330,8 +335,6 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
         Log.i(LOG_TAG, "App restarted!");
         G.IN_CALL = false;
 
-        startCallListener();
-        startVideoCallListener();
 
         if (G.isIPChanged) {
             Btn_Connect.setEnabled(true);
@@ -344,6 +347,9 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
     @Override
     protected void onResume() {
+        startCallListener();
+        startVideoCallListener();
+
         registerReceiver(receiver, new IntentFilter(G.BROADCAST_WIFI_STATUS));
         super.onResume();
     }
@@ -516,12 +522,20 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
         shouldCheckServer = false;
     }
 
-    private void initName_IP() {
-        Username = preferences.getString("USER_NAME", "0");
-        SERVER_IP = preferences.getString("SERVER_IP", "0");
+    private boolean initName_IP() {
+        preferences = getSharedPreferences("Setting", MODE_PRIVATE);
+        if (preferences.getString("USER_NAME", "0").equals("0")
+                || preferences.getString("SERVER_IP", "0").equals("0")) {
+            return false;
 
-        Txt_Username.setText("UserName : " + Username);
-        Txt_Server_ip.setText("Server ip : " + SERVER_IP);
+        } else {
+            Username = preferences.getString("USER_NAME", "0");
+            SERVER_IP = preferences.getString("SERVER_IP", "0");
+
+
+            return true;
+        }
+
     }
 
     private boolean CheckRunApp() {
