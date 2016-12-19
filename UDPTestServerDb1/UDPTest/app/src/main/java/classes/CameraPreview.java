@@ -14,11 +14,14 @@ import android.view.SurfaceView;
 
 import java.io.IOException;
 
-/** A basic Camera preview class */
+/**
+ * A basic Camera preview class
+ */
 public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
     private SurfaceHolder mHolder;
     private Camera mCamera;
     private PreviewCallback previewCallback;
+    private Camera.Parameters parameters;
 //    private AutoFocusCallback autoFocusCallback;
 
     public CameraPreview(Context context, Camera camera,
@@ -26,6 +29,12 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         super(context);
         mCamera = camera;
         previewCallback = previewCb;
+//        parameters = camera.getParameters();
+//        parameters.setPreviewFrameRate(8);
+//        parameters.setPreviewSize(100, 200);
+//        parameters.setPictureSize(100, 200);
+//        camera.setParameters(parameters);
+
 //        autoFocusCallback = autoFocusCb;
 
         /*
@@ -70,7 +79,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
          * If your preview can change or rotate, take care of those events here.
          * Make sure to stop the preview before resizing or reformatting it.
          */
-        if (mHolder.getSurface() == null){
+        if (mHolder.getSurface() == null) {
             // preview surface does not exist
             return;
         }
@@ -78,7 +87,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         // stop preview before making changes
         try {
             mCamera.stopPreview();
-        } catch (Exception e){
+        } catch (Exception e) {
             // ignore: tried to stop a non-existent preview
         }
 
@@ -90,7 +99,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
             mCamera.setPreviewCallback(previewCallback);
             mCamera.startPreview();
 //            mCamera.autoFocus(autoFocusCallback);
-        } catch (Exception e){
+        } catch (Exception e) {
             Log.d("DBG", "Error starting camera preview: " + e.getMessage());
         }
     }

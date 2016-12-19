@@ -5,9 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.ImageFormat;
-import android.graphics.Rect;
-import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.renderscript.Allocation;
@@ -17,10 +14,10 @@ import android.renderscript.ScriptIntrinsicYuvToRGB;
 import android.renderscript.Type;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.SurfaceHolder;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -53,17 +50,15 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private String contactIp;
     private String displayName;
     private String contactName;
-    private SurfaceHolder surfaceHolder;
     private static final int BUF_SIZE = 1024;
     private Camera camera = null;
     private Button buttonEndCall;
     private DatagramSocket socket;
     private DatagramPacket packet;
     private CameraPreview cameraPreview;
-    private int mFrameWidth, mFrameHeight, mFrameLength;
+    private int mFrameWidth = 100, mFrameHeight = 200, mFrameLength;
     private byte[] frameData;
     private boolean isSending = false;
-    private Camera.Parameters parameters;
     private FrameLayout cameraView;
     private InetAddress address;
     private boolean shouldSendVideo = false;
@@ -75,7 +70,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         setContentView(R.layout.activity_make_video_call);
 
         Log.d(LOG_TAG, "Make video call started");
-
 
         Intent intent = getIntent();
         displayName = intent.getStringExtra(G.EXTRA_DISPLAYNAME);
@@ -89,6 +83,10 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         buttonEndCall.setOnClickListener(this);
 
         cameraView = (FrameLayout) findViewById(R.id.cameraView);
+
+        openCamera();
+
+        startCameraPreview();
     }
 
     private void releaseCamera() {
@@ -102,27 +100,32 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     Camera.PreviewCallback previewCb = new Camera.PreviewCallback() {
         public void onPreviewFrame(byte[] data, Camera camera) {
 
-            parameters = camera.getParameters();
-            int format = parameters.getPreviewFormat();
-            parameters.setPreviewFrameRate(1);
+            Logger.d(LOG_TAG, "OnPreviewFrame", "Main size: " + data.length);
 
+            mFrameLength = data.length;
+            frameData = data;
+
+            previewBitmap(data);
+//            parameters = camera.getParameters();
+//            int format = parameters.getPreviewFormat();
+//
             //YUV formats require more conversion
-            if (format == ImageFormat.NV21 /*|| format == ImageFormat.YUY2 || format == ImageFormat.NV16*/) {
-                mFrameWidth = parameters.getPreviewSize().width;
-                mFrameHeight = parameters.getPreviewSize().height;
-//                mFrameLength = data.length;
-
-                byte[] resized = resizeImage(data);
-                mFrameLength = resized.length;
-
-//                Logger.d("MakeVideoCall", "PreviewCB", "Width: " + mFrameWidth + " Height: " + mFrameHeight);
+//            if (format == ImageFormat.NV21 *//*|| format == ImageFormat.YUY2 || format == ImageFormat.NV16*//*) {
+//                int width = parameters.getPreviewSize().width;
+//                int height = parameters.getPreviewSize().height;
 //
-//                 Get the YuV image
-//                YuvImage yuv_image = new YuvImage(data, format, mFrameWidth, mFrameHeight, null);
+//                resizeImage(data, width, height);
 //
-//                 Compress and Convert YuV to Jpeg
-//                compress_YUVImage(yuv_image);
-            }
+//                Logger.d(LOG_TAG, "OnPreviewFrame", "Resized to: W: " + mFrameWidth + ", H: " + mFrameHeight + ", size: " + mFrameLength);
+//
+////                Logger.d("MakeVideoCall", "PreviewCB", "Width: " + mFrameWidth + " Height: " + mFrameHeight);
+////
+////                 Get the YuV image
+////                YuvImage yuv_image = new YuvImage(data, format, mFrameWidth, mFrameHeight, null);
+////
+////                 Compress and Convert YuV to Jpeg
+////                compress_YUVImage(yuv_image);
+//            }
             if (shouldSendVideo) {
 
                 Logger.d(LOG_TAG, "OnPreviewFrame", "sending frames started...");
@@ -132,28 +135,34 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         }
     };
 
-    private void compress_YUVImage(YuvImage yuvImage) {
+    /*private void compress_YUVImage(YuvImage yuvImage) {
         Rect rect = new Rect(0, 0, mFrameWidth, mFrameHeight);
         ByteArrayOutputStream output_stream = new ByteArrayOutputStream();
         yuvImage.compressToJpeg(rect, 50, output_stream);
-        frameData = output_stream.toByteArray();/** data is ready to send */
-    }
+        frameData = output_stream.toByteArray();*/
 
-    byte[] resizeImage(byte[] input) {
+    /**
+     * data is ready to send
+     *//*
+    }*/
+
+    byte[] resizeImage(byte[] input, int width, int height) {
 
         Bitmap original = previewBitmap(input);
 
 //        Bitmap original = BitmapFactory.decodeByteArray(input, 0, input.length);
 
-        mFrameWidth = original.getWidth() / 10;
-        mFrameHeight = original.getHeight() / 10;
-
-        Bitmap resized = Bitmap.createScaledBitmap(original, mFrameWidth, mFrameHeight, true);
+        Bitmap resized = Bitmap.createScaledBitmap(original, width / 10, height / 10, false);
 
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         resized.compress(Bitmap.CompressFormat.JPEG, 50, os);
 
+        mFrameWidth = resized.getWidth();
+        mFrameHeight = resized.getHeight();
+
         frameData = os.toByteArray();/** data is ready to send */
+
+        mFrameLength = frameData.length;
 
         return os.toByteArray();
     }
@@ -169,10 +178,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     @Override
     protected void onResume() {
         super.onResume();
-
-        openCamera();
-
-        startCameraPreview();
 
         startListener();
         makeVideoCall();
@@ -401,7 +406,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
                     String frameGSONData = getFrameGSONData();
 
-
                     Socket socket = new Socket(address, G.INTRODUCE_PORT);
                     socket.setSoTimeout(2 * 1000);
 
@@ -501,7 +505,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
         isSending = true;
 
-        Logger.d(LOG_TAG, "Frame rate is: ", parameters.getPreviewFrameRate() + "");
+//        Logger.d(LOG_TAG, "Frame rate is: ", parameters.getPreviewFrameRate() + "");
 
         new Thread(new Runnable() {
             @Override
@@ -516,7 +520,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
                         os.write(frameData);
 
-                        byteSent += frameData.length;
+                        byteSent = frameData.length;
 
                         Logger.d(LOG_TAG, "frame length sent: ", byteSent + "");
                     }
@@ -549,7 +553,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private Bitmap previewBitmap(byte[] data) {
         Logger.d("ReceiveVideoCallActivity", "previewBitmap", "Start");
 
-        Bitmap bitmap = Bitmap.createBitmap(mFrameWidth, mFrameHeight, Bitmap.Config.ARGB_8888);
+        final Bitmap bitmap = Bitmap.createBitmap(mFrameWidth, mFrameHeight, Bitmap.Config.ARGB_8888);
 
         Allocation bmData = renderScriptNV21ToRGBA888(
                 getApplicationContext(),
@@ -557,6 +561,15 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                 mFrameHeight,
                 data);
         bmData.copyTo(bitmap);
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                ImageView img = (ImageView) findViewById(R.id.img);
+                img.setImageBitmap(bitmap);
+            }
+        });
+
 
         return bitmap;
     }
