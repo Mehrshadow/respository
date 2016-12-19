@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.View;
+import android.widget.RelativeLayout;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -19,6 +21,7 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 
 import classes.Contacts;
+import classes.DatabaseManagement;
 import classes.DatabaseMap;
 import classes.Logger;
 import classes.RcyContactsAdapter;
@@ -40,7 +43,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
     private boolean SERVER_RUNNING = true;
     private boolean LISTEN = false;
     private boolean LISTEN_Video = true;
-
+    private RelativeLayout progressLayout;
     private RecyclerView rcy_contacts;
     RcyContactsAdapter adapter;
 
@@ -92,7 +95,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
     private void initViews() {
 
         rcy_contacts = (RecyclerView) findViewById(R.id.rcy_contactslist);
-
+        progressLayout = (RelativeLayout) findViewById(R.id.progressBarLayout);
         rcy_contacts.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         adapter = new RcyContactsAdapter(G.contactsList, MainActivity.this);
         rcy_contacts.setAdapter(adapter);
@@ -344,12 +347,15 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+
+                if (G.contactsList.size() == 0) {
+                    progressLayout.setVisibility(View.VISIBLE);
+                } else {
+                    progressLayout.setVisibility(View.INVISIBLE);
+                }
+
                 rcy_contacts.swapAdapter(adapter, true);
 
-
-               /* RcyContactsAdapter adapter = new RcyContactsAdapter(G.contactsList, MainActivity.this);
-                adapter.notifyAll();
-                rcy_contacts.setAdapter(adapter);*/
                 Logger.i("MainActivity", "refreshRcy", "Start");
             }
         });

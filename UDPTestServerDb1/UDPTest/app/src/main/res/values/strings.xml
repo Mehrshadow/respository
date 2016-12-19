@@ -23,5 +23,6 @@
     <string name="VoiceCall">VoiceCall</string>
     <string name="VideoCall">VideoCall</string>
     <string name="enterinfo">Enter Your Name And ServerIp</string>
+    <string name="waiting">Waiting for clients to connect...</string>
 
 </resources>
