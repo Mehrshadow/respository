@@ -72,7 +72,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     private static final int SLEEP_TIME = 100;
     private String contactIp;
     private String displayName;
-    private final static int port_Call = 50004;
     private boolean IN_VIDEO_CALL = false;
     private boolean LISTEN = false;
     private boolean recording = false;
@@ -109,8 +108,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         endCall.setOnClickListener(this);
 
         Intent intent = getIntent();
-        displayName = intent.getStringExtra(MainActivity.EXTRA_CONTACT);
-        contactIp = intent.getStringExtra(MainActivity.EXTRA_IP);
+        displayName = intent.getStringExtra(G.EXTRA_C_Name);
+        contactIp = intent.getStringExtra(G.EXTRA_C_Ip);
 
         TextView textView = (TextView) findViewById(R.id.textViewIncomingCall);
         textView.setText("Incoming call: " + displayName);
@@ -125,19 +124,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         //receiveVideo();
     }
 
-    private void initViewVideo() {
-
-        videoView = (VideoView) findViewById(R.id.videoView);
-
-        createReceiveVideoFileOrRecreateExiting();
-
-        videoView.setVideoURI(Uri.parse(G.ReceiveVideoPath));
-
-        MediaController mc = new MediaController(this);
-        videoView.setMediaController(mc);
-
-        Log.d(LOG_TAG, "video view initialized");
-    }
 
     private void createReceiveVideoFileOrRecreateExiting() {
         try {

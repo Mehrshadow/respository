@@ -38,18 +38,13 @@ import classes.Logger;
 public class MainActivity extends Activity implements OnClickListener, DialogInterface.OnCancelListener {
 
     static final String LOG_TAG = "UDPchat";
-    private static final int CALL_LISTENER_PORT = 50003;
-    private static final int VIDEOCALL_LISTENER_PORT = 50004;
+
     private static final int BUF_SIZE = 1024;
 
-    private static final int CheckStatus = 50006;
+
     public static boolean Online = false;
     private boolean LISTEN = false;
     private boolean LISTEN_Video = true;
-
-    public final static String EXTRA_CONTACT = "hw.dt83.udpchat.CONTACT";
-    public final static String EXTRA_IP = "hw.dt83.udpchat.IP";
-    public final static String EXTRA_DISPLAYNAME = "hw.dt83.udpchat.DISPLAYNAME";
     private String contact;
     private InetAddress ip;
 
@@ -148,7 +143,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
                 try {
                     // Set up the socket and packet to receive
                     Log.i(LOG_TAG, "Incoming call listener started");
-                    DatagramSocket socket = new DatagramSocket(CALL_LISTENER_PORT);
+                    DatagramSocket socket = new DatagramSocket(G.CALL_LISTENER_PORT);
                     socket.setSoTimeout(10000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
@@ -166,8 +161,8 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
                                 String name = data.substring(4, packet.getLength());
 
                                 Intent intent = new Intent(MainActivity.this, ReceiveCallActivity.class);
-                                intent.putExtra(EXTRA_CONTACT, name);
-                                intent.putExtra(EXTRA_IP, address.substring(1, address.length()));
+                                intent.putExtra(G.EXTRA_C_Name, name);
+                                intent.putExtra(G.EXTRA_C_Ip, address.substring(1, address.length()));
                                 G.IN_CALL = true;
                                 //LISTEN = false;
                                 //stopCallListener();
@@ -208,7 +203,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
                 try {
                     // Set up the socket and packet to receive
                     Logger.d("MainActivity", "startVideoCallListener", "Incoming video call listener started");
-                    DatagramSocket socket = new DatagramSocket(G.BROADCAST_PORT);
+                    DatagramSocket socket = new DatagramSocket(G.VIDEOCALL_LISTENER_PORT);
                     socket.setSoTimeout(10000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
@@ -228,8 +223,8 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
                                 String name = data.substring(4, packet.getLength());
 
                                 Intent intent = new Intent(MainActivity.this, ReceiveVideoCallActivity.class);
-                                intent.putExtra(EXTRA_CONTACT, name);
-                                intent.putExtra(EXTRA_IP, address.substring(1, address.length()));
+                                intent.putExtra(G.EXTRA_C_Name, name);
+                                intent.putExtra(G.EXTRA_C_Ip, address.substring(1, address.length()));
                                 G.IN_CALL = true;
 
                                 startActivity(intent);
@@ -261,7 +256,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
     public void onPause() {
         unregisterReceiver(receiver);
         super.onPause();
-        Online = false;
+//        Online = false;
         if (started) {
             removeContact(getBroadcastIp());
         }
@@ -328,27 +323,24 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
     @Override
     public void onRestart() {
+        super.onRestart();
         registerReceiver(receiver, new IntentFilter(G.BROADCAST_WIFI_STATUS));
         initName_IP();
-
-        super.onRestart();
+        startCallListener();
+        startVideoCallListener();
         Log.i(LOG_TAG, "App restarted!");
         G.IN_CALL = false;
-
-
         if (G.isIPChanged) {
             Btn_Connect.setEnabled(true);
             callButton.setVisibility(View.INVISIBLE);
             videoCallButton.setVisibility(View.INVISIBLE);
-
             G.isIPChanged = false;
         }
     }
 
     @Override
     protected void onResume() {
-        startCallListener();
-        startVideoCallListener();
+
 
         registerReceiver(receiver, new IntentFilter(G.BROADCAST_WIFI_STATUS));
         super.onResume();
@@ -359,7 +351,9 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
         switch (v.getId()) {
 
-            case R.id.btn_videocall:
+            case R.id.btnVideoCall:
+                Logger.i("MainActivity", "onClick", "btn_videocall Clicked");
+
                 try {
                     InetAddress inetAddress = InetAddress.getByName(SERVER_IP);
                     MakeVideoCall(Username, inetAddress);
@@ -393,9 +387,9 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
         // Send this information to the MakeCallActivity and start that activity
         Intent intent = new Intent(MainActivity.this, MakeCallActivity.class);
-        intent.putExtra(EXTRA_CONTACT, contact);
-        intent.putExtra(EXTRA_IP, SERVER_IP);
-        intent.putExtra(EXTRA_DISPLAYNAME, Username);
+        intent.putExtra(G.EXTRA_C_Name, contact);
+        intent.putExtra(G.EXTRA_C_Ip, SERVER_IP);
+        intent.putExtra(G.EXTRA_DISPLAYNAME, Username);
         startActivity(intent);
     }
 
@@ -404,9 +398,9 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
         G.IN_CALL = true;
 
         Intent i = new Intent(MainActivity.this, MakeVideoCallActivity.class);
-        i.putExtra(EXTRA_CONTACT, C_Name);
-        i.putExtra(EXTRA_IP, C_Ip);
-        i.putExtra(EXTRA_DISPLAYNAME, "SERVER");
+        i.putExtra(G.EXTRA_C_Name, C_Name);
+        i.putExtra(G.EXTRA_C_Ip, C_Ip.toString().substring(1));
+        i.putExtra(G.EXTRA_DISPLAYNAME, "SERVER");
         startActivity(i);
     }
 
@@ -504,7 +498,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
                 Online = true;
                 while (Online) {
                     try {
-                        ServerSocket serverSocket = new ServerSocket(CheckStatus);
+                        ServerSocket serverSocket = new ServerSocket(G.CheckStatus_PORT);
                         Socket socket = serverSocket.accept();
                         Logger.d("MainActivity", "CheckOnline", "Socket Accepted . . .");
                         Online = false;

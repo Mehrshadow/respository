@@ -64,8 +64,8 @@ public class ReceiveCallActivity extends Activity {
         });
 
         Intent intent = getIntent();
-        contactName = intent.getStringExtra(MainActivity.EXTRA_CONTACT);
-        contactIp = intent.getStringExtra(MainActivity.EXTRA_IP);
+        contactName = intent.getStringExtra(G.EXTRA_C_Name);
+        contactIp = intent.getStringExtra(G.EXTRA_C_Ip);
 
         TextView textView = (TextView) findViewById(R.id.textViewIncomingCall);
         textView.setText("Incoming call: " + contactName);

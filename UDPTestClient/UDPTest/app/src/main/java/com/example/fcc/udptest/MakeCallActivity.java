@@ -25,7 +25,6 @@ import java.net.UnknownHostException;
 public class MakeCallActivity extends Activity implements CompoundButton.OnCheckedChangeListener {
 
     private static final String LOG_TAG = "MakeCall";
-    private static final int BROADCAST_PORT = 50002;
     private static final int BUF_SIZE = 1024;
     private String displayName;
     private String contactName;
@@ -43,9 +42,9 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         Log.i(LOG_TAG, "MakeCallActivity started!");
 
         Intent intent = getIntent();
-        displayName = intent.getStringExtra(MainActivity.EXTRA_DISPLAYNAME);
-        contactName = intent.getStringExtra(MainActivity.EXTRA_CONTACT);
-        contactIp = intent.getStringExtra(MainActivity.EXTRA_IP);
+        displayName = intent.getStringExtra(G.EXTRA_DISPLAYNAME);
+        contactName = intent.getStringExtra(G.EXTRA_C_Name);
+        contactIp = intent.getStringExtra(G.EXTRA_C_Ip);
 
         TextView textView = (TextView) findViewById(R.id.textViewCalling);
         ToggleButton btnSwtich = (ToggleButton) findViewById(R.id.toggleButton2);
@@ -68,7 +67,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
 
     private void makeCall() {
         // Send a request to start a call
-        sendMessage("CAL:" + displayName, 50003);
+        sendMessage("CAL:" + displayName, G.CALL_LISTENER_PORT);
     }
 
     private void endCall() {
@@ -79,7 +78,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
             call.endCall();
             G.IN_CALL = false;
         }
-        sendMessage("END:", BROADCAST_PORT);
+        sendMessage("END:", G.BROADCAST_PORT);
         finish();
     }
 
@@ -94,7 +93,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                 try {
 
                     Log.i(LOG_TAG, "Listener started!");
-                    DatagramSocket socket = new DatagramSocket(BROADCAST_PORT);
+                    DatagramSocket socket = new DatagramSocket(G.BROADCAST_PORT);
                     socket.setSoTimeout(10000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
@@ -219,7 +218,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
             return;
         }
 
-        sendMessage("END:", BROADCAST_PORT);
+        sendMessage("END:", G.BROADCAST_PORT);
 
         super.onBackPressed();
     }
