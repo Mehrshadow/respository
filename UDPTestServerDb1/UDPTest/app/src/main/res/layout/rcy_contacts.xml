@@ -37,7 +37,7 @@
             android:id="@+id/txt_c_name"
             android:layout_weight="1"
             android:layout_margin="2dp"
-            android:layout_marginRight="5dp"
+            android:layout_marginRight="10dp"
             android:gravity="right"
             android:textSize="18sp"
             android:textStyle="normal|bold" />

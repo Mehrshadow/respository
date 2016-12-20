@@ -28,15 +28,16 @@ import classes.RcyContactsAdapter;
 import io.realm.Realm;
 import io.realm.RealmResults;
 
+import static com.example.fcc.udptest.G.BROADCAST_PORT;
+import static com.example.fcc.udptest.G.CALL_LISTENER_PORT;
+import static com.example.fcc.udptest.G.CheckStatus_PORT;
 import static com.example.fcc.udptest.G.EXTRA_C_Ip;
 import static com.example.fcc.udptest.G.EXTRA_C_Name;
 
 public class MainActivity extends Activity implements ContactManager.IRefreshRecycler {
 
     static final String LOG_TAG = "UDPchat";
-    private static final int CALL_LISTENER_PORT = 50003;
-    private static final int VIDEOCALL_LISTENER_PORT = 50004;
-    private static final int CheckStatus = 50006;
+
     private static final int BUF_SIZE = 1024;
     private boolean STARTED = false;
     private boolean Refreshing = true;
@@ -177,7 +178,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
                 try {
                     // Set up the socket and packet to receive
                     Logger.i("MainActivity", "startVideoCallListener", "Incoming video call listener started");
-                    DatagramSocket socket = new DatagramSocket(VIDEOCALL_LISTENER_PORT);
+                    DatagramSocket socket = new DatagramSocket(BROADCAST_PORT);
                     socket.setSoTimeout(10000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
@@ -309,7 +310,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
                         for (int i = 0; i < G.contactsList.size(); i++) {
                             Socket socket = new Socket();
                             try {
-                                socket.connect(new InetSocketAddress(G.contactsList.get(i).getC_Ip(), CheckStatus), 1000);
+                                socket.connect(new InetSocketAddress(G.contactsList.get(i).getC_Ip(), CheckStatus_PORT), 1000);
 
                                 if (!socket.isConnected()) {
                                     socket.close();

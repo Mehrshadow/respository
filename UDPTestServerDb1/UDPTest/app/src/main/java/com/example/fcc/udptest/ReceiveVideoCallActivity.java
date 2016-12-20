@@ -70,7 +70,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
         startListener();
 
-
         //receiveVideo();
     }
 
