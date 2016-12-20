@@ -29,11 +29,11 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         super(context);
         mCamera = camera;
         previewCallback = previewCb;
-//        parameters = camera.getParameters();
-//        parameters.setPreviewFrameRate(8);
-//        parameters.setPreviewSize(100, 200);
-//        parameters.setPictureSize(100, 200);
-//        camera.setParameters(parameters);
+        parameters = camera.getParameters();
+//        parameters.setPreviewFrameRate(1);
+        parameters.setPreviewSize(100, 200);
+        parameters.setPictureSize(100, 200);
+        camera.setParameters(parameters);
 
 //        autoFocusCallback = autoFocusCb;
 
