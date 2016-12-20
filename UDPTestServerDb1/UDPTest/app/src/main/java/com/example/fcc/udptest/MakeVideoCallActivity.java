@@ -10,11 +10,6 @@ import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.os.Bundle;
-import android.renderscript.Allocation;
-import android.renderscript.Element;
-import android.renderscript.RenderScript;
-import android.renderscript.ScriptIntrinsicYuvToRGB;
-import android.renderscript.Type;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -44,8 +39,6 @@ import java.net.UnknownHostException;
 import classes.CameraPreview;
 import classes.Logger;
 
-import static com.example.fcc.udptest.ContactManager.LISTEN;
-
 public class MakeVideoCallActivity extends Activity implements View.OnClickListener {
 
     private static final String LOG_TAG = "MakeVideoCall";
@@ -67,6 +60,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private boolean shouldSendVideo = false;
     private Socket socket_sendFrameData;
     private Camera.Parameters parameters;
+    private boolean LISTEN = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -129,32 +123,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
             }
         });
 
-    }
-
-    byte[] resizeImage(final byte[] input, final int width, final int height) {
-
-        final ByteArrayOutputStream os = new ByteArrayOutputStream();
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-
-                Bitmap original = previewBitmap(input);
-
-//        Bitmap original = BitmapFactory.decodeByteArray(input, 0, input.length);
-
-                Bitmap resized = Bitmap.createScaledBitmap(original, width / 2, height / 2, true);
-
-                mFrameWidth = resized.getWidth();
-                mFrameHeight = resized.getHeight();
-
-                resized.compress(Bitmap.CompressFormat.JPEG, 20, os);
-
-                mFrameLength = os.toByteArray().length;
-            }
-        }).start();
-
-        return os.toByteArray();
     }
 
     @Override
@@ -300,10 +268,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
             }
         });
         listenThread.start();
-    }
-
-    private void receiveVideo() {
-        Log.d(LOG_TAG, "Receiving video data");
     }
 
     private void sendMessage(final String message, final int port) {
@@ -561,38 +525,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         return jsonObject.toString();
     }
 
-    private Bitmap previewBitmap(byte[] data) {
-        Logger.d("ReceiveVideoCallActivity", "previewBitmap", "Start");
-
-        final Bitmap bitmap = Bitmap.createBitmap(mFrameWidth, mFrameHeight, Bitmap.Config.ARGB_8888);
-
-        Allocation bmData = renderScriptNV21ToRGBA888(
-                getApplicationContext(),
-                mFrameWidth,
-                mFrameHeight,
-                data);
-        bmData.copyTo(bitmap);
-
-        return bitmap;
-    }
-
-    public Allocation renderScriptNV21ToRGBA888(Context context, int width, int height, byte[] nv21) {
-        RenderScript rs = RenderScript.create(context);
-        ScriptIntrinsicYuvToRGB yuvToRgbIntrinsic = ScriptIntrinsicYuvToRGB.create(rs, Element.U8_4(rs));
-
-        Type.Builder yuvType = new Type.Builder(rs, Element.U8(rs)).setX(nv21.length);
-        Allocation in = Allocation.createTyped(rs, yuvType.create(), Allocation.USAGE_SCRIPT);
-
-        Type.Builder rgbaType = new Type.Builder(rs, Element.RGBA_8888(rs)).setX(width).setY(height);
-        Allocation out = Allocation.createTyped(rs, rgbaType.create(), Allocation.USAGE_SCRIPT);
-
-        in.copyFrom(nv21);
-
-        yuvToRgbIntrinsic.setInput(in);
-        yuvToRgbIntrinsic.forEach(out);
-        return out;
-    }
-
     Camera.PreviewCallback previewCb = new Camera.PreviewCallback() {
         public void onPreviewFrame(byte[] data, Camera camera) {
 
@@ -618,5 +550,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     public void onClick(View v) {
         endCall();
     }
+
 }
 

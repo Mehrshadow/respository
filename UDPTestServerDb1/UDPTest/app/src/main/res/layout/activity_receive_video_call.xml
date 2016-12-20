@@ -1,4 +1,5 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/LinearLayout1"
     android:layout_width="match_parent"
@@ -33,11 +34,13 @@
             android:layout_weight="1"
             android:layout_marginBottom="10dp"/>
 
-        <VideoView
-            android:id="@+id/videoView"
+        <ImageView
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            app:srcCompat="@drawable/background_oncall"
+            android:id="@+id/img_receive"
             android:layout_weight="1" />
+
     </LinearLayout>
 
 
