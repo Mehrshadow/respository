@@ -101,27 +101,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         }
     }
 
-    Camera.PreviewCallback previewCb = new Camera.PreviewCallback() {
-        public void onPreviewFrame(byte[] data, Camera camera) {
-
-            if (data != null && data.length != 0) {
-                frameData = data;
-                parameters = camera.getParameters();
-                mFrameHeight = parameters.getPreviewSize().height;
-                mFrameWidth = parameters.getPreviewSize().width;
-
-                getBitmap(frameData);
-
-            }
-
-            if (shouldSendVideo) {
-
-//                sendFrameData();
-                sendFrameDataUDP();
-            }
-        }
-    };
-
     private Bitmap getBitmap(byte[] data) {
         YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mFrameWidth, mFrameHeight, null);
 
@@ -137,39 +116,20 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         mFrameLength = frameData.length;
         Logger.d(LOG_TAG, "getBitmap", "mFrameLength: " + mFrameLength);
 
+        return resizedBitmap;
+    }
+
+    private void showBitmap(final Bitmap bitmap) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 ImageView img = (ImageView) findViewById(R.id.img);
                 img.setRotation(-90);
-                img.setImageBitmap(resizedBitmap);
-            }
-        });
-
-        return bitmap;
-    }
-
-
-    /*private Bitmap getBitmap(byte[] data) {
-        YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mFrameWidth, mFrameHeight, null);
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        yuv.compressToJpeg(new Rect(0, 0, mFrameWidth, mFrameHeight), 50, out);
-
-        byte[] bytes = out.toByteArray();
-        final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                ImageView img = (ImageView) findViewById(R.id.img);
                 img.setImageBitmap(bitmap);
             }
         });
 
-        return bitmap;
-    }*/
-
+    }
 
     byte[] resizeImage(final byte[] input, final int width, final int height) {
 
@@ -226,7 +186,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         Camera c = null;
 
         try {
-            c = Camera.open(1);
+            c = Camera.open(0);
         } catch (Exception e) {
             Log.e(LOG_TAG, e.toString());
             e.printStackTrace();
@@ -519,7 +479,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         cameraView.addView(cameraPreview);
     }
 
-    private void sendFrameData() {
+    private void sendFrameData(final byte[] data) {
 
         isSending = true;
 
@@ -538,7 +498,12 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
                         Logger.d(LOG_TAG, "sendFrameData ", "connected");
 
-                        os.write(frameData);
+                        byte[] d = new byte[data.length + 1];
+                        for (int i = 0; i < data.length; i++) {
+                            d[i] = data[i];
+                        }
+                        d[data.length] = '\n';
+                        os.write(d);
 
                         byteSent = frameData.length;
 
@@ -627,6 +592,27 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         yuvToRgbIntrinsic.forEach(out);
         return out;
     }
+
+    Camera.PreviewCallback previewCb = new Camera.PreviewCallback() {
+        public void onPreviewFrame(byte[] data, Camera camera) {
+
+            if (data != null && data.length != 0) {
+                frameData = data;
+                parameters = camera.getParameters();
+                mFrameHeight = parameters.getPreviewSize().height;
+                mFrameWidth = parameters.getPreviewSize().width;
+
+                showBitmap(getBitmap(frameData));
+
+            }
+
+            if (shouldSendVideo) {
+
+//                sendFrameData(frameData);
+                sendFrameDataUDP();
+            }
+        }
+    };
 
     @Override
     public void onClick(View v) {
