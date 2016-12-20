@@ -8,7 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.fcc.udptest.G;
-import com.example.fcc.udptest.MainActivity;
 import com.example.fcc.udptest.MakeCallActivity;
 import com.example.fcc.udptest.MakeVideoCallActivity;
 import com.example.fcc.udptest.R;
@@ -23,7 +22,6 @@ import java.util.List;
 public class RcyContactsAdapter extends RecyclerView.Adapter<RcyContactsHolder> {
 
     List<Contacts> contactsList;
-    MainActivity mainActivity = new MainActivity();
     Context context;
 
     public RcyContactsAdapter(List<Contacts> contactList, Context context) {
@@ -44,6 +42,8 @@ public class RcyContactsAdapter extends RecyclerView.Adapter<RcyContactsHolder> 
     public void onBindViewHolder(final RcyContactsHolder holder, final int position) {
 
         holder.Txt_C_Name.setText(contactsList.get(position).getC_Name());
+        holder.Btn_VoiceCall.setEnabled(true);
+        holder.Btn_VideoCall.setEnabled(true);
 
         holder.Btn_VoiceCall.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -76,7 +76,6 @@ public class RcyContactsAdapter extends RecyclerView.Adapter<RcyContactsHolder> 
 
     public void MakeVoiceCall(String C_Name, InetAddress C_Ip) {
 
-
         // Send this information to the MakeCallActivity and start that activity
         Intent intent = new Intent(context, MakeCallActivity.class);
         intent.putExtra(G.EXTRA_C_Name, C_Name);
@@ -86,7 +85,6 @@ public class RcyContactsAdapter extends RecyclerView.Adapter<RcyContactsHolder> 
     }
 
     public void MakeVideoCall(String C_Name, InetAddress C_Ip) {
-
 
         Intent i = new Intent(context, MakeVideoCallActivity.class);
         i.putExtra(G.EXTRA_C_Name, C_Name);

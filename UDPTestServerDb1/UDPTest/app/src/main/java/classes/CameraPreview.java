@@ -22,38 +22,21 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     private Camera mCamera;
     private PreviewCallback previewCallback;
     private Camera.Parameters parameters;
-//    private AutoFocusCallback autoFocusCallback;
 
     public CameraPreview(Context context, Camera camera,
                          PreviewCallback previewCb) {
         super(context);
+
+        Logger.d("CameraPreview", "SurfaceChanged", "started...");
+
         mCamera = camera;
         previewCallback = previewCb;
         parameters = camera.getParameters();
 //        parameters.setPreviewFrameRate(1);
-        parameters.setPreviewSize(100, 200);
-        parameters.setPictureSize(100, 200);
+        parameters.setPreviewSize(100, 100);
+        parameters.setPictureSize(100, 100);
         camera.setParameters(parameters);
 
-//        autoFocusCallback = autoFocusCb;
-
-        /*
-         * Set camera to continuous focus if supported, otherwise use
-         * software auto-focus. Only works for API level >=9.
-         */
-        /*
-        Camera.Parameters parameters = camera.getParameters();
-        for (String f : parameters.getSupportedFocusModes()) {
-            if (f == Parameters.FOCUS_MODE_CONTINUOUS_PICTURE) {
-                mCamera.setFocusMode(Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
-                autoFocusCallback = null;
-                break;
-            }
-        }
-        */
-
-        // Install a SurfaceHolder.Callback so we get notified when the
-        // underlying surface is created and destroyed.
         mHolder = getHolder();
         mHolder.addCallback(this);
 
@@ -75,6 +58,9 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     }
 
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
+        Logger.d("CameraPreview", "SurfaceChanged", "surface changed, width: " + width + ", height: " + height);
+
         /*
          * If your preview can change or rotate, take care of those events here.
          * Make sure to stop the preview before resizing or reformatting it.

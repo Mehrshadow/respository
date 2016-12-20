@@ -36,7 +36,14 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1" />
+        android:layout_weight="1">
+
+        <ImageView
+            android:id="@+id/img"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </LinearLayout>
 
     <Button
         android:id="@+id/buttonEndCall"
@@ -44,7 +51,6 @@
         android:layout_height="wrap_content"
         android:background="@drawable/call_end_call"
         android:padding="16dp"
-        android:text="@string/endCall"
-        />
+        android:text="@string/endCall" />
 
 </LinearLayout>
