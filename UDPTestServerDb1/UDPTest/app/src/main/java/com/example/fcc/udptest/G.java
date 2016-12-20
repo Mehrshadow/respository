@@ -26,6 +26,10 @@ public class G extends Application {
     public static final int CONTACTSYNC_PORT = 50001; // Socket on which packets are sent/received
     public static final int INTRODUCE_PORT = 60001; // Socket on which frame dimension and sizes are sent
     public static final int VIDEO_CALL_PORT = 60000;
+    public static final int VIDEOCALL_LISTENER_PORT = 50004;
+    public static final int CALL_LISTENER_PORT = 50003;
+    public static final int CheckStatus_PORT = 50006;
+
     public static boolean IN_CALL = false;
 
     public final static String EXTRA_C_Name = "CNAME";
