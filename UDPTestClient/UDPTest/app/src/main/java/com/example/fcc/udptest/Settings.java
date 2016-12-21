@@ -55,7 +55,7 @@ public class Settings extends AppCompatActivity implements View.OnClickListener 
                     if (!lastIP.equals(G.ServerIp)) {
                         G.isIPChanged = true;
                     }
-                    startActivity(new Intent(Settings.this,MainActivity.class));
+                    startActivity(new Intent(Settings.this, MainActivity.class));
                     finish();
                 }
                 break;

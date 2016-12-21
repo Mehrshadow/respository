@@ -3,8 +3,6 @@ package com.example.fcc.udptest;
 import android.app.Application;
 import android.os.Environment;
 
-import java.util.regex.Pattern;
-
 /**
  * Created by FCC on 12/4/2016.
  */
@@ -29,7 +27,6 @@ public class G extends Application {
     public static String UserName = "";
     public static boolean isIPChanged = false;
     public static String BROADCAST_WIFI_STATUS = "android.net.conn.CONNECTIVITY_CHANGE";
-
 
 
 }

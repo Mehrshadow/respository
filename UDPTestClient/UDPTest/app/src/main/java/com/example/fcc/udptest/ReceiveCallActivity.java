@@ -102,7 +102,7 @@ public class ReceiveCallActivity extends Activity {
                     endButton.setVisibility(View.VISIBLE);
                 } catch (UnknownHostException e) {
 
-                    Logger.e(LOG_TAG, "onCreate","UnknownHostException in acceptButton: " + e);
+                    Logger.e(LOG_TAG, "onCreate", "UnknownHostException in acceptButton: " + e);
 
                 } catch (Exception e) {
                     Logger.e(LOG_TAG, "onCreate", "Exception in acceptButton: " + e);
@@ -184,14 +184,14 @@ public class ReceiveCallActivity extends Activity {
                             Logger.e(LOG_TAG, "startListener", "IOException in Listener " + e);
                         }
                     }
-                    Logger.e(LOG_TAG, "startListener","Listener ending");
+                    Logger.e(LOG_TAG, "startListener", "Listener ending");
 
                     socket.disconnect();
                     socket.close();
                     return;
                 } catch (SocketException e) {
 
-                    Logger.e(LOG_TAG, "startListener","SocketException in Listener " + e);
+                    Logger.e(LOG_TAG, "startListener", "SocketException in Listener " + e);
 
                     endCall();
                 }
@@ -219,15 +219,15 @@ public class ReceiveCallActivity extends Activity {
                     DatagramSocket socket = new DatagramSocket();
                     DatagramPacket packet = new DatagramPacket(data, data.length, address, G.BROADCAST_PORT);
                     socket.send(packet);
-                    Logger.e(LOG_TAG, "sendMessage","Sent message( " + message + " ) to " + contactIp);
+                    Logger.e(LOG_TAG, "sendMessage", "Sent message( " + message + " ) to " + contactIp);
 
                     socket.disconnect();
                     socket.close();
                 } catch (UnknownHostException e) {
-                    Logger.e(LOG_TAG, "sendMessage","Failure. UnknownHostException in sendMessage: " + contactIp);
+                    Logger.e(LOG_TAG, "sendMessage", "Failure. UnknownHostException in sendMessage: " + contactIp);
 
                 } catch (SocketException e) {
-                    Logger.e(LOG_TAG, "sendMessage","Failure. SocketException in sendMessage: " + e);
+                    Logger.e(LOG_TAG, "sendMessage", "Failure. SocketException in sendMessage: " + e);
 
                 } catch (IOException e) {
 

@@ -5,8 +5,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.hardware.Camera;
-import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -14,17 +12,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.VideoView;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -43,25 +34,17 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     private boolean IN_VIDEO_CALL = false;
     private boolean LISTEN = false;
     private boolean recording = false;
-    private boolean IN_CALL = false;
     private boolean receiving = false;
     private Button accept, reject, endCall;
     private ImageView mImgReceive;
     private int BUF_SIZE = 1024;
-    private MediaRecorder mediaRecorder;
-    private Camera camera;
-    private VideoView videoView;
-    private BufferedReader bufferedReader;
     private int mFrameWidth;
     private int mFrameHeight;
     private int mFrameBuffSize;
-    private boolean mIsFrameReceived = false;
-    private Camera.Parameters parameters;
-    private boolean introReceveid = false;
     DatagramSocket mReceiveSocket;
     DatagramSocket mSendSocket;
     byte[] buffer;
-    private boolean wasIntroduceSuccessful = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -145,12 +128,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                     }
                 }
 
-                // Frame listener will start only if dimension & size is ok
-                // we should use it here, out of while, because of it has its own while...
-                if (wasIntroduceSuccessful) {
-                    udpFrameListener();
-                }
-
                 Logger.d("ReceiveVideoCallActivity", "startListener", "Listener ending");
 
                 mReceiveSocket.disconnect();
@@ -172,51 +149,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
             Log.d(LOG_TAG, "device does not have any camera!");
             return false;
         }
-    }
-
-//    private void startListener() {
-//        // Create listener thread
-//        LISTEN = true;
-//        Thread listenThread = new Thread(new Runnable() {
-//
-//            @Override
-//            public void run() {
-//
-//                Logger.d("ReceiveVideoCallActivity", "startListener", "Listener started!");
-//                byte[] buffer = new byte[BUF_SIZE];
-//                DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
-//                while (LISTEN) {
-//                    try {
-//                        Logger.d("ReceiveVideoCallActivity", "startListener", "Listening for packets");
-//                        mReceiveSocket.receive(packet);
-//                        String data = new String(buffer, 0, packet.getLength());
-//                        Logger.d("ReceiveVideoCallActivity", "startListener", "Packet received from " + packet.getAddress() + " with contents: " + data);
-//
-//                        String action = data.substring(0, 4);
-//                        if (action.equals("END:")) {
-//                            endCall();
-//                        } else {
-//                            // Invalid notification received
-//                            Logger.d("ReceiveVideoCallActivity", "startListener", packet.getAddress() + " sent invalid message: " + data);
-//                        }
-//                    } catch (IOException e) {
-//                        Logger.e("ReceiveVideoCallActivity", "IOException", "IOException");
-//                        e.printStackTrace();
-//                    }
-//                }
-//                Logger.d("ReceiveVideoCallActivity", "startListener", "Listener ending");
-//
-//                mReceiveSocket.disconnect();
-//                mReceiveSocket.close();
-//                return;
-//            }
-//        });
-//        listenThread.start();
-//    }
-
-    private void makeVideoCall() {
-        // Send a request to start a call
-        sendMessage("ACC:" + displayName, G.SENDVIDEO_PORT);
     }
 
     private void sendMessage(final String message, final int port) {
@@ -250,71 +182,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         replyThread.start();
     }
 
-    private void sendVideo(final InetAddress address) {
-        Logger.d("ReceiveVideoCallActivity", "sendVideo", "send video thread started...");
-
-
-        if (!recording) {
-            recording = true;
-
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-
-                    int bytes_read;
-                    int bytes_sent = 0;
-                    byte[] buf = new byte[BUF_SIZE];
-
-                    try {
-                        FileInputStream fis = new FileInputStream(G.sendVideoPath);
-                        DatagramSocket socket = new DatagramSocket();
-                        mediaRecorder.start();
-
-                        Logger.d("ReceiveVideoCallActivity", "sendVideo", "Recording started");
-
-
-                        while (recording) {
-                            bytes_read = fis.read(buf, 0, BUF_SIZE);
-                            DatagramPacket packet = new DatagramPacket(buf, bytes_read, address, G.SENDVIDEO_PORT);
-                            socket.send(packet);
-                            bytes_sent += bytes_read;
-
-                            Log.i(LOG_TAG, "Total bytes sent: " + bytes_sent);
-//                            Thread.sleep(SLEEP_TIME, 0);
-                        }
-
-                        mediaRecorder.stop();
-                        mediaRecorder.release();
-
-                        socket.disconnect();
-                        socket.close();
-
-                        recording = false;
-
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                        recording = false;
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        recording = false;
-//                    } catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                        recording = false;
-                    }
-
-                }
-            }).start();
-        }
-    }
-
-    private void receiveVideo() {
-        Logger.d("ReceiveVideoCallActivity", "receiveVideo", "mFrameBuffSize >> " + mFrameBuffSize);
-        Logger.d("ReceiveVideoCallActivity", "receiveVideo", "**********Receive video");
-
-        // udpReceived();
-        //tcpReceived();
-    }
-
     private void stopListener() {
         Logger.d("ReceiveVideoCallActivity", "stopListener", "Stopping listener");
 
@@ -329,15 +196,9 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         Log.d(LOG_TAG, "end call");
         // Ends the chat sessions
         stopListener();
-//        if (camera != null) {
-////            camera.stopPreview();
-//            camera.release();
-//        }
 
         if (IN_VIDEO_CALL) {
             receiving = false;
-//            mediaRecorder.stop();
-//            mediaRecorder.release();
         }
         sendMessage("END:", G.SENDVIDEO_PORT);
 
@@ -390,23 +251,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         }
     }
 
-    private void saveReceivedVideoBytesToFile(byte[] data) {
-        Log.d(LOG_TAG, "saving to file...");
-        try {
-            File f = new File(G.ReceiveVideoPath);
-            BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(f, true));
-
-//            FileOutputStream os = new FileOutputStream(G.ReceiveVideoPath, true);
-            bos.write(data);
-            bos.close();
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     private void introListener(String data) {
         try {
 
@@ -421,7 +265,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                     " height = " + mFrameHeight +
                     " buffSize = " + mFrameBuffSize);
             if (mFrameHeight != 0 && mFrameWidth != 0 && mFrameBuffSize != 0) {
-                wasIntroduceSuccessful = true;
                 sendACC();
 
                 udpFrameListener();
