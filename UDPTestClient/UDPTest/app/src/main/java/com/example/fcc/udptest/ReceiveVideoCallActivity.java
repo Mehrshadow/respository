@@ -5,70 +5,38 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.ImageFormat;
-import android.graphics.Rect;
-import android.graphics.YuvImage;
 import android.hardware.Camera;
-import android.media.CamcorderProfile;
-import android.media.MediaPlayer;
 import android.media.MediaRecorder;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.ParcelFileDescriptor;
-import android.renderscript.Allocation;
-import android.renderscript.Element;
-import android.renderscript.RenderScript;
-import android.renderscript.ScriptIntrinsicYuvToRGB;
-import android.renderscript.Type;
 import android.support.v7.app.AppCompatActivity;
-import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.Display;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.MediaController;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.VideoView;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
 import classes.Logger;
 
-import static android.R.attr.data;
-import static android.R.attr.maxHeight;
-import static android.R.attr.maxWidth;
-
 public class ReceiveVideoCallActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private final static String LOG_TAG = "UDP:ReceiveVideoCall";
+    private final static String LOG_TAG = "ReceiveVideoCall";
     private static final int SLEEP_TIME = 100;
     private String contactIp;
     private String displayName;
@@ -93,6 +61,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     DatagramSocket mReceiveSocket;
     DatagramSocket mSendSocket;
     byte[] buffer;
+    private boolean wasIntroduceSuccessful = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -136,7 +105,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         } catch (SocketException e) {
             e.printStackTrace();
         }
-
     }
 
     private void parsePacket() {
@@ -148,7 +116,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
             @Override
             public void run() {
 
-                Logger.d("ReceiveVideoCallActivity", "startListener", "Listener started!");
+                Logger.d(LOG_TAG, "startListener", "Listener started!");
                 buffer = new byte[BUF_SIZE];
                 DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
                 while (LISTEN) {
@@ -165,6 +133,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
                         } else if (data.startsWith("{")) {
                             introListener(data);
+
                         } else {
                             //previewBitmap(buffer);
                             Logger.d("ReceiveVideoCallActivity", "startListener", packet.getAddress() + " sent invalid message: " + data);
@@ -175,17 +144,22 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                         e.printStackTrace();
                     }
                 }
+
+                // Frame listener will start only if dimension & size is ok
+                // we should use it here, out of while, because of it has its own while...
+                if (wasIntroduceSuccessful) {
+                    udpFrameListener();
+                }
+
                 Logger.d("ReceiveVideoCallActivity", "startListener", "Listener ending");
 
                 mReceiveSocket.disconnect();
                 mReceiveSocket.close();
-                return;
             }
         });
         listenThread.start();
 
     }
-
 
     private boolean checkCameraHardware(Context context) {
         if (context.getPackageManager().hasSystemFeature(
@@ -337,7 +311,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         Logger.d("ReceiveVideoCallActivity", "receiveVideo", "mFrameBuffSize >> " + mFrameBuffSize);
         Logger.d("ReceiveVideoCallActivity", "receiveVideo", "**********Receive video");
 
-       // udpReceived();
+        // udpReceived();
         //tcpReceived();
     }
 
@@ -446,9 +420,12 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                     ">> width =" + mFrameWidth +
                     " height = " + mFrameHeight +
                     " buffSize = " + mFrameBuffSize);
-            if (mFrameHeight != 0 && mFrameWidth != 0 &&mFrameBuffSize != 0) {
+            if (mFrameHeight != 0 && mFrameWidth != 0 && mFrameBuffSize != 0) {
+                wasIntroduceSuccessful = true;
                 sendACC();
+
                 udpFrameListener();
+
                 Logger.d("ReceiveVideoCallActivity", "introListener", "mIsFrameReceived is true Sent ACC");
             } else {
                 finish();
@@ -458,43 +435,24 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
     }
 
     private void sendACC() {
         Logger.d("ReceiveVideoCallActivity", "sendACC", "Start");
-        InetAddress address = null;
+        InetAddress address;
         try {
-            String message1 = "OKK:";
+            String message = "OKK:";
             address = InetAddress.getByName(contactIp);
-            byte[] data = message1.getBytes();
+            byte[] data = message.getBytes();
             DatagramPacket packet = new DatagramPacket(data, data.length, address, G.SENDVIDEO_PORT);
             mSendSocket.send(packet);
-          //  udpReceived();
-
+            //  udpReceived();
 
         } catch (UnknownHostException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public Allocation renderScriptNV21ToRGBA888(Context context, int width, int height, byte[] nv21) {
-        RenderScript rs = RenderScript.create(context);
-        ScriptIntrinsicYuvToRGB yuvToRgbIntrinsic = ScriptIntrinsicYuvToRGB.create(rs, Element.U8_4(rs));
-
-        Type.Builder yuvType = new Type.Builder(rs, Element.U8(rs)).setX(nv21.length);
-        Allocation in = Allocation.createTyped(rs, yuvType.create(), Allocation.USAGE_SCRIPT);
-
-        Type.Builder rgbaType = new Type.Builder(rs, Element.RGBA_8888(rs)).setX(width).setY(height);
-        Allocation out = Allocation.createTyped(rs, rgbaType.create(), Allocation.USAGE_SCRIPT);
-
-        in.copyFrom(nv21);
-
-        yuvToRgbIntrinsic.setInput(in);
-        yuvToRgbIntrinsic.forEach(out);
-        return out;
     }
 
     private void previewBitmap(final byte[] data) {
@@ -538,20 +496,20 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         Logger.d("ReceiveVideoCallActivity", "udpReceived", "Start");
         Logger.d("ReceiveVideoCallActivity", "udpReceived", " Thread Start");
         try {
-            final byte[] buff = new byte[mFrameBuffSize * 4];
+            final byte[] buff = new byte[mFrameBuffSize * 10];
             Logger.d("ReceiveVideoCallActivity", "udpReceived", "mFrameBuffSize >> " + mFrameBuffSize);
 //                    datagramSocket.setSoTimeout(10000);
             DatagramPacket packet = new DatagramPacket(buff, mFrameBuffSize);
             while (receiving) {
+
+                mReceiveSocket.setSoTimeout(5 * 1000);// 5 seconds to receive next frame, else, it will close
                 mReceiveSocket.receive(packet);
+
                 Logger.d("ReceiveVideoCallActivity", "udpReceived", "buff.size()" + buff.length);
                 previewBitmap(buff);
             }
             mReceiveSocket.disconnect();
             mReceiveSocket.close();
-        } catch (SocketException e) {
-            receiving = false;
-            e.printStackTrace();
         } catch (IOException e) {
             receiving = false;
             e.printStackTrace();

@@ -106,7 +106,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
         frameData = bytes;
         mFrameLength = frameData.length;
-        Logger.d(LOG_TAG, "getBitmap", "mFrameLength: " + mFrameLength);
+//        Logger.d(LOG_TAG, "getBitmap", "mFrameLength: " + mFrameLength);
 
         return resizedBitmap;
     }
@@ -149,6 +149,8 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         releaseCamera();
 
         stopListener();
+
+        stopSendingFrames();
     }
 
     private static Camera getCameraInstance() {
@@ -210,15 +212,18 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                 Log.i(LOG_TAG, "Listener started!");
 
                 byte[] buffer = new byte[BUF_SIZE];
-                mVideoPacket = new DatagramPacket(buffer, BUF_SIZE);
+//                mVideoPacket = new DatagramPacket(buffer, BUF_SIZE);
+
+                DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
 
                 while (LISTEN) {
                     try {
 
                         Log.i(LOG_TAG, "Listening for packets");
-                        mListenerSocket.receive(mVideoPacket);
-                        String data = new String(buffer, 0, mVideoPacket.getLength());
-                        address = mVideoPacket.getAddress();
+                        mListenerSocket.receive(packet);
+//                        mListenerSocket.setSoTimeout(10 * 1000);
+                        String data = new String(buffer, 0, packet.getLength());
+                        address = packet.getAddress();
                         Log.i(LOG_TAG, "Packet received from " + address + " with contents: " + data);
                         String action = data.substring(0, 4);
                         if (action.equals("ACC:")) {
@@ -255,8 +260,9 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                 }
                 Log.i(LOG_TAG, "Listener ending");
 
-//                mVideoSocket.disconnect();
-//                mVideoSocket.close();
+                mSenderSocket.disconnect();
+                mSenderSocket.close();
+
                 Log.d(LOG_TAG, "Listener socket dc & close");
             }
         });
@@ -266,6 +272,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private void openSenderSocket() {
         try {
             mSenderSocket = new DatagramSocket();
+            mSenderSocket.setSoTimeout(10 * 1000);
         } catch (SocketException e) {
             Logger.d(LOG_TAG, "openVideoSocket", "socket open crashed!");
             e.printStackTrace();
@@ -325,17 +332,18 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         // Ends the chat sessions
         Log.d(LOG_TAG, "end call");
 
-        StopSendingFrames();
-
         sendMessage("END:", G.BROADCAST_PORT);
 
         finish();
     }
 
-    private void StopSendingFrames() {
+    private void stopSendingFrames() {
         isSending = false;
 
 //        closeSendFrameSocket();
+
+//        mSenderSocket.disconnect();
+//        mSenderSocket.close();
 
         releaseCamera();
     }
@@ -344,6 +352,11 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
         Log.d(LOG_TAG, "stopping listener");
         LISTEN = false;
+
+        mListenerSocket.disconnect();
+        if (!mListenerSocket.isBound()) {
+            mListenerSocket.close();
+        }
     }
 
     private void sendFrameIntroduceData() {
