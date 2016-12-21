@@ -22,7 +22,7 @@ public class AudioCall {
     private static final int SAMPLE_SIZE = 2; // Bytes
     private static final int BUF_SIZE = SAMPLE_INTERVAL * SAMPLE_INTERVAL * SAMPLE_SIZE * 2; //Bytes
     private InetAddress address; // Address to call
-    private int port = 50000; // Port the packets are addressed to
+
     private boolean mic = false; // Enable mic?
     private boolean speakers = false; // Enable speakers?
 
@@ -81,7 +81,7 @@ public class AudioCall {
                     while (mic) {
                         // Capture audio from the mic and transmit it
                         bytes_read = audioRecorder.read(buf, 0, BUF_SIZE);
-                        DatagramPacket packet = new DatagramPacket(buf, bytes_read, address, port);
+                        DatagramPacket packet = new DatagramPacket(buf, bytes_read, address, G.CALL_SENDER_PORT);
                         socket.send(packet);
                         bytes_sent += bytes_read;
                         Log.i(LOG_TAG, "Total bytes sent: " + bytes_sent);
@@ -131,7 +131,7 @@ public class AudioCall {
                     try {
 
                         // Define a socket to receive the audio
-                        DatagramSocket socket = new DatagramSocket(port);
+                        DatagramSocket socket = new DatagramSocket(G.CALL_LISTENER_PORT);
                         byte[] buf = new byte[BUF_SIZE];
                         while (speakers) {
                             // Play back the audio received from packets

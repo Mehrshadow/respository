@@ -22,7 +22,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
-public class MakeCallActivity extends Activity implements CompoundButton.OnCheckedChangeListener {
+public class MakeCallActivity extends Activity implements CompoundButton.OnCheckedChangeListener, OnClickListener {
 
     private static final String LOG_TAG = "MakeCall";
     private static final int BUF_SIZE = 1024;
@@ -31,6 +31,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
     private String contactIp;
     private boolean LISTEN = true;
     private AudioCall call;
+    private Button endButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,25 +49,18 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         TextView textView = (TextView) findViewById(R.id.textViewCalling);
         ToggleButton btnSwtich = (ToggleButton) findViewById(R.id.toggleButton2);
         btnSwtich.setOnCheckedChangeListener(this);
-        textView.setText("Calling: " + contactName);
+        displayName = String.format(getString(R.string.calling_lbl), contactName);
+
+        endButton = (Button) findViewById(R.id.buttonEndCall);
+        endButton.setOnClickListener(this);
 
         startListener();
         makeCall();
-
-        Button endButton = (Button) findViewById(R.id.buttonEndCall);
-        endButton.setOnClickListener(new OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                // Button to end the call has been pressed
-                endCall();
-            }
-        });
     }
 
     private void makeCall() {
         // Send a request to start a call
-        sendMessage("CAL:" + displayName, 50003);
+        sendMessage("CAL:" + displayName, G.);
     }
 
     private void endCall() {
@@ -211,5 +205,10 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
 
             Log.d(LOG_TAG, "Speaker changed" + " & switchStatus is: " + isChecked);
         }
+    }
+
+    @Override
+    public void onClick(View v) {
+        endCall();
     }
 }

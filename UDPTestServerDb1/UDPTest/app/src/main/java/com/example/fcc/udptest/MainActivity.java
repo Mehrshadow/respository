@@ -29,7 +29,6 @@ import io.realm.Realm;
 import io.realm.RealmResults;
 
 import static com.example.fcc.udptest.G.CALL_LISTENER_PORT;
-import static com.example.fcc.udptest.G.CheckStatus_PORT;
 
 public class MainActivity extends Activity implements ContactManager.IRefreshRecycler {
 
@@ -191,7 +190,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
                 try {
                     // Set up the socket and packet to receive
                     Logger.i("MainActivity", "startVideoCallListener", "Incoming video call listener started");
-                    DatagramSocket socket = new DatagramSocket(G.RECEIVEVIDEO_PORT);
+                    DatagramSocket socket = new DatagramSocket(G.VIDEOCALL_LISTENER_PORT);
                     socket.setSoTimeout(10000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
@@ -311,7 +310,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
                         for (int i = 0; i < G.contactsList.size(); i++) {
                             Socket socket = new Socket();
                             try {
-                                socket.connect(new InetSocketAddress(G.contactsList.get(i).getC_Ip(), CheckStatus_PORT), 1000);
+                                socket.connect(new InetSocketAddress(G.contactsList.get(i).getC_Ip(), G.CHECK_ONLINE_MOBILES_PORT), 1000);
 
                                 if (!socket.isConnected()) {
                                     socket.close();

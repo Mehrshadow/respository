@@ -14,7 +14,6 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -34,13 +33,11 @@ import java.util.concurrent.ExecutionException;
 
 import classes.Logger;
 
-
 public class MainActivity extends Activity implements OnClickListener, DialogInterface.OnCancelListener {
 
     static final String LOG_TAG = "UDPchat";
 
     private static final int BUF_SIZE = 1024;
-
 
     public static boolean Online = false;
     private boolean LISTEN = false;
@@ -55,12 +52,8 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
     private boolean started = false;
 
     private boolean shouldCheckServer = true;
-    private int checkServerSleepInterval = 10 * 1000;
     private boolean isServerReachable = false;
-    private int times_server_checked = 0;
     private ProgressDialog progressDialog;
-    private CountDownTimer countDownTimer;
-
 
     TextView Txt_Username, Txt_Server_ip;
 
@@ -324,7 +317,6 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
         Logger.e("MainActivity", "Lifecycle", "onDestroy");
     }
 
-
     @Override
     public void onBackPressed() {
         super.onBackPressed();
@@ -513,7 +505,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
                 Online = true;
                 while (Online) {
                     try {
-                        ServerSocket serverSocket = new ServerSocket(G.CheckStatus_PORT);
+                        ServerSocket serverSocket = new ServerSocket(G.CHECK_ONLINE_MOBILES_PORT);
                         Socket socket = serverSocket.accept();
                         Logger.d("MainActivity", "CheckOnline", "Socket Accepted . . .");
                         Online = false;

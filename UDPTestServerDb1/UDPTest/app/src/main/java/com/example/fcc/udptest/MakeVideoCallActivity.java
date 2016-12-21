@@ -279,7 +279,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
     private void openListenerSocket() {
         try {
-            mListenerSocket = new DatagramSocket(G.RECEIVEVIDEO_PORT);
+            mListenerSocket = new DatagramSocket(G.VIDEOCALL_LISTENER_PORT);
         } catch (SocketException e) {
             e.printStackTrace();
         }
@@ -401,7 +401,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private void initSendFrameSocket() {
         try {
             if (socket_sendFrameData == null) {
-                socket_sendFrameData = new Socket(address, G.RECEIVEVIDEO_PORT);
+                socket_sendFrameData = new Socket(address, G.VIDEOCALL_LISTENER_PORT);
             }
 
         } catch (IOException e) {
