@@ -44,7 +44,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     private int mFrameWidth;
     private int mFrameHeight;
     private int mFrameBuffSize;
-    private boolean introReceveid = false;
+    private boolean introReceived = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,8 +62,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         endCall.setOnClickListener(this);
 
         Intent intent = getIntent();
-        displayName = intent.getStringExtra(G.EXTRA_CONTACT);
-        contactIp = intent.getStringExtra(G.EXTRA_IP);
+        displayName = intent.getStringExtra(G.EXTRA_C_Name);
+        contactIp = intent.getStringExtra(G.EXTRA_C_Ip);
 
         TextView textView = (TextView) findViewById(R.id.textViewIncomingCall);
         textView.setText("Incoming call: " + displayName);
@@ -193,8 +193,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
             case R.id.buttonAccept:
                 sendMessage("ACC:", G.BROADCAST_PORT);
                 introListener();
-                introReceveid = true;
-                while (introReceveid) {
+                introReceived = true;
+                while (introReceived) {
 
                     Logger.d("ReceiveVideoCallActivity", "onClick", "mFrameBuffSize >> " + mFrameBuffSize);
                 }
@@ -239,7 +239,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
             public void run() {
                 Socket socket = null;
                 try {
-                    ServerSocket serverSocket = new ServerSocket(G.INTRODUCE_PORT);
+                    ServerSocket serverSocket = new ServerSocket(G.VIDEOCALL_LISTENER_PORT);
                     Logger.d("ReceiveVideoCallActivity", "introListener", "Listening . . .");
                     socket = serverSocket.accept();
                     Logger.d("ReceiveVideoCallActivity", "introListener", "Socket Connected");
@@ -266,7 +266,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                         Logger.d("ReceiveVideoCallActivity", "introListener", "mIsFrameReceived is false");
                         Logger.d("ReceiveVideoCallActivity", "introListener", "finish Activity");
                     }
-                    introReceveid = false;
+                    introReceived = false;
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (JSONException e) {
@@ -291,16 +291,15 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
             String data = "OK";
             InetAddress address = InetAddress.getByName(contactIp);
             Logger.d("ReceiveVideoCallActivity", "sendACC", "Try To Connect");
-            Socket socket = new Socket(address, G.INTRODUCE_PORT);
-            Logger.d("ReceiveVideoCallActivity", "sendACC", "Connected To >> " + address + " : " + G.INTRODUCE_PORT);
+            Socket socket = new Socket(address, G.CALL_LISTENER_PORT);
+            Logger.d("ReceiveVideoCallActivity", "sendACC", "Connected To >> " + address + " : " + G.CALL_LISTENER_PORT);
 //            socket.setSoTimeout(2000);
             DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
-
 
             outputStream.write(data.getBytes());
             outputStream.flush();
             socket.close();
-            Logger.d("ReceiveVideoCallActivity", "sendACC", "ACC Sent To >> " + address + " : " + G.INTRODUCE_PORT);
+            Logger.d("ReceiveVideoCallActivity", "sendACC", "ACC Sent To >> " + address + " : " + G.CALL_LISTENER_PORT);
         } catch (UnknownHostException e) {
             e.printStackTrace();
         } catch (IOException e) {

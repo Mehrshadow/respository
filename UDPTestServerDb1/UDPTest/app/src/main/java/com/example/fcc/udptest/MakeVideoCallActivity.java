@@ -22,15 +22,12 @@ import android.widget.Toast;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
@@ -49,8 +46,9 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private static final int BUF_SIZE = 1024;
     private Camera camera = null;
     private Button buttonEndCall;
-    private DatagramSocket socket;
-    private DatagramPacket packet;
+    private DatagramSocket mSenderSocket;
+    private DatagramSocket mListenerSocket;
+    private DatagramPacket mVideoPacket;
     private CameraPreview cameraPreview;
     private int mFrameWidth, mFrameHeight, mFrameLength;
     private byte[] frameData;
@@ -137,6 +135,9 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     protected void onResume() {
         super.onResume();
 
+        openSenderSocket();
+        openListenerSocket();
+
         startListener();
         makeVideoCall();
     }
@@ -154,7 +155,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         Camera c = null;
 
         try {
-            c = Camera.open(0);
+            c = Camera.open(1);
         } catch (Exception e) {
             Log.e(LOG_TAG, e.toString());
             e.printStackTrace();
@@ -206,68 +207,77 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
             @Override
             public void run() {
 
-                try {
+                Log.i(LOG_TAG, "Listener started!");
 
-                    Log.i(LOG_TAG, "Listener started!");
+                byte[] buffer = new byte[BUF_SIZE];
+                mVideoPacket = new DatagramPacket(buffer, BUF_SIZE);
 
-                    socket = new DatagramSocket(G.BROADCAST_PORT);
-                    byte[] buffer = new byte[BUF_SIZE];
-                    packet = new DatagramPacket(buffer, BUF_SIZE);
+                while (LISTEN) {
+                    try {
 
+                        Log.i(LOG_TAG, "Listening for packets");
+                        mListenerSocket.receive(mVideoPacket);
+                        String data = new String(buffer, 0, mVideoPacket.getLength());
+                        address = mVideoPacket.getAddress();
+                        Log.i(LOG_TAG, "Packet received from " + address + " with contents: " + data);
+                        String action = data.substring(0, 4);
+                        if (action.equals("ACC:")) {
 
-                    while (LISTEN) {
-                        try {
-
-                            Log.i(LOG_TAG, "Listening for packets");
-                            socket.receive(packet);
-                            String data = new String(buffer, 0, packet.getLength());
-                            address = packet.getAddress();
-                            Log.i(LOG_TAG, "Packet received from " + address + " with contents: " + data);
-                            String action = data.substring(0, 4);
-                            if (action.equals("ACC:")) {
-
-                                Log.d(LOG_TAG, "video call accepted");
+                            Log.d(LOG_TAG, "video call accepted");
 
 //                                Send Introduce and Listen to incoming value
-                                sendFrameIntroduceData();
-                                startFrameIntroduceAcceptedListener();
+                            sendFrameIntroduceData();
+//                            startFrameIntroduceAcceptedListener();
 
-                            } else if (action.equals("REJ:")) {
-                                // Reject notification received. End call
-                                Log.d(LOG_TAG, "Ending call...");
-                                endCall();
-                            } else if (action.equals("END:")) {
-                                Log.d(LOG_TAG, "Ending call...");
-                                endCall();
-                            } else {
-                                Log.w(LOG_TAG, address + " sent invalid message: " + data);
-                            }
-                        } catch (SocketTimeoutException e) {
-
-                            Log.i(LOG_TAG, "No reply from contact. Ending call");
+                        } else if (action.equals("REJ:")) {
+                            // Reject notification received. End call
+                            Log.d(LOG_TAG, "Ending call...");
                             endCall();
-
-
-                        } catch (IOException e) {
-                            Log.e(LOG_TAG, e.toString());
-                            e.printStackTrace();
+                        } else if (action.equals("END:")) {
+                            Log.d(LOG_TAG, "Ending call...");
                             endCall();
+                        } else if (action.equals("OKK:")) {
+                            Logger.d(LOG_TAG, "startListener", "OK received");
+                            shouldSendVideo = true;
+                        } else {
+                            Log.w(LOG_TAG, address + " sent invalid message: " + data);
                         }
+                    } catch (SocketTimeoutException e) {
+
+                        Log.i(LOG_TAG, "No reply from contact. Ending call");
+                        endCall();
+
+                    } catch (IOException e) {
+                        Log.e(LOG_TAG, e.toString());
+                        e.printStackTrace();
+                        endCall();
                     }
-                    Log.i(LOG_TAG, "Listener ending");
-
-                    socket.disconnect();
-                    socket.close();
-                    Log.d(LOG_TAG, "Listener socket dc & close");
-                } catch (SocketException e) {
-
-                    Log.e(LOG_TAG, e.toString());
-                    e.printStackTrace();
-                    endCall();
                 }
+                Log.i(LOG_TAG, "Listener ending");
+
+//                mVideoSocket.disconnect();
+//                mVideoSocket.close();
+                Log.d(LOG_TAG, "Listener socket dc & close");
             }
         });
         listenThread.start();
+    }
+
+    private void openSenderSocket() {
+        try {
+            mSenderSocket = new DatagramSocket();
+        } catch (SocketException e) {
+            Logger.d(LOG_TAG, "openVideoSocket", "socket open crashed!");
+            e.printStackTrace();
+        }
+    }
+
+    private void openListenerSocket() {
+        try {
+            mListenerSocket = new DatagramSocket(G.VIDEO_CALL_PORT);
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
     }
 
     private void sendMessage(final String message, final int port) {
@@ -281,12 +291,12 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
                     InetAddress address = InetAddress.getByName(contactIp);
                     byte[] data = message.getBytes();
-                    DatagramSocket socket = new DatagramSocket();
-                    DatagramPacket packet = new DatagramPacket(data, data.length, address, port);
-                    socket.send(packet);
+//                    DatagramSocket socket = new DatagramSocket();
+                    mVideoPacket = new DatagramPacket(data, data.length, address, port);
+                    mSenderSocket.send(mVideoPacket);
                     Log.i(LOG_TAG, "Sent message( " + message + " ) to " + contactIp);
-                    socket.disconnect();
-                    socket.close();
+//                    mSenderSocket.disconnect();
+//                    mSenderSocket.close();
                 } catch (UnknownHostException e) {
 
                     Log.e(LOG_TAG, "Failure. UnknownHostException in sendMessage: " + contactIp);
@@ -307,15 +317,13 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
     private void makeVideoCall() {
         // Send a request to start a call
-        sendMessage("CAL:" + displayName, G.BROADCAST_PORT);
+        sendMessage("CAL:" + displayName, G.VIDEOCALL_SENDER_PORT);
 
     }
 
     private void endCall() {
         // Ends the chat sessions
         Log.d(LOG_TAG, "end call");
-
-        stopListener();
 
         StopSendingFrames();
 
@@ -350,59 +358,62 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                 try {
                     int byteSent = 0;
 
-                    String frameGSONData = getFrameGSONData();
+                    String frameJSONData = getFrameJSONData();
 
-                    Socket socket = new Socket(address, G.INTRODUCE_PORT);
+//                    Socket socket = new Socket(address, G.INTRODUCE_PORT);
 
-                    OutputStream writer = socket.getOutputStream();
-//                    DataOutputStream writer = (DataOutputStream) socket.getOutputStream();
+//                    OutputStream writer = socket.getOutputStream();
+                    byte[] buf = frameJSONData.getBytes();
 
-                    if (socket.isConnected()) {
+                    mVideoPacket = new DatagramPacket(buf, buf.length, address, G.VIDEOCALL_SENDER_PORT);
 
-                        writer.write(frameGSONData.getBytes());
+                    mSenderSocket.send(mVideoPacket);
 
-                        Logger.d(LOG_TAG, "SendFrameIntroduce", frameGSONData);
+//                        writer.write(frameJSONData.getBytes());
 
-                        byteSent += frameGSONData.getBytes().length;
+                    Logger.d(LOG_TAG, "SendFrameIntroduce", frameJSONData);
 
-                        Logger.d(LOG_TAG, "bytes sent: ", byteSent + "");
+                    byteSent += frameJSONData.getBytes().length;
 
-                        socket.close();
+                    Logger.d(LOG_TAG, "bytes sent: ", byteSent + "");
 
-                        isSending = false;
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
+//                        socket.close();
+
                     isSending = false;
-                    socket.close();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
                 }
             }
         }).start();
     }
 
-    private void startFrameIntroduceAcceptedListener() {
+    /*private void startFrameIntroduceAcceptedListener() {
         new Thread(new Runnable() {
 
-            ServerSocket serverSocket;
-            Socket socket;
+//            ServerSocket serverSocket;
+//            Socket socket;
 
             @Override
             public void run() {
                 try {
-                    serverSocket = new ServerSocket(G.INTRODUCE_PORT);
 
-                    socket = serverSocket.accept();
+                    byte[] buf = new byte[1024];
+//                    serverSocket = new ServerSocket(G.INTRODUCE_PORT);
+                    mVideoPacket = new DatagramPacket(buf, buf.length);
+                    mListenerSocket.receive(mVideoPacket);
+//                    socket = serverSocket.accept();
 
-//                    DataInputStream is = (DataInputStream) socket.getInputStream();
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                    String receivedValue = reader.readLine();
+//                    BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+//                    String receivedValue = reader.readLine();
 
-                    Logger.d(LOG_TAG, "startFrameIntroduceAcceptedListener", "ReceivedValue: " + receivedValue);
+//                    Logger.d(LOG_TAG, "startFrameIntroduceAcceptedListener", "ReceivedValue: " + receivedValue);
+                    Logger.d(LOG_TAG, "startFrameIntroduceAcceptedListener", "ReceivedValue: " + buf.toString());
 
-                    socket.close();
-                    serverSocket.close();
+//                    socket.close();
+//                    serverSocket.close();
 
-                    if (receivedValue.equals("OK")) {
+//                    if (receivedValue.equals("OK")) {
+                        if (buf.toString().equals("OK")) {
 
 //                         Client is ready to receive the frames... so send it!
 //                        initSendFrameSocket();
@@ -415,7 +426,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                 }
             }
         }).start();
-    }
+    }*/
 
     private void initSendFrameSocket() {
         try {
@@ -498,11 +509,11 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                     Logger.d(LOG_TAG, "address: ", address + "");
 
                     DatagramSocket socket = new DatagramSocket();
-                    DatagramPacket packet = new DatagramPacket(frameData, frameData.length, address, G.VIDEO_CALL_PORT);
+                    mVideoPacket = new DatagramPacket(frameData, frameData.length, address, G.VIDEOCALL_SENDER_PORT);
 
                     Logger.d(LOG_TAG, "frame length sent: ", frameData.length + "");
 
-                    socket.send(packet);
+                    socket.send(mVideoPacket);
 
                 } catch (IOException e) {
                     releaseCamera();
@@ -512,7 +523,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         }).start();
     }
 
-    private String getFrameGSONData() {
+    private String getFrameJSONData() {
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("Width", mFrameWidth);
