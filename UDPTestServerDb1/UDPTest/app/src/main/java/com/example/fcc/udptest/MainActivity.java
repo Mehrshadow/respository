@@ -28,11 +28,8 @@ import classes.RcyContactsAdapter;
 import io.realm.Realm;
 import io.realm.RealmResults;
 
-import static com.example.fcc.udptest.G.BROADCAST_PORT;
 import static com.example.fcc.udptest.G.CALL_LISTENER_PORT;
 import static com.example.fcc.udptest.G.CheckStatus_PORT;
-import static com.example.fcc.udptest.G.EXTRA_C_Ip;
-import static com.example.fcc.udptest.G.EXTRA_C_Name;
 
 public class MainActivity extends Activity implements ContactManager.IRefreshRecycler {
 
@@ -55,7 +52,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
     protected void onCreate(Bundle savedInstanceState) {
         Realm.init(getApplicationContext());
         Logger.i("MainActivity", "onCreate", "Before Db G.contactsList.size()>> " + G.contactsList.size());
-        initRealm();
+        copyToIist();
         Logger.i("MainActivity", "onCreate", "After Db G.contactsList.size()>> " + G.contactsList.size());
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_server);
@@ -70,7 +67,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
         Logger.i("MainActivity", "onCreate", "IP is >> " + getBroadcastIp());
     }
 
-    private void initRealm() {
+    private void copyToIist() {
 
         Realm mRealm = Realm.getInstance(G.myConfig);
         for (DatabaseMap Db : mRealm.where(DatabaseMap.class).findAll()) {
@@ -84,13 +81,29 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
             } catch (UnknownHostException e) {
                 e.printStackTrace();
             }
-
-
         }
         mRealm.beginTransaction();
         RealmResults<DatabaseMap> results = mRealm.where(DatabaseMap.class).findAll();
         results.deleteAllFromRealm();
         mRealm.commitTransaction();
+    }
+
+    private void copyToDB() {
+        Realm mRealm = Realm.getInstance(G.myConfig);
+        for (int i = 0; i < G.contactsList.size(); i++) {
+
+            String ip = G.contactsList.get(i).getC_Ip().toString().substring(1);
+            String C_Name = G.contactsList.get(i).getC_Name();
+
+            RealmResults<DatabaseMap> results = mRealm.where(DatabaseMap.class).equalTo("C_ip", ip).findAll();
+            if (results.size() == 0) {
+                mRealm.beginTransaction();
+                DatabaseMap databaseMap = mRealm.createObject(DatabaseMap.class);
+                databaseMap.setC_ip(ip);
+                databaseMap.setC_Name(C_Name);
+            }
+            mRealm.commitTransaction();
+        }
     }
 
     private void initViews() {
@@ -178,7 +191,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
                 try {
                     // Set up the socket and packet to receive
                     Logger.i("MainActivity", "startVideoCallListener", "Incoming video call listener started");
-                    DatagramSocket socket = new DatagramSocket(BROADCAST_PORT);
+                    DatagramSocket socket = new DatagramSocket(G.BROADCAST_PORT);
                     socket.setSoTimeout(10000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
@@ -198,8 +211,8 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
                                 String name = data.substring(4, packet.getLength());
 
                                 Intent intent = new Intent(MainActivity.this, ReceiveVideoCallActivity.class);
-                                intent.putExtra(EXTRA_C_Name, name);
-                                intent.putExtra(EXTRA_C_Ip, address.substring(1, address.length()));
+                                intent.putExtra(G.EXTRA_C_Name, name);
+                                intent.putExtra(G.EXTRA_C_Ip, address.substring(1, address.length()));
                                 G.IN_CALL = true;
 
                                 startActivity(intent);
@@ -250,22 +263,10 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
     public void onStop() {
         Logger.i("MainActivity", "onStop", "G.contactsList.size()>> " + G.contactsList.size());
         Log.i(LOG_TAG, "App stopped!");
-//        stopCallListener();
-//        stopVideoCallListener();
-//        contactManager.stopListening();
+
+        copyToDB();
+
         super.onStop();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Logger.i("MainActivity", "onDestroy", "G.contactsList.size()>> " + G.contactsList.size());
-        for (int i = 0; i < G.contactsList.size(); i++) {
-            databaseManagement.addContact(G.contactsList.get(i).getC_Name()
-                    , G.contactsList.get(i).getC_Ip());
-            Logger.i("MainActivity", "initRealm", "Add from List to Db >> " + G.contactsList.get(i).getC_Name() + " " + G.contactsList.get(i).getC_Ip());
-        }
-
     }
 
     @Override
