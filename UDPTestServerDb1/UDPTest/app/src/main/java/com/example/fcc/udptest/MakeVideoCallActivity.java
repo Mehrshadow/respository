@@ -11,7 +11,6 @@ import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -124,11 +123,10 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     }
 
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-            releaseCamera();
-        }
-        return super.onKeyDown(keyCode, event);
+    public void onBackPressed() {
+        super.onBackPressed();
+
+        releaseCamera();
     }
 
     @Override
@@ -281,7 +279,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
     private void openListenerSocket() {
         try {
-            mListenerSocket = new DatagramSocket(G.VIDEO_CALL_PORT);
+            mListenerSocket = new DatagramSocket(G.RECEIVEVIDEO_PORT);
         } catch (SocketException e) {
             e.printStackTrace();
         }
@@ -400,51 +398,10 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         }).start();
     }
 
-    /*private void startFrameIntroduceAcceptedListener() {
-        new Thread(new Runnable() {
-
-//            ServerSocket serverSocket;
-//            Socket socket;
-
-            @Override
-            public void run() {
-                try {
-
-                    byte[] buf = new byte[1024];
-//                    serverSocket = new ServerSocket(G.INTRODUCE_PORT);
-                    mVideoPacket = new DatagramPacket(buf, buf.length);
-                    mListenerSocket.receive(mVideoPacket);
-//                    socket = serverSocket.accept();
-
-//                    BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-//                    String receivedValue = reader.readLine();
-
-//                    Logger.d(LOG_TAG, "startFrameIntroduceAcceptedListener", "ReceivedValue: " + receivedValue);
-                    Logger.d(LOG_TAG, "startFrameIntroduceAcceptedListener", "ReceivedValue: " + buf.toString());
-
-//                    socket.close();
-//                    serverSocket.close();
-
-//                    if (receivedValue.equals("OK")) {
-                        if (buf.toString().equals("OK")) {
-
-//                         Client is ready to receive the frames... so send it!
-//                        initSendFrameSocket();
-
-                        shouldSendVideo = true;
-                    }
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-    }*/
-
     private void initSendFrameSocket() {
         try {
             if (socket_sendFrameData == null) {
-                socket_sendFrameData = new Socket(address, G.VIDEO_CALL_PORT);
+                socket_sendFrameData = new Socket(address, G.RECEIVEVIDEO_PORT);
             }
 
         } catch (IOException e) {
@@ -467,7 +424,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         cameraView.addView(cameraPreview);
     }
 
-    private void sendFrameData(final byte[] data) {
+    private void sendFrameDataTCP(final byte[] data) {
 
         isSending = true;
 
@@ -564,7 +521,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
             if (shouldSendVideo) {
 
-//                sendFrameData(frameData);
+//                sendFrameDataTCP(frameData);
                 sendFrameDataUDP();
             }
         }

@@ -1,7 +1,6 @@
 package com.example.fcc.udptest;
 
 import android.app.Application;
-import android.os.Environment;
 
 import com.facebook.stetho.Stetho;
 import com.uphyca.stetho_realm.RealmInspectorModulesProvider;
@@ -18,15 +17,13 @@ import io.realm.RealmConfiguration;
  */
 
 public class G extends Application {
-    public static final String sendVideoPath = Environment.getExternalStorageDirectory() + "/Send_videoTest.flv";
-    public static final String ReceiveVideoPath = Environment.getExternalStorageDirectory() + "/Receive_videoTest.flv";
 
     public static List<Contacts> contactsList = new ArrayList<>();
     public static final int BROADCAST_PORT = 50002;
     public static final int CONTACTSYNC_PORT = 50001; // Socket on which packets are sent/received
     public static final int VIDEOCALL_SENDER_PORT = 60001; // Socket on which frame dimension and sizes are sent
-    public static final int VIDEO_CALL_PORT = 60000;
-    public static final int VIDEOCALL_LISTENER_PORT = 50004;
+    public static final int RECEIVEVIDEO_PORT = 60000;
+//    public static final int VIDEOCALL_LISTENER_PORT = 50004;
     public static final int CALL_LISTENER_PORT = 50003;
     public static final int CheckStatus_PORT = 50006;
 

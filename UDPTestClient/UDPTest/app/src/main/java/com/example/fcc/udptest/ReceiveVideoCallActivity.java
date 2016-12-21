@@ -1,8 +1,6 @@
 package com.example.fcc.udptest;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -28,23 +26,19 @@ import classes.Logger;
 public class ReceiveVideoCallActivity extends AppCompatActivity implements View.OnClickListener {
 
     private final static String LOG_TAG = "ReceiveVideoCall";
-    private static final int SLEEP_TIME = 100;
     private String contactIp;
     private String displayName;
     private boolean IN_VIDEO_CALL = false;
     private boolean LISTEN = false;
-    private boolean recording = false;
     private boolean receiving = false;
     private Button accept, reject, endCall;
     private ImageView mImgReceive;
     private int BUF_SIZE = 1024;
-    private int mFrameWidth;
-    private int mFrameHeight;
     private int mFrameBuffSize;
     DatagramSocket mReceiveSocket;
     DatagramSocket mSendSocket;
     byte[] buffer;
-
+    private int mFrameWidth, mFrameHeight;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,12 +62,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
         TextView textView = (TextView) findViewById(R.id.textViewIncomingCall);
         textView.setText("Incoming call: " + displayName);
-
-//        initViewVideo();
-
-        //mediaRecorder = new MediaRecorder();
-        //udpReceived();
-
 
     }
 
@@ -136,19 +124,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         });
         listenThread.start();
 
-    }
-
-    private boolean checkCameraHardware(Context context) {
-        if (context.getPackageManager().hasSystemFeature(
-                PackageManager.FEATURE_CAMERA)) {
-            // this device has a camera
-            Log.d(LOG_TAG, "device has camera");
-            return true;
-        } else {
-            // no camera on this device
-            Log.d(LOG_TAG, "device does not have any camera!");
-            return false;
-        }
     }
 
     private void sendMessage(final String message, final int port) {
