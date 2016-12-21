@@ -352,7 +352,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
                     String frameGSONData = getFrameGSONData();
 
-                    Socket socket = new Socket(address, G.INTRODUCE_PORT);
+                    Socket socket = new Socket(address, G.SENDVIDEO_PORT);
 
                     OutputStream writer = socket.getOutputStream();
 //                    DataOutputStream writer = (DataOutputStream) socket.getOutputStream();
@@ -389,7 +389,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
             @Override
             public void run() {
                 try {
-                    serverSocket = new ServerSocket(G.INTRODUCE_PORT);
+                    serverSocket = new ServerSocket(G.SENDVIDEO_PORT);
 
                     socket = serverSocket.accept();
 
@@ -420,7 +420,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private void initSendFrameSocket() {
         try {
             if (socket_sendFrameData == null) {
-                socket_sendFrameData = new Socket(address, G.VIDEO_CALL_PORT);
+                socket_sendFrameData = new Socket(address, G.SENDVIDEO_PORT);
             }
 
         } catch (IOException e) {
@@ -498,7 +498,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                     Logger.d(LOG_TAG, "address: ", address + "");
 
                     DatagramSocket socket = new DatagramSocket();
-                    DatagramPacket packet = new DatagramPacket(frameData, frameData.length, address, G.VIDEO_CALL_PORT);
+                    DatagramPacket packet = new DatagramPacket(frameData, frameData.length, address, G.SENDVIDEO_PORT);
 
                     Logger.d(LOG_TAG, "frame length sent: ", frameData.length + "");
 

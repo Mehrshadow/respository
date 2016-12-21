@@ -70,13 +70,14 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
     protected void onCreate(Bundle savedInstanceState) {
         registerReceiver(receiver, new IntentFilter(G.BROADCAST_WIFI_STATUS));
         super.onCreate(savedInstanceState);
+        Logger.e("MainActivity", "Lifecycle", "onCreate");
+
         if (!initName_IP()) {
             Intent intent = new Intent(MainActivity.this, Settings.class);
             startActivity(intent);
             return;
         }
         setContentView(R.layout.activity_main_client);
-
 
 
         initViews();
@@ -203,7 +204,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
                 try {
                     // Set up the socket and packet to receive
                     Logger.d("MainActivity", "startVideoCallListener", "Incoming video call listener started");
-                    DatagramSocket socket = new DatagramSocket(G.VIDEOCALL_LISTENER_PORT);
+                    DatagramSocket socket = new DatagramSocket(G.RECEIVEVIDEO_PORT);
                     socket.setSoTimeout(10000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
@@ -216,7 +217,8 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
                             Logger.d("MainActivity", "startVideoCallListener", "Packet received from " + packet.getAddress() + " with contents: " + data);
                             String action = data.substring(0, 4);
                             if (action.equals("CAL:")) {
-
+                                socket.close();
+                                socket.disconnect();
                                 Log.d(LOG_TAG, "**CAL received**");
                                 // Received a call request. Start the ReceiveCallActivity
                                 String address = packet.getAddress().toString();
@@ -254,6 +256,8 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
     @Override
     public void onPause() {
+
+        Logger.e("MainActivity", "Lifecycle", "onPause");
         unregisterReceiver(receiver);
         super.onPause();
 //        Online = false;
@@ -299,6 +303,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
     @Override
     public void onStop() {
+        Logger.e("MainActivity", "Lifecycle", "onStop");
 
         super.onStop();
         Online = false;
@@ -314,6 +319,13 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Logger.e("MainActivity", "Lifecycle", "onDestroy");
+    }
+
+
+    @Override
     public void onBackPressed() {
         super.onBackPressed();
         if (!G.IN_CALL) {
@@ -324,6 +336,8 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
     @Override
     public void onRestart() {
         super.onRestart();
+        Logger.e("MainActivity", "Lifecycle", "onRestart");
+
         registerReceiver(receiver, new IntentFilter(G.BROADCAST_WIFI_STATUS));
         initName_IP();
         startCallListener();
@@ -340,6 +354,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
     @Override
     protected void onResume() {
+        Logger.e("MainActivity", "Lifecycle", "onResume");
 
 
         registerReceiver(receiver, new IntentFilter(G.BROADCAST_WIFI_STATUS));

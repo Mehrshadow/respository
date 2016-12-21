@@ -23,8 +23,8 @@ public class G extends Application {
     public final static String EXTRA_DISPLAYNAME = "DISPNAME";
 
     public static final int CONTACTSYNC_PORT = 50001; // Socket on which packets are sent/received
-    public static final int INTRODUCE_PORT = 60001; // Socket on which frame dimension and sizes are sent
-    public static final int VIDEO_CALL_PORT = 60000;
+    public static final int RECEIVEVIDEO_PORT = 60001; // Socket on which frame dimension and sizes are sent
+    public static final int SENDVIDEO_PORT = 60000;
     public static String ServerIp = "";
     public static String UserName = "";
     public static boolean isIPChanged = false;
