@@ -100,8 +100,10 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
                 DatabaseMap databaseMap = mRealm.createObject(DatabaseMap.class);
                 databaseMap.setC_ip(ip);
                 databaseMap.setC_Name(C_Name);
+
+                mRealm.commitTransaction();
             }
-            mRealm.commitTransaction();
+
         }
     }
 
@@ -190,7 +192,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
                 try {
                     // Set up the socket and packet to receive
                     Logger.i("MainActivity", "startVideoCallListener", "Incoming video call listener started");
-                    DatagramSocket socket = new DatagramSocket(G.VIDEOCALL_LISTENER_PORT);
+                    DatagramSocket socket = new DatagramSocket(G.BROADCAST_PORT);
                     socket.setSoTimeout(10000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
