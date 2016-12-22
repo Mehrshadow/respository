@@ -155,7 +155,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         Camera c = null;
 
         try {
-            c = Camera.open(0);
+            c = Camera.open(1);
         } catch (Exception e) {
             Log.e(LOG_TAG, e.toString());
             e.printStackTrace();
@@ -279,7 +279,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
     private void openListenerSocket() {
         try {
-            mListenerSocket = new DatagramSocket(G.SENDVIDEO_PORT);
+            mListenerSocket = new DatagramSocket(G.RECEIVEVIDEO_PORT);
         } catch (SocketException e) {
             e.printStackTrace();
         }
@@ -352,9 +352,8 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         LISTEN = false;
 
         mListenerSocket.disconnect();
-        if (!mListenerSocket.isBound()) {
-            mListenerSocket.close();
-        }
+        mListenerSocket.close();
+
     }
 
     private void sendFrameIntroduceData() {
