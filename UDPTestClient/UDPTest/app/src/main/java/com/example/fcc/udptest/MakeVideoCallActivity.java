@@ -155,7 +155,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         Camera c = null;
 
         try {
-            c = Camera.open(1);
+            c = Camera.open(0);
         } catch (Exception e) {
             Log.e(LOG_TAG, e.toString());
             e.printStackTrace();
@@ -322,7 +322,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
     private void makeVideoCall() {
         // Send a request to start a call
-        sendMessage("CAL:" + displayName, G.SENDVIDEO_PORT);
+        sendMessage("CAL:" + displayName, G.BROADCAST_PORT);
 
     }
 

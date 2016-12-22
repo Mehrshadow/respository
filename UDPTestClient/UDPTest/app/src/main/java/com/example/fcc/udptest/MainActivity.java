@@ -53,6 +53,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
     private boolean shouldCheckServer = true;
     private boolean isServerReachable = false;
+    private boolean hasroadcasted = false;
     private ProgressDialog progressDialog;
 
     TextView Txt_Username, Txt_Server_ip;
@@ -299,7 +300,6 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
         Logger.e("MainActivity", "Lifecycle", "onStop");
 
         super.onStop();
-        Online = false;
         Log.i(LOG_TAG, "App stopped!");
 
         if (started) {
@@ -347,8 +347,16 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
     @Override
     protected void onResume() {
         Logger.e("MainActivity", "Lifecycle", "onResume");
+        if(hasroadcasted) {
+            InetAddress ServerIp = null;
+            try {
+                ServerIp = InetAddress.getByName(SERVER_IP);
+                broadcastName(Username, ServerIp);
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
 
-
+        }
         registerReceiver(receiver, new IntentFilter(G.BROADCAST_WIFI_STATUS));
         super.onResume();
     }
@@ -508,7 +516,8 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
                         ServerSocket serverSocket = new ServerSocket(G.CHECK_ONLINE_MOBILES_PORT);
                         Socket socket = serverSocket.accept();
                         Logger.d("MainActivity", "CheckOnline", "Socket Accepted . . .");
-                        Online = false;
+                        socket.close();
+                        serverSocket.close();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -570,6 +579,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
                     try {
                         InetAddress ServerIp = InetAddress.getByName(SERVER_IP);
                         broadcastName(Username, ServerIp);
+                        hasroadcasted =true;
                     } catch (UnknownHostException e) {
                         e.printStackTrace();
                     }

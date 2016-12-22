@@ -30,7 +30,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     private String displayName;
     private boolean IN_VIDEO_CALL = false;
     private boolean LISTEN = false;
-    private boolean receiving = false;
     private Button accept, reject, endCall;
     private ImageView mImgReceive;
     private int BUF_SIZE = 1024;
@@ -39,6 +38,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     DatagramSocket mSendSocket;
     byte[] buffer;
     private int mFrameWidth, mFrameHeight;
+    private boolean receiving = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,6 +112,9 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                         }
 
                     } catch (IOException e) {
+                        receiving = false;
+                        LISTEN = false;
+                        endCall();
                         Logger.e("ReceiveVideoCallActivity", "IOException", "IOException");
                         e.printStackTrace();
                     }
@@ -328,9 +332,16 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
             }
             mReceiveSocket.disconnect();
             mReceiveSocket.close();
-        } catch (IOException e) {
-            receiving = false;
+        } catch (SocketException e) {
+            Logger.e("ReceiveVideoCallActivity", "udpFrameListener", "SocketException");
+            endCall();
+            LISTEN = false;
             e.printStackTrace();
+        } catch (IOException e) {
+            Logger.e("ReceiveVideoCallActivity", "udpFrameListener", "IOException");
+            LISTEN = false;
+            e.printStackTrace();
+            endCall();
         }
     }
 
