@@ -19,17 +19,17 @@ import io.realm.RealmConfiguration;
 public class G extends Application {
 
     public static List<Contacts> contactsList = new ArrayList<>();
-    public static final int BROADCAST_PORT = 30000;
+    public static final int BROADCAST_PORT = 20000;
 
-    public static final int CONTACTSYNC_PORT = 40000;
+    public static final int CONTACTSYNC_PORT = 30000;
 
-    public static final int CALL_SENDER_PORT = 50000;
-    public static final int CALL_LISTENER_PORT = 50001;
+    public static final int CALL_SENDER_PORT = 40000;
+    public static final int CALL_LISTENER_PORT = 40001;
 
-    public static final int VIDEOCALL_LISTENER_PORT = 60000;
-    public static final int VIDEOCALL_SENDER_PORT = 60001;
+    public static final int VIDEOCALL_LISTENER_PORT = 50000;
+    public static final int VIDEOCALL_SENDER_PORT = 50001;
 
-    public static final int CHECK_ONLINE_MOBILES_PORT = 70000;
+    public static final int CHECK_ONLINE_MOBILES_PORT = 60000;
 
     public static boolean IN_CALL = false;
 
