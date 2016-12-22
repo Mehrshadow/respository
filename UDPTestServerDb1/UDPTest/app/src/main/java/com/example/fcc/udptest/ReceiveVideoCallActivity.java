@@ -290,8 +290,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
 
                     // Hide the buttons as they're not longer required
-                    accept.setVisibility(View.INVISIBLE);
-                    reject.setVisibility(View.INVISIBLE);
+                    accept.setVisibility(View.GONE);
+                    reject.setVisibility(View.GONE);
                     endCall.setVisibility(View.VISIBLE);
 
                 } catch (UnknownHostException e) {
