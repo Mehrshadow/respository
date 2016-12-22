@@ -49,15 +49,15 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private DatagramSocket mListenerSocket;
     private DatagramPacket mVideoPacket;
     private CameraPreview cameraPreview;
-    private int mFrameWidth, mFrameHeight, mFrameLength;
+    private int mFrameWidth, mFrameHeight, mFrameBuffSize;
     private byte[] frameData;
-    private boolean isSending = false;
     private FrameLayout cameraView;
     private InetAddress address;
     private boolean shouldSendVideo = false;
     private Socket socket_sendFrameData;
     private Camera.Parameters parameters;
     private boolean LISTEN = false;
+    private boolean receiving = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,7 +104,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         final Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, mFrameWidth / 2, mFrameHeight / 2, true);
 
         frameData = bytes;
-        mFrameLength = frameData.length;
+        mFrameBuffSize = frameData.length;
 //        Logger.d(LOG_TAG, "getBitmap", "mFrameLength: " + mFrameLength);
 
         return resizedBitmap;
@@ -242,6 +242,8 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                         } else if (action.equals("OKK:")) {
                             Logger.d(LOG_TAG, "startListener", "OK received");
                             shouldSendVideo = true;
+                        } else if (data.startsWith("{")) {
+                            introListener(data);
                         } else {
                             Log.w(LOG_TAG, address + " sent invalid message: " + data);
                         }
@@ -285,6 +287,85 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         }
     }
 
+    private void introListener(String data) {
+        try {
+
+            JSONObject jsonObject = new JSONObject(data);
+            mFrameWidth = jsonObject.getInt("Width");
+            mFrameHeight = jsonObject.getInt("Height");
+            mFrameBuffSize = jsonObject.getInt("Size");
+            Logger.d("ReceiveVideoCallActivity", "introListener", "mFrameBuffSize >> " + mFrameBuffSize);
+
+            Logger.d("ReceiveVideoCallActivity", "introListener", "Received Data " +
+                    ">> width =" + mFrameWidth +
+                    " height = " + mFrameHeight +
+                    " buffSize = " + mFrameBuffSize);
+            if (mFrameHeight != 0 && mFrameWidth != 0 && mFrameBuffSize != 0) {
+                sendACC();
+
+                udpFrameListener();
+
+                Logger.d("ReceiveVideoCallActivity", "introListener", "mIsFrameReceived is true Sent ACC");
+            } else {
+                finish();
+                Logger.d("ReceiveVideoCallActivity", "introListener", "mIsFrameReceived is false");
+                Logger.d("ReceiveVideoCallActivity", "introListener", "finish Activity");
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void sendACC() {
+        Logger.d("ReceiveVideoCallActivity", "sendACC", "Start");
+        InetAddress address;
+        try {
+            String message = "OKK:";
+            address = InetAddress.getByName(contactIp);
+            byte[] data = message.getBytes();
+            DatagramPacket packet = new DatagramPacket(data, data.length, address, G.SENDVIDEO_PORT);
+            mSenderSocket.send(packet);
+            //  udpReceived();
+
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void udpFrameListener() {
+        receiving = true;
+        Logger.d("ReceiveVideoCallActivity", "udpReceived", "Start");
+        Logger.d("ReceiveVideoCallActivity", "udpReceived", " Thread Start");
+        try {
+            final byte[] buff = new byte[mFrameBuffSize * 10];
+            Logger.d("ReceiveVideoCallActivity", "udpReceived", "mFrameBuffSize >> " + mFrameBuffSize);
+//                    datagramSocket.setSoTimeout(10000);
+            DatagramPacket packet = new DatagramPacket(buff, mFrameBuffSize);
+            while (receiving) {
+
+                mListenerSocket.setSoTimeout(5 * 1000);// 5 seconds to receive next frame, else, it will close
+                mListenerSocket.receive(packet);
+
+                Logger.d("ReceiveVideoCallActivity", "udpReceived", "buff.size()" + buff.length);
+                showBitmap(getBitmap(buff));
+            }
+            mListenerSocket.disconnect();
+            mListenerSocket.close();
+        } catch (SocketException e) {
+            Logger.e("ReceiveVideoCallActivity", "udpFrameListener", "SocketException");
+            endCall();
+            LISTEN = false;
+            e.printStackTrace();
+        } catch (IOException e) {
+            Logger.e("ReceiveVideoCallActivity", "udpFrameListener", "IOException");
+            LISTEN = false;
+            e.printStackTrace();
+            endCall();
+        }
+    }
+
     private void sendMessage(final String message, final int port) {
         // Creates a thread used for sending notifications
         Thread replyThread = new Thread(new Runnable() {
@@ -322,7 +403,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
     private void makeVideoCall() {
         // Send a request to start a call
-        sendMessage("CAL:" + displayName, G.BROADCAST_PORT);
+        sendMessage("CAL:" + displayName, G.SENDVIDEO_PORT);
 
     }
 
@@ -336,7 +417,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     }
 
     private void stopSendingFrames() {
-        isSending = false;
 
 //        closeSendFrameSocket();
 
@@ -352,14 +432,14 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         LISTEN = false;
 
         mListenerSocket.disconnect();
-        mListenerSocket.close();
-
+        if (!mListenerSocket.isBound()) {
+            mListenerSocket.close();
+        }
     }
 
     private void sendFrameIntroduceData() {
 
         // Creates the thread for sending frames
-        isSending = true;
 
         new Thread(new Runnable() {
             @Override
@@ -389,7 +469,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
 //                        socket.close();
 
-                    isSending = false;
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
@@ -425,9 +504,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
     private void sendFrameDataTCP(final byte[] data) {
 
-        isSending = true;
-
-//        Logger.d(LOG_TAG, "Frame rate is: ", parameters.getPreviewFrameRate() + "");
+        //        Logger.d(LOG_TAG, "Frame rate is: ", parameters.getPreviewFrameRate() + "");
 
         new Thread(new Runnable() {
             @Override
@@ -454,11 +531,8 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                         Logger.d(LOG_TAG, "frame length sent: ", byteSent + "");
                     }
 
-                    isSending = false;
-
                 } catch (IOException e) {
                     e.printStackTrace();
-                    isSending = false;
 
                     closeSendFrameSocket();
                 }
@@ -467,8 +541,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     }
 
     private void sendFrameDataUDP() {
-
-        isSending = true;
 
         new Thread(new Runnable() {
             @Override
@@ -497,7 +569,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         try {
             jsonObject.put("Width", mFrameWidth);
             jsonObject.put("Height", mFrameHeight);
-            jsonObject.put("Size", mFrameLength);
+            jsonObject.put("Size", mFrameBuffSize);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -514,7 +586,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                 mFrameHeight = parameters.getPreviewSize().height;
                 mFrameWidth = parameters.getPreviewSize().width;
 
-                showBitmap(getBitmap(frameData));
+                //showBitmap(getBitmap(frameData));
 
             }
 

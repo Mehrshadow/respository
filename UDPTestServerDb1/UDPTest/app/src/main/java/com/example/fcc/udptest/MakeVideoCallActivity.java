@@ -586,7 +586,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                 mFrameHeight = parameters.getPreviewSize().height;
                 mFrameWidth = parameters.getPreviewSize().width;
 
-                showBitmap(getBitmap(frameData));
+               // showBitmap(getBitmap(frameData));
 
             }
 

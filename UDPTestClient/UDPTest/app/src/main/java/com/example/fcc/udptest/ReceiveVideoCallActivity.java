@@ -1,19 +1,27 @@
 package com.example.fcc.udptest;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
+import android.hardware.Camera;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -21,6 +29,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
+import classes.CameraPreview;
 import classes.Logger;
 
 public class ReceiveVideoCallActivity extends AppCompatActivity implements View.OnClickListener {
@@ -39,7 +48,14 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     byte[] buffer;
     private int mFrameWidth, mFrameHeight;
     private boolean receiving = false;
-
+    private FrameLayout cameraView;
+    private Camera camera = null;
+    private CameraPreview cameraPreview;
+    private byte[] frameData;
+    private Camera.Parameters parameters;
+    private boolean shouldSendVideo = false;
+    private InetAddress address;
+    private DatagramPacket mVideoPacket;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,7 +80,69 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         TextView textView = (TextView) findViewById(R.id.textViewIncomingCall);
         textView.setText("Incoming call: " + displayName);
 
+        cameraView = (FrameLayout) findViewById(R.id.cameraView);
+
+        openCamera();
+
+        startCameraPreview();
+
     }
+
+    private void openCamera() {
+
+        if (checkCameraHardware(this)) {
+            try {
+
+                camera = getCameraInstance();
+//
+            } catch (Exception e) {
+                Log.e(LOG_TAG, "Error in camera");
+                e.printStackTrace();
+            }
+
+        } else {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(ReceiveVideoCallActivity.this, "NO Camera Device found!!", Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+    }
+
+    private static Camera getCameraInstance() {
+        Camera c = null;
+
+        try {
+            c = Camera.open(1);
+        } catch (Exception e) {
+            Log.e(LOG_TAG, e.toString());
+            e.printStackTrace();
+        }
+
+        return c;
+    }
+
+    private boolean checkCameraHardware(Context context) {
+        if (context.getPackageManager().hasSystemFeature(
+                PackageManager.FEATURE_CAMERA)) {
+            // this device has a camera
+            Log.d(LOG_TAG, "device has camera");
+            return true;
+        } else {
+            // no camera on this device
+            Log.d(LOG_TAG, "device does not have any camera!");
+            return false;
+        }
+    }
+
+    private void startCameraPreview() {
+//        camera = getCameraInstance();
+
+        cameraPreview = new CameraPreview(ReceiveVideoCallActivity.this, camera, previewCb);
+        cameraView.addView(cameraPreview);
+    }
+
 
     private void startSockets() {
         Logger.d("ReceiveVideoCallActivity", "socketStart", "started!");
@@ -212,8 +290,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
 
                     // Hide the buttons as they're not longer required
-                    accept.setVisibility(View.INVISIBLE);
-                    reject.setVisibility(View.INVISIBLE);
+                    accept.setVisibility(View.GONE);
+                    reject.setVisibility(View.GONE);
                     endCall.setVisibility(View.VISIBLE);
 
                 } catch (UnknownHostException e) {
@@ -344,6 +422,89 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
             endCall();
         }
     }
+
+    private Bitmap getBitmap(byte[] data) {
+        YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mFrameWidth, mFrameHeight, null);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        yuv.compressToJpeg(new Rect(0, 0, mFrameWidth, mFrameHeight), 50, out);
+
+        byte[] bytes = out.toByteArray();
+        final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+
+        final Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, mFrameWidth / 2, mFrameHeight / 2, true);
+
+        frameData = bytes;
+        mFrameBuffSize = frameData.length;
+//        Logger.d(LOG_TAG, "getBitmap", "mFrameLength: " + mFrameLength);
+
+        return resizedBitmap;
+    }
+
+    private void showBitmap(final Bitmap bitmap) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                ImageView img = (ImageView) findViewById(R.id.img);
+                img.setRotation(-90);
+                img.setImageBitmap(bitmap);
+            }
+        });
+
+    }
+
+    private void releaseCamera() {
+        if (camera != null) {
+            camera.setPreviewCallback(null);
+            camera.release();
+            camera = null;
+        }
+    }
+
+    private void sendFrameDataUDP() {
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                try {
+                    Logger.d(LOG_TAG, "address: ", address + "");
+
+                    DatagramSocket socket = new DatagramSocket();
+                    mVideoPacket = new DatagramPacket(frameData, frameData.length, address, G.SENDVIDEO_PORT);
+
+                    Logger.d(LOG_TAG, "frame length sent: ", frameData.length + "");
+
+                    socket.send(mVideoPacket);
+
+                } catch (IOException e) {
+                    releaseCamera();
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    Camera.PreviewCallback previewCb = new Camera.PreviewCallback() {
+        public void onPreviewFrame(byte[] data, Camera camera) {
+
+            if (data != null && data.length != 0) {
+                frameData = data;
+                parameters = camera.getParameters();
+                mFrameHeight = parameters.getPreviewSize().height;
+                mFrameWidth = parameters.getPreviewSize().width;
+
+                showBitmap(getBitmap(frameData));
+
+            }
+
+            if (shouldSendVideo) {
+
+//                sendFrameDataTCP(frameData);
+                sendFrameDataUDP();
+            }
+        }
+    };
 
 }
 
