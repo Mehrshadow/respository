@@ -198,7 +198,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
                 try {
                     // Set up the socket and packet to receive
                     Logger.d("MainActivity", "startVideoCallListener", "Incoming video call listener started");
-                    DatagramSocket socket = new DatagramSocket(G.RECEIVEVIDEO_PORT);
+                    DatagramSocket socket = new DatagramSocket(G.BROADCAST_PORT);
                     socket.setSoTimeout(10000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
