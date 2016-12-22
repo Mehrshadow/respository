@@ -33,6 +33,8 @@ public class G extends Application {
 
     public static boolean IN_CALL = false;
 
+    public static final int FRONT_CAMERA = 1, REAR_CAMERA = 0;
+
     public final static String EXTRA_C_Name = "CNAME";
     public final static String EXTRA_C_Ip = "CIP";
     public final static String EXTRA_DISPLAYNAME = "DISPNAME";

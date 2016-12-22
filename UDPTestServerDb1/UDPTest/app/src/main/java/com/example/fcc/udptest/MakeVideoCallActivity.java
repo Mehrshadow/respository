@@ -59,6 +59,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private boolean LISTEN = false;
     private boolean receiving = false;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -155,7 +156,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         Camera c = null;
 
         try {
-            c = Camera.open(1);
+            c = Camera.open(G.FRONT_CAMERA);
         } catch (Exception e) {
             Log.e(LOG_TAG, e.toString());
             e.printStackTrace();
@@ -403,7 +404,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
     private void makeVideoCall() {
         // Send a request to start a call
-        sendMessage("CAL:" + displayName, G.VIDEOCALL_SENDER_PORT);
+        sendMessage("VIDEOCALL" + displayName, G.VIDEOCALL_SENDER_PORT);
 
     }
 

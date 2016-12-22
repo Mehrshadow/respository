@@ -28,8 +28,6 @@ import classes.RcyContactsAdapter;
 import io.realm.Realm;
 import io.realm.RealmResults;
 
-import static com.example.fcc.udptest.G.CALL_LISTENER_PORT;
-
 public class MainActivity extends Activity implements ContactManager.IRefreshRecycler {
 
     static final String LOG_TAG = "UDPchat";
@@ -62,7 +60,6 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
         contactManager.setRefreshRcyclerListener(MainActivity.this);
         refreshContacts();
         startCallListener();
-        startVideoCallListener();
         Logger.i("MainActivity", "onCreate", "IP is >> " + getBroadcastIp());
     }
 
@@ -136,7 +133,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
                 try {
                     // Set up the socket and packet to receive
                     Logger.i("MainActivity", "startCallListener", "Incoming call listener started");
-                    DatagramSocket socket = new DatagramSocket(CALL_LISTENER_PORT);
+                    DatagramSocket socket = new DatagramSocket(G.BROADCAST_PORT);
                     socket.setSoTimeout(10000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
@@ -147,15 +144,27 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
                             socket.receive(packet);
                             String data = new String(buffer, 0, packet.getLength());
                             Logger.i("MainActivity", "startCallListener", "\"Packet received from \" + packet.getAddress() + \" with contents: \" + data");
-                            String action = data.substring(0, 4);
-                            if (action.equals("CAL:")) {
+                            String action = data.substring(0, 9);
+                            String name = data.substring(9, packet.getLength());
+                            String address = packet.getAddress().toString();
+
+                            if (action.equals("VOICECALL")) {
                                 // Received a call request. Start the ReceiveCallActivity
-                                String address = packet.getAddress().toString();
-                                String name = data.substring(4, packet.getLength());
 
                                 Intent intent = new Intent(MainActivity.this, ReceiveCallActivity.class);
                                 intent.putExtra(G.EXTRA_C_Name, name);
                                 intent.putExtra(G.EXTRA_C_Ip, address.substring(1, address.length()));
+                                startActivity(intent);
+                            } else if (action.equals("VIDEOCALL")) {
+                                Logger.i("MainActivity", "startVideoCallListener", "**CAL received**");
+                                // Received a call request. Start the ReceiveCallActivity
+
+                                Intent intent = new Intent(MainActivity.this, ReceiveVideoCallActivity.class);
+                                intent.putExtra(G.EXTRA_C_Name, name);
+                                intent.putExtra(G.EXTRA_C_Ip, address.substring(1, address.length()));
+
+                                G.IN_CALL = true;
+
                                 startActivity(intent);
                             } else {
                                 // Received an invalid request
@@ -181,70 +190,10 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
         Logger.i("MainActivity", "stopCallListener", "Done");
     }
 
-    private void startVideoCallListener() {
-        // Creates the listener thread
-        LISTEN_Video = true;
-        Thread listener = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-
-                try {
-                    // Set up the socket and packet to receive
-                    Logger.i("MainActivity", "startVideoCallListener", "Incoming video call listener started");
-                    DatagramSocket socket = new DatagramSocket(G.BROADCAST_PORT);
-                    socket.setSoTimeout(10000);
-                    byte[] buffer = new byte[BUF_SIZE];
-                    DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
-                    while (LISTEN_Video) {
-                        // Listen for incoming call requests
-                        try {
-                            Logger.i("MainActivity", "startVideoCallListener", "Listening for incoming video calls");
-                            socket.receive(packet);
-                            String data = new String(buffer, 0, packet.getLength());
-                            Logger.i("MainActivity", "startVideoCallListener", "Packet received from " + packet.getAddress() + " with contents: " + data);
-                            String action = data.substring(0, 4);
-                            if (action.equals("CAL:")) {
-
-                                Logger.i("MainActivity", "startVideoCallListener", "**CAL received**");
-                                // Received a call request. Start the ReceiveCallActivity
-                                String address = packet.getAddress().toString();
-                                String name = data.substring(4, packet.getLength());
-
-                                Intent intent = new Intent(MainActivity.this, ReceiveVideoCallActivity.class);
-                                intent.putExtra(G.EXTRA_C_Name, name);
-                                intent.putExtra(G.EXTRA_C_Ip, address.substring(1, address.length()));
-                                G.IN_CALL = true;
-
-                                startActivity(intent);
-                            } else {
-                                // Received an invalid request
-                                Logger.i("MainActivity", "startVideoCallListener", packet.getAddress() + " sent invalid message: " + data);
-                            }
-                        } catch (Exception e) {
-                        }
-                    }
-                    Logger.i("MainActivity", "startVideoCallListener", "Video Call Listener ending");
-                    socket.disconnect();
-                    socket.close();
-                } catch (SocketException e) {
-                    Logger.i("MainActivity", "startVideoCallListener", "SocketException in listener " + e);
-                }
-            }
-        });
-        listener.start();
-    }
-
-    private void stopVideoCallListener() {
-        // Ends the listener thread
-        LISTEN_Video = false;
-    }
-
     @Override
     protected void onResume() {
         contactManager.startListening();
         startCallListener();
-        startVideoCallListener();
         Logger.i("MainActivity", "onResume", "G.contactsList.size()>> " + G.contactsList.size());
         super.onResume();
     }
@@ -257,7 +206,6 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
         SERVER_RUNNING = false;
         contactManager.stopListening();
         stopCallListener();
-        stopVideoCallListener();
     }
 
     @Override
@@ -290,7 +238,6 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
 //        contactManager.listen();
         refreshContacts();
         startCallListener();
-        startVideoCallListener();
         // refreshContacts();
     }
 
