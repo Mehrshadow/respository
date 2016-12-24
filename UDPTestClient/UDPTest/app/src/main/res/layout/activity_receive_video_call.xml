@@ -30,6 +30,7 @@
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
+
             <FrameLayout
                 android:id="@+id/cameraView"
                 android:layout_width="100dp"
@@ -37,14 +38,12 @@
                 android:layout_marginBottom="10dp"
                 android:elevation="7dp"
                 android:keepScreenOn="true" />
-
             <ImageView
 
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 app:srcCompat="@drawable/background_oncall"
-                android:id="@+id/img_receive"
-                android:layout_weight="1" />
+                android:id="@+id/img_receive" />
 
 
         </FrameLayout>

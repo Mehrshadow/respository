@@ -155,7 +155,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         Camera c = null;
 
         try {
-            c = Camera.open(1);
+            c = Camera.open(0);
         } catch (Exception e) {
             Log.e(LOG_TAG, e.toString());
             e.printStackTrace();
@@ -337,7 +337,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private void udpFrameListener() {
         receiving = true;
         Logger.d("ReceiveVideoCallActivity", "udpReceived", "Start");
-        Logger.d("ReceiveVideoCallActivity", "udpReceived", " Thread Start");
         try {
             final byte[] buff = new byte[mFrameBuffSize * 10];
             Logger.d("ReceiveVideoCallActivity", "udpReceived", "mFrameBuffSize >> " + mFrameBuffSize);
@@ -403,7 +402,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
     private void makeVideoCall() {
         // Send a request to start a call
-        sendMessage("CAL:" + displayName, G.SENDVIDEO_PORT);
+        sendMessage("VIDEOCALL" + displayName, G.BROADCAST_PORT);
 
     }
 
@@ -528,7 +527,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
                         byteSent = frameData.length;
 
-                        Logger.d(LOG_TAG, "frame length sent: ", byteSent + "");
+                      //  Logger.d(LOG_TAG, "frame length sent: ", byteSent + "");
                     }
 
                 } catch (IOException e) {
@@ -547,12 +546,12 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
             public void run() {
 
                 try {
-                    Logger.d(LOG_TAG, "address: ", address + "");
+                   // Logger.d(LOG_TAG, "address: ", address + "");
 
                     DatagramSocket socket = new DatagramSocket();
                     mVideoPacket = new DatagramPacket(frameData, frameData.length, address, G.SENDVIDEO_PORT);
 
-                    Logger.d(LOG_TAG, "frame length sent: ", frameData.length + "");
+                    //Logger.d(LOG_TAG, "frame length sent: ", frameData.length + "");
 
                     socket.send(mVideoPacket);
 
@@ -586,7 +585,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                 mFrameHeight = parameters.getPreviewSize().height;
                 mFrameWidth = parameters.getPreviewSize().width;
 
-                //showBitmap(getBitmap(frameData));
+                getBitmap(frameData);
 
             }
 

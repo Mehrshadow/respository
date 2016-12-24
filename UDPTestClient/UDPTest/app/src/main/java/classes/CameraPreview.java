@@ -13,6 +13,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * A basic Camera preview class
@@ -33,8 +34,16 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         previewCallback = previewCb;
         parameters = camera.getParameters();
 //        parameters.setPreviewFrameRate(1);
-        parameters.setPreviewSize(100, 100);
-        parameters.setPictureSize(100, 100);
+
+
+        List<Camera.Size> sizes = parameters.getSupportedPictureSizes();
+//        parameters.setPreviewFrameRate(1);
+        parameters.setPreviewSize(sizes.get(sizes.size() - 1).width, sizes.get(sizes.size() - 1).height);
+        parameters.setPictureSize(sizes.get(sizes.size() - 1).width, sizes.get(sizes.size() - 1).height);
+
+//        parameters.setPreviewSize(100, 100);
+//        parameters.setPictureSize(100, 100)
+// ;
         camera.setParameters(parameters);
 
         mHolder = getHolder();

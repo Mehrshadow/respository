@@ -67,7 +67,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
 
     private void makeCall() {
         // Send a request to start a call
-        sendMessage("CAL:" + displayName, G.CALL_LISTENER_PORT);
+        sendMessage("VOICECALL" + displayName, G.CALL_LISTENER_PORT);
     }
 
     private void endCall() {
