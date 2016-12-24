@@ -90,7 +90,9 @@ public class ReceiveCallActivity extends Activity {
                     Logger.d(LOG_TAG, "onCreate", "Calling " + address.toString());
 
                     G.IN_CALL = true;
-                    call = new AudioCall(address);
+                    DatagramSocket senderSocket = new DatagramSocket();
+                    DatagramSocket listenerSocket = new DatagramSocket(G.CALL_LISTENER_PORT);
+                    call = new AudioCall(senderSocket,listenerSocket,address);
                     call.startCall();
                     // Hide the buttons as they're not longer required
                     Button accept = (Button) findViewById(R.id.buttonAccept);

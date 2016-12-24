@@ -95,6 +95,28 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         }
     }
 
+    private Bitmap getBitmap(byte[] data) {
+
+        YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mFrameWidth, mFrameHeight, null);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        yuv.compressToJpeg(new Rect(0, 0, mFrameWidth, mFrameHeight), 50, out);
+
+        byte[] bytes = out.toByteArray();
+        final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+
+        final Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, mFrameWidth / 2, mFrameHeight / 2, true);
+
+        frameData = bytes;
+        mFrameBuffSize = frameData.length;
+//        Logger.d(LOG_TAG, "getBitmap", "mFrameLength: " + mFrameLength);
+
+        return resizedBitmap;
+
+//        final Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, mFrameWidth  , mFrameHeight, true);
+
+    }
+
     private byte[] compressCameraData(byte[] data) {
 
 //        Logger.d(LOG_TAG, "compressCameraData", "actual camera size: " + data.length);
@@ -111,13 +133,11 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         return out.toByteArray();
     }
 
-    private Bitmap getBitmap(byte[] data) {
 
-        return BitmapFactory.decodeByteArray(data, 0, data.length);
 
 //        final Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, mFrameWidth  , mFrameHeight, true);
-//
-    }
+
+
 
     private void showBitmap(final Bitmap bitmap) {
         runOnUiThread(new Runnable() {

@@ -67,7 +67,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
 
     private void makeCall() {
         // Send a request to start a call
-        sendMessage("VOICECALL" + displayName, G.CALL_LISTENER_PORT);
+        sendMessage("VOICECALL" + displayName, G.BROADCAST_PORT);
     }
 
     private void endCall() {
@@ -91,9 +91,8 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
             public void run() {
 
                 try {
-
                     Log.i(LOG_TAG, "Listener started!");
-                    DatagramSocket socket = new DatagramSocket(G.BROADCAST_PORT);
+                    DatagramSocket socket = new DatagramSocket(G.CALL_LISTENER_PORT);
                     socket.setSoTimeout(10000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
@@ -115,7 +114,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                                     }
                                 });
                                 // Accept notification received. Start call
-                                call = new AudioCall(packet.getAddress());
+                                call = new AudioCall(socket,packet.getAddress());
                                 call.startCall();
 
                                 G.IN_CALL = true;

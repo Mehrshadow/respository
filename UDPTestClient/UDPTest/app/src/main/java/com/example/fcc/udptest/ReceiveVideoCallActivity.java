@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -56,13 +57,15 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     private boolean shouldSendVideo = false;
     private InetAddress address;
     private DatagramPacket mVideoPacket;
+    AudioManager audioManager;
+    private AudioCall call;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_receive_video_call);
         startSockets();
-
+        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         Log.d(LOG_TAG, "Receive video call created");
 
         accept = (Button) findViewById(R.id.buttonAccept);
@@ -267,6 +270,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
         if (IN_VIDEO_CALL) {
             receiving = false;
+
+            stopCameraPreview();
         }
         sendMessage("END:", G.SENDVIDEO_PORT);
 
@@ -280,6 +285,12 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                 sendMessage("ACC:", G.SENDVIDEO_PORT);
                 sendFrameIntroduceData();
                 parsePacket();
+
+                //\\\\\\\\\\
+                call = new AudioCall(address);
+                call.startCall();
+                //\\\\\\\\\\
+
 
 
 
@@ -519,6 +530,16 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
             camera.release();
             camera = null;
         }
+    }
+
+    private void stopCameraPreview(){
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                releaseCamera();
+            }
+        });
     }
 
     private void sendFrameDataUDP() {
