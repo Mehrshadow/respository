@@ -87,8 +87,9 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
 
                     Log.i(LOG_TAG, "Listener started!");
 
-                    DatagramSocket socket = new DatagramSocket(G.CALL_LISTENER_PORT);
-                    socket.setSoTimeout(15000);
+                    DatagramSocket listenerSocket = new DatagramSocket(G.CALL_LISTENER_PORT);
+                    DatagramSocket senderSocket = new DatagramSocket();
+                    listenerSocket.setSoTimeout(15000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
                     while (LISTEN) {
@@ -96,13 +97,13 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                         try {
 
                             Log.i(LOG_TAG, "Listening for packets");
-                            socket.receive(packet);
+                            listenerSocket.receive(packet);
                             String data = new String(buffer, 0, packet.getLength());
                             Log.i(LOG_TAG, "Packet received from " + packet.getAddress() + " with contents: " + data);
                             String action = data.substring(0, 4);
                             if (action.equals("ACC:")) {
                                 // Accept notification received. Start call
-                                call = new AudioCall(packet.getAddress());
+                                call = new AudioCall(senderSocket,listenerSocket ,packet.getAddress());
                                 call.startCall();
 
                                 G.IN_CALL = true;
@@ -127,8 +128,8 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                         }
                     }
                     Log.i(LOG_TAG, "Listener ending");
-                    socket.disconnect();
-                    socket.close();
+                    listenerSocket.disconnect();
+                    listenerSocket.close();
                 } catch (SocketException e) {
 
                     Log.e(LOG_TAG, "SocketException in Listener");
