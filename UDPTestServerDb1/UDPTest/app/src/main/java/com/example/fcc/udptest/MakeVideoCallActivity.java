@@ -59,7 +59,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private boolean LISTEN = false;
     private boolean receiving = false;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -93,22 +92,35 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         }
     }
 
-    private Bitmap getBitmap(byte[] data) {
+    private byte[] compressCameraData(byte[] data) {
+
+        Logger.d(LOG_TAG, "compressCameraData", "actual camera size: " + data.length);
+
         YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mFrameWidth, mFrameHeight, null);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         yuv.compressToJpeg(new Rect(0, 0, mFrameWidth, mFrameHeight), 50, out);
 
-        byte[] bytes = out.toByteArray();
-        final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+        Logger.d(LOG_TAG, "compressCameraData", "compressed size: " + out.toByteArray().length);
 
-        final Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, mFrameWidth / 2, mFrameHeight / 2, true);
+        mFrameBuffSize = out.toByteArray().length;
 
-        frameData = bytes;
-        mFrameBuffSize = frameData.length;
+        return out.toByteArray();
+    }
+
+    private Bitmap getBitmap(byte[] data) {
+
+//        byte[] bytes = compressCameraData(data);
+
+        final Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+
+//        final Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, mFrameWidth, mFrameHeight, true);
+
+//        frameData = data;
+
 //        Logger.d(LOG_TAG, "getBitmap", "mFrameLength: " + mFrameLength);
 
-        return resizedBitmap;
+        return bitmap;
     }
 
     private void showBitmap(final Bitmap bitmap) {
@@ -404,7 +416,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
     private void makeVideoCall() {
         // Send a request to start a call
-        sendMessage("VIDEOCALL" + displayName, G.VIDEOCALL_SENDER_PORT);
+        sendMessage("VIDEOCALL" + displayName, G.BROADCAST_PORT);
 
     }
 
@@ -582,13 +594,12 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         public void onPreviewFrame(byte[] data, Camera camera) {
 
             if (data != null && data.length != 0) {
-                frameData = data;
+
                 parameters = camera.getParameters();
                 mFrameHeight = parameters.getPreviewSize().height;
                 mFrameWidth = parameters.getPreviewSize().width;
-
 //                showBitmap(getBitmap(frameData));
-
+                frameData = compressCameraData(data);
             }
 
             if (shouldSendVideo) {
@@ -603,6 +614,5 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     public void onClick(View v) {
         endCall();
     }
-
 }
 
