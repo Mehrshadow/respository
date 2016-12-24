@@ -90,7 +90,9 @@ public class ReceiveCallActivity extends Activity {
                     Logger.d(LOG_TAG, "onCreate", "Calling " + address.toString());
 
                     G.IN_CALL = true;
-                    call = new AudioCall(address);
+
+                    DatagramSocket socket = new DatagramSocket();
+                    call = new AudioCall(socket, listenerSocket, address);
                     call.startCall();
                     // Hide the buttons as they're not longer required
                     Button accept = (Button) findViewById(R.id.buttonAccept);
@@ -156,7 +158,7 @@ public class ReceiveCallActivity extends Activity {
                 try {
 
                     Logger.e(LOG_TAG, "startListener", "Listener started!");
-                    DatagramSocket socket = new DatagramSocket(G.BROADCAST_PORT);
+                    DatagramSocket socket = new DatagramSocket(G.CALL_LISTENER_PORT);
                     socket.setSoTimeout(1500);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
