@@ -346,15 +346,13 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     }
 
     private void sendACC() {
-        Logger.d("ReceiveVideoCallActivity", "sendACC", "Start");
-        InetAddress address;
         try {
             String message = "OKK:";
-            address = InetAddress.getByName(contactIp);
             byte[] data = message.getBytes();
             DatagramPacket packet = new DatagramPacket(data, data.length, address, G.VIDEOCALL_SENDER_PORT);
             mSenderSocket.send(packet);
             //  udpReceived();
+            Logger.d("ReceiveVideoCallActivity", "sendACC", "OK Sent");
 
         } catch (UnknownHostException e) {
             e.printStackTrace();
@@ -372,7 +370,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
                 try {
 
-                    InetAddress address = InetAddress.getByName(contactIp);
                     byte[] data = message.getBytes();
 //                    DatagramSocket socket = new DatagramSocket();
                     mVideoPacket = new DatagramPacket(data, data.length, address, port);
