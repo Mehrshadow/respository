@@ -143,6 +143,17 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         cameraView.addView(cameraPreview);
     }
 
+    private void stopCameraPreview() {
+//        camera = getCameraInstance();
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                releaseCamera();
+            }
+        });
+    }
+
     private void startSockets() {
         Logger.d("ReceiveVideoCallActivity", "socketStart", "started!");
 
@@ -259,6 +270,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
         if (IN_VIDEO_CALL) {
             receiving = false;
+
+            stopCameraPreview();
         }
         sendMessage("END:", G.VIDEOCALL_SENDER_PORT);
 
@@ -367,11 +380,14 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
     private void previewBitmap(final byte[] data) {
 
-        Logger.d(LOG_TAG, "previewBitmap", "Start");
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
+
                 final Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+                if (bitmap == null)
+                    return;
+
                 final Bitmap resizeBitMap = Bitmap.createScaledBitmap(bitmap, mFrameWidth, mFrameHeight, true);
 
                 runOnUiThread(new Runnable() {
@@ -423,9 +439,14 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         yuv.compressToJpeg(new Rect(0, 0, mFrameWidth, mFrameHeight), 20, out);
 
+        byte[] bytes = out.toByteArray();
+        final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+
+        Logger.d(LOG_TAG, "compressCameraData", "bytes: " + bitmap.getByteCount());
+
         mFrameBuffSize = out.toByteArray().length;
 
-        return out.toByteArray();
+        return bytes;
     }
 
     private Bitmap getBitmap(byte[] data) {

@@ -156,7 +156,7 @@ public class ReceiveCallActivity extends Activity {
                 try {
 
                     Logger.e(LOG_TAG, "startListener", "Listener started!");
-                    DatagramSocket socket = new DatagramSocket(G.BROADCAST_PORT);
+                    DatagramSocket socket = new DatagramSocket(G.CALL_LISTENER_PORT);
                     socket.setSoTimeout(1500);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);

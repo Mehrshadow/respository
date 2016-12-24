@@ -87,7 +87,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
 
                     Log.i(LOG_TAG, "Listener started!");
 
-                    DatagramSocket socket = new DatagramSocket(G.BROADCAST_PORT);
+                    DatagramSocket socket = new DatagramSocket(G.CALL_LISTENER_PORT);
                     socket.setSoTimeout(15000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);

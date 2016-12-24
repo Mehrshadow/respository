@@ -21,7 +21,6 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 
 import classes.Contacts;
-import classes.DatabaseManagement;
 import classes.DatabaseMap;
 import classes.Logger;
 import classes.RcyContactsAdapter;
@@ -43,7 +42,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
     RcyContactsAdapter adapter;
 
     ContactManager contactManager = new ContactManager();
-    DatabaseManagement databaseManagement = new DatabaseManagement();
+    private DatagramSocket brodcaastSocket;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,15 +132,15 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
                 try {
                     // Set up the socket and packet to receive
                     Logger.i("MainActivity", "startCallListener", "Incoming call listener started");
-                    DatagramSocket socket = new DatagramSocket(G.BROADCAST_PORT);
-                    socket.setSoTimeout(10000);
+                    brodcaastSocket = new DatagramSocket(G.BROADCAST_PORT);
+                    brodcaastSocket.setSoTimeout(10000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
                     while (LISTEN) {
                         // Listen for incoming call requests
                         try {
                             Logger.i("MainActivity", "startCallListener", "Listening for incoming calls");
-                            socket.receive(packet);
+                            brodcaastSocket.receive(packet);
                             String data = new String(buffer, 0, packet.getLength());
                             Logger.i("MainActivity", "startCallListener", "\"Packet received from \" + packet.getAddress() + \" with contents: \" + data");
                             String action = data.substring(0, 9);
@@ -174,8 +173,8 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
                         }
                     }
                     Logger.i("MainActivity", "startCallListener", "Call Listener ending");
-                    socket.disconnect();
-                    socket.close();
+                    brodcaastSocket.disconnect();
+                    brodcaastSocket.close();
                 } catch (SocketException e) {
                     Logger.i("MainActivity", "startCallListener", "SocketException in listener " + e);
                 }
@@ -206,6 +205,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
         SERVER_RUNNING = false;
         contactManager.stopListening();
         stopCallListener();
+
     }
 
     @Override
