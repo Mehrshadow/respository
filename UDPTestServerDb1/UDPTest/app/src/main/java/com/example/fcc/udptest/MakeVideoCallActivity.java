@@ -58,6 +58,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private Camera.Parameters parameters;
     private boolean LISTEN = false;
     private boolean receiving = false;
+    private ImageView img;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +74,8 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
         TextView textView = (TextView) findViewById(R.id.contactName);
         textView.setText("Calling: " + contactName);
+
+        img = (ImageView) findViewById(R.id.img);
 
         buttonEndCall = (Button) findViewById(R.id.buttonEndCall);
         buttonEndCall.setOnClickListener(this);
@@ -94,14 +97,14 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
     private byte[] compressCameraData(byte[] data) {
 
-        Logger.d(LOG_TAG, "compressCameraData", "actual camera size: " + data.length);
+//        Logger.d(LOG_TAG, "compressCameraData", "actual camera size: " + data.length);
 
         YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mFrameWidth, mFrameHeight, null);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        yuv.compressToJpeg(new Rect(0, 0, mFrameWidth, mFrameHeight), 50, out);
+        yuv.compressToJpeg(new Rect(0, 0, mFrameWidth, mFrameHeight), 20, out);
 
-        Logger.d(LOG_TAG, "compressCameraData", "compressed size: " + out.toByteArray().length);
+//        Logger.d(LOG_TAG, "compressCameraData", "compressed size: " + out.toByteArray().length);
 
         mFrameBuffSize = out.toByteArray().length;
 
@@ -110,24 +113,16 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
     private Bitmap getBitmap(byte[] data) {
 
-//        byte[] bytes = compressCameraData(data);
+        return BitmapFactory.decodeByteArray(data, 0, data.length);
 
-        final Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+//        final Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, mFrameWidth  , mFrameHeight, true);
 
-//        final Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, mFrameWidth, mFrameHeight, true);
-
-//        frameData = data;
-
-//        Logger.d(LOG_TAG, "getBitmap", "mFrameLength: " + mFrameLength);
-
-        return bitmap;
     }
 
     private void showBitmap(final Bitmap bitmap) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                ImageView img = (ImageView) findViewById(R.id.img);
                 img.setRotation(-90);
                 img.setImageBitmap(bitmap);
             }
@@ -199,6 +194,13 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         }
     }
 
+    private void startCameraPreview() {
+//        camera = getCameraInstance();
+
+        cameraPreview = new CameraPreview(MakeVideoCallActivity.this, camera, previewCb);
+        cameraView.addView(cameraPreview);
+    }
+
     private boolean checkCameraHardware(Context context) {
         if (context.getPackageManager().hasSystemFeature(
                 PackageManager.FEATURE_CAMERA)) {
@@ -229,7 +231,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
                 while (LISTEN) {
                     try {
-
                         Log.i(LOG_TAG, "Listening for packets");
                         mListenerSocket.receive(packet);
 //                        mListenerSocket.setSoTimeout(10 * 1000);
@@ -254,11 +255,16 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                             endCall();
                         } else if (action.equals("OKK:")) {
                             Logger.d(LOG_TAG, "startListener", "OK received");
+
                             shouldSendVideo = true;
+
+//                            udpFrameListener();
+
                         } else if (data.startsWith("{")) {
                             introListener(data);
                         } else {
-                            Log.w(LOG_TAG, address + " sent invalid message: " + data);
+                            Log.w(LOG_TAG, address + " [else] : [FRAME]");
+                            udpFrameListener();
                         }
                     } catch (SocketTimeoutException e) {
 
@@ -300,33 +306,43 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         }
     }
 
-    private void introListener(String data) {
-        try {
+    private void sendFrameIntroduceData() {
 
-            JSONObject jsonObject = new JSONObject(data);
-            mFrameWidth = jsonObject.getInt("Width");
-            mFrameHeight = jsonObject.getInt("Height");
-            mFrameBuffSize = jsonObject.getInt("Size");
-            Logger.d("ReceiveVideoCallActivity", "introListener", "mFrameBuffSize >> " + mFrameBuffSize);
+        // Creates the thread for sending frames
 
-            Logger.d("ReceiveVideoCallActivity", "introListener", "Received Data " +
-                    ">> width =" + mFrameWidth +
-                    " height = " + mFrameHeight +
-                    " buffSize = " + mFrameBuffSize);
-            if (mFrameHeight != 0 && mFrameWidth != 0 && mFrameBuffSize != 0) {
-                sendACC();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
 
-                udpFrameListener();
+                try {
+                    int byteSent = 0;
 
-                Logger.d("ReceiveVideoCallActivity", "introListener", "mIsFrameReceived is true Sent ACC");
-            } else {
-                finish();
-                Logger.d("ReceiveVideoCallActivity", "introListener", "mIsFrameReceived is false");
-                Logger.d("ReceiveVideoCallActivity", "introListener", "finish Activity");
+                    String frameJSONData = getFrameJSONData();
+
+//                    Socket socket = new Socket(address, G.INTRODUCE_PORT);
+
+//                    OutputStream writer = socket.getOutputStream();
+                    byte[] buf = frameJSONData.getBytes();
+
+                    mVideoPacket = new DatagramPacket(buf, buf.length, address, G.VIDEOCALL_SENDER_PORT);
+
+                    mSenderSocket.send(mVideoPacket);
+
+//                        writer.write(frameJSONData.getBytes());
+
+                    Logger.d(LOG_TAG, "SendFrameIntroduce", frameJSONData);
+
+                    byteSent += frameJSONData.getBytes().length;
+
+//                    Logger.d(LOG_TAG, "bytes sent: ", byteSent + "");
+
+//                        socket.close();
+
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+        }).start();
     }
 
     private void sendACC() {
@@ -344,38 +360,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    private void udpFrameListener() {
-        receiving = true;
-        Logger.d("ReceiveVideoCallActivity", "udpReceived", "Start");
-        Logger.d("ReceiveVideoCallActivity", "udpReceived", " Thread Start");
-        try {
-            final byte[] buff = new byte[mFrameBuffSize * 10];
-            Logger.d("ReceiveVideoCallActivity", "udpReceived", "mFrameBuffSize >> " + mFrameBuffSize);
-//                    datagramSocket.setSoTimeout(10000);
-            DatagramPacket packet = new DatagramPacket(buff, mFrameBuffSize);
-            while (receiving) {
-
-                mListenerSocket.setSoTimeout(5 * 1000);// 5 seconds to receive next frame, else, it will close
-                mListenerSocket.receive(packet);
-
-                Logger.d("ReceiveVideoCallActivity", "udpReceived", "buff.size()" + buff.length);
-                showBitmap(getBitmap(buff));
-            }
-            mListenerSocket.disconnect();
-            mListenerSocket.close();
-        } catch (SocketException e) {
-            Logger.e("ReceiveVideoCallActivity", "udpFrameListener", "SocketException");
-            endCall();
-            LISTEN = false;
-            e.printStackTrace();
-        } catch (IOException e) {
-            Logger.e("ReceiveVideoCallActivity", "udpFrameListener", "IOException");
-            LISTEN = false;
-            e.printStackTrace();
-            endCall();
         }
     }
 
@@ -414,107 +398,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         replyThread.start();
     }
 
-    private void makeVideoCall() {
-        // Send a request to start a call
-        sendMessage("VIDEOCALL" + displayName, G.BROADCAST_PORT);
-
-    }
-
-    private void endCall() {
-        // Ends the chat sessions
-        Log.d(LOG_TAG, "end call");
-
-        sendMessage("END:", G.BROADCAST_PORT);
-
-        finish();
-    }
-
-    private void stopSendingFrames() {
-
-//        closeSendFrameSocket();
-
-//        mSenderSocket.disconnect();
-//        mSenderSocket.close();
-
-        releaseCamera();
-    }
-
-    private void stopListener() {
-
-        Log.d(LOG_TAG, "stopping listener");
-        LISTEN = false;
-
-        mListenerSocket.disconnect();
-        if (!mListenerSocket.isBound()) {
-            mListenerSocket.close();
-        }
-    }
-
-    private void sendFrameIntroduceData() {
-
-        // Creates the thread for sending frames
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-
-                try {
-                    int byteSent = 0;
-
-                    String frameJSONData = getFrameJSONData();
-
-//                    Socket socket = new Socket(address, G.INTRODUCE_PORT);
-
-//                    OutputStream writer = socket.getOutputStream();
-                    byte[] buf = frameJSONData.getBytes();
-
-                    mVideoPacket = new DatagramPacket(buf, buf.length, address, G.VIDEOCALL_SENDER_PORT);
-
-                    mSenderSocket.send(mVideoPacket);
-
-//                        writer.write(frameJSONData.getBytes());
-
-                    Logger.d(LOG_TAG, "SendFrameIntroduce", frameJSONData);
-
-                    byteSent += frameJSONData.getBytes().length;
-
-                    Logger.d(LOG_TAG, "bytes sent: ", byteSent + "");
-
-//                        socket.close();
-
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
-            }
-        }).start();
-    }
-
-    private void initSendFrameSocket() {
-        try {
-            if (socket_sendFrameData == null) {
-                socket_sendFrameData = new Socket(address, G.VIDEOCALL_LISTENER_PORT);
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void closeSendFrameSocket() {
-        try {
-            socket_sendFrameData.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void startCameraPreview() {
-//        camera = getCameraInstance();
-
-        cameraPreview = new CameraPreview(MakeVideoCallActivity.this, camera, previewCb);
-        cameraView.addView(cameraPreview);
-    }
-
     private void sendFrameDataTCP(final byte[] data) {
 
         //        Logger.d(LOG_TAG, "Frame rate is: ", parameters.getPreviewFrameRate() + "");
@@ -541,7 +424,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
                         byteSent = frameData.length;
 
-                        Logger.d(LOG_TAG, "frame length sent: ", byteSent + "");
+//                        Logger.d(LOG_TAG, "frame length sent: ", byteSent + "");
                     }
 
                 } catch (IOException e) {
@@ -553,6 +436,128 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         }).start();
     }
 
+    private void makeVideoCall() {
+        // Send a request to start a call
+        sendMessage("VIDEOCALL" + displayName, G.BROADCAST_PORT);
+
+    }
+
+    private void endCall() {
+        // Ends the chat sessions
+        Log.d(LOG_TAG, "end call");
+
+        LISTEN = false;
+        receiving = false;
+
+        sendMessage("END:", G.BROADCAST_PORT);
+
+        finish();
+    }
+
+    private void stopSendingFrames() {
+
+//        closeSendFrameSocket();
+
+//        mSenderSocket.disconnect();
+//        mSenderSocket.close();
+
+        releaseCamera();
+    }
+
+    private void udpFrameListener() {
+        receiving = true;
+        Logger.d(LOG_TAG, "udpFrameListener", "Receiving Thread Start");
+        try {
+            final byte[] buff = new byte[mFrameBuffSize * 10];
+            Logger.d(LOG_TAG, "udpFrameListener", "mFrameBuffSize >> " + mFrameBuffSize);
+//                    datagramSocket.setSoTimeout(10000);
+            DatagramPacket packet = new DatagramPacket(buff, mFrameBuffSize);
+            while (receiving) {
+
+                mListenerSocket.setSoTimeout(5 * 1000);// 5 seconds to receive next frame, else, it will close
+                mListenerSocket.receive(packet);
+
+//                Logger.d(LOG_TAG, "udpReceived", "buff.size()" + buff.length);
+
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        showBitmap(getBitmap(buff));
+                    }
+                }).start();
+
+            }
+            mListenerSocket.disconnect();
+            mListenerSocket.close();
+        } catch (SocketException e) {
+//            Logger.e(LOG_TAG, "udpFrameListener", "SocketException");
+            endCall();
+            LISTEN = false;
+//            e.printStackTrace();
+        } catch (IOException e) {
+            Logger.e(LOG_TAG, "udpFrameListener", "IOException");
+            LISTEN = false;
+            e.printStackTrace();
+            endCall();
+        }
+    }
+
+    private void introListener(String data) {
+        try {
+
+            JSONObject jsonObject = new JSONObject(data);
+            mFrameWidth = jsonObject.getInt("Width");
+            mFrameHeight = jsonObject.getInt("Height");
+            mFrameBuffSize = jsonObject.getInt("Size");
+            Logger.d(LOG_TAG, "introListener", "mFrameBuffSize >> " + mFrameBuffSize);
+
+            Logger.d(LOG_TAG, "introListener", "Received Data " +
+                    ">> width =" + mFrameWidth +
+                    " height = " + mFrameHeight +
+                    " buffSize = " + mFrameBuffSize);
+            if (mFrameHeight != 0 && mFrameWidth != 0 && mFrameBuffSize != 0) {
+                sendACC();
+
+//                udpFrameListener();
+
+                Logger.d(LOG_TAG, "introListener", "OK Sent");
+            } else {
+                Logger.d("ReceiveVideoCallActivity", "introListener", "mIsFrameReceived is false");
+                finish();
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void stopListener() {
+
+        Log.d(LOG_TAG, "stopping listener");
+        LISTEN = false;
+
+        mListenerSocket.disconnect();
+        mListenerSocket.close();
+    }
+
+    private void initSendFrameSocket() {
+        try {
+            if (socket_sendFrameData == null) {
+                socket_sendFrameData = new Socket(address, G.VIDEOCALL_LISTENER_PORT);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void closeSendFrameSocket() {
+        try {
+            socket_sendFrameData.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void sendFrameDataUDP() {
 
         new Thread(new Runnable() {
@@ -560,7 +565,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
             public void run() {
 
                 try {
-                    Logger.d(LOG_TAG, "address: ", address + "");
+//                    Logger.d(LOG_TAG, "address: ", address + "");
 
                     DatagramSocket socket = new DatagramSocket();
                     mVideoPacket = new DatagramPacket(frameData, frameData.length, address, G.VIDEOCALL_SENDER_PORT);

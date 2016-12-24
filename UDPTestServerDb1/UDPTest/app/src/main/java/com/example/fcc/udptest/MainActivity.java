@@ -270,7 +270,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
                             } catch (IOException e) {
                                 G.contactsList.remove(i);
 
-                                e.printStackTrace();
+//                                e.printStackTrace();
                             }
                         }
                         Refreshing = false;
