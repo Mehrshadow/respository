@@ -116,7 +116,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         return BitmapFactory.decodeByteArray(data, 0, data.length);
 
 //        final Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, mFrameWidth  , mFrameHeight, true);
-
+//
     }
 
     private void showBitmap(final Bitmap bitmap) {
