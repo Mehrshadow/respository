@@ -33,10 +33,33 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         mCamera = camera;
         previewCallback = previewCb;
         parameters = camera.getParameters();
-        List<Camera.Size> sizes = parameters.getSupportedPictureSizes();
-//        parameters.setPreviewFrameRate(1);
-        parameters.setPreviewSize(sizes.get(sizes.size() - 1).width, sizes.get(sizes.size() - 1).height);
-        parameters.setPictureSize(sizes.get(sizes.size() - 1).width, sizes.get(sizes.size() - 1).height);
+        List<Camera.Size> pictureSizes = parameters.getSupportedPictureSizes();
+        List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
+
+        int pictureWidth, pictureHeight, previewWidth, previewHeight;
+
+        // get the lowest picture and frame sizes available by camera
+        if ((pictureSizes.get(pictureSizes.size() - 1).width) > (pictureSizes.get(0)).width) {
+            pictureWidth = pictureSizes.get(0).width;
+            pictureHeight = pictureSizes.get(0).height;
+
+            previewWidth = previewSizes.get(0).width;
+            previewHeight = previewSizes.get(0).height;
+
+            parameters.setPictureSize(pictureWidth, pictureHeight);
+            parameters.setPreviewSize(previewWidth, previewHeight);
+
+        } else {
+            pictureWidth = pictureSizes.get(pictureSizes.size() - 1).width;
+            pictureHeight = pictureSizes.get(pictureSizes.size() - 1).height;
+
+            previewWidth = previewSizes.get(previewSizes.size() - 1).width;
+            previewHeight = previewSizes.get(previewSizes.size() - 1).height;
+
+            parameters.setPictureSize(pictureWidth, pictureHeight);
+            parameters.setPreviewSize(previewWidth, previewHeight);
+        }
+
         camera.setParameters(parameters);
 
         mHolder = getHolder();

@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -192,7 +191,6 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
             } else {
                 m_amAudioManager.setMode(AudioManager.MODE_NORMAL);
                 m_amAudioManager.setSpeakerphoneOn(true);
-
             }
 
             Log.d(LOG_TAG, "Speaker changed" + " & switchStatus is: " + isChecked);

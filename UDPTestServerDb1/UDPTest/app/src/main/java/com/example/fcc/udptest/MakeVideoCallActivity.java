@@ -80,6 +80,12 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         buttonEndCall = (Button) findViewById(R.id.buttonEndCall);
         buttonEndCall.setOnClickListener(this);
 
+        try {
+            address = InetAddress.getByName(contactIp);
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+
         cameraView = (FrameLayout) findViewById(R.id.cameraView);
 
         openCamera();
@@ -121,10 +127,10 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
 //        Logger.d(LOG_TAG, "compressCameraData", "actual camera size: " + data.length);
 
-        YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mFrameWidth, mFrameHeight, null);
+        YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mFrameWidth , mFrameHeight, null);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        yuv.compressToJpeg(new Rect(0, 0, mFrameWidth, mFrameHeight), 20, out);
+        yuv.compressToJpeg(new Rect(0, 0, mFrameWidth, mFrameHeight), 50, out);
 
 //        Logger.d(LOG_TAG, "compressCameraData", "compressed size: " + out.toByteArray().length);
 
@@ -133,10 +139,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         return out.toByteArray();
     }
 
-
-
 //        final Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, mFrameWidth  , mFrameHeight, true);
-
 
 
     private void showBitmap(final Bitmap bitmap) {
@@ -254,8 +257,10 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                         Log.i(LOG_TAG, "Listening for packets");
                         mListenerSocket.receive(packet);
 //                        mListenerSocket.setSoTimeout(10 * 1000);
+
+//                        address = packet.getAddress();
+
                         String data = new String(buffer, 0, packet.getLength());
-                        address = packet.getAddress();
                         Log.i(LOG_TAG, "Packet received from " + address + " with contents: " + data);
                         String action = data.substring(0, 4);
                         if (action.equals("ACC:")) {
