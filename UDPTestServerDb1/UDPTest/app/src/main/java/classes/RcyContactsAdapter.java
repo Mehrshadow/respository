@@ -66,7 +66,6 @@ public class RcyContactsAdapter extends RecyclerView.Adapter<RcyContactsHolder> 
                 }
             }
         });
-
     }
 
     @Override
@@ -92,5 +91,4 @@ public class RcyContactsAdapter extends RecyclerView.Adapter<RcyContactsHolder> 
         i.putExtra(G.EXTRA_DISPLAYNAME, "SERVER");
         context.startActivity(i);
     }
-
 }
