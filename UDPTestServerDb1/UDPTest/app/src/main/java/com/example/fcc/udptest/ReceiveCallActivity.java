@@ -148,8 +148,9 @@ public class ReceiveCallActivity extends Activity implements OnClickListener {
                     }
                     Logger.e(LOG_TAG, "startListener", "Listener ending");
 
-//                    socket.disconnect();
-//                    socket.close();
+                    socket.disconnect();
+                    socket.close();
+
                 } catch (SocketException e) {
                     Logger.e(LOG_TAG, "startListener", "SocketException in Listener " + e);
                     endCall();
@@ -176,7 +177,7 @@ public class ReceiveCallActivity extends Activity implements OnClickListener {
                     InetAddress address = InetAddress.getByName(contactIp);
                     byte[] data = message.getBytes();
                     DatagramSocket socket = new DatagramSocket();
-                    DatagramPacket packet = new DatagramPacket(data, data.length, address, G.BROADCAST_PORT);
+                    DatagramPacket packet = new DatagramPacket(data, data.length, address, G.CALL_LISTENER_PORT);
                     socket.send(packet);
                     Logger.e(LOG_TAG, "sendMessage", "Sent message( " + message + " ) to " + contactIp);
 

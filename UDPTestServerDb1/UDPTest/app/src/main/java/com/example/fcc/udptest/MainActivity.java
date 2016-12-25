@@ -132,15 +132,15 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
                 try {
                     // Set up the socket and packet to receive
                     Logger.i("MainActivity", "startCallListener", "Incoming call listener started");
-                    DatagramSocket scoket = new DatagramSocket(G.BROADCAST_PORT);
-                    scoket.setSoTimeout(10000);
+                    DatagramSocket socket = new DatagramSocket(G.BROADCAST_PORT);
+                    socket.setSoTimeout(10000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
                     while (LISTEN) {
                         // Listen for incoming call requests
                         try {
                             Logger.i("MainActivity", "startCallListener", "Listening for incoming calls");
-                            scoket.receive(packet);
+                            socket.receive(packet);
                             String data = new String(buffer, 0, packet.getLength());
                             Logger.i("MainActivity", "startCallListener", "\"Packet received from \" + packet.getAddress() + \" with contents: \" + data");
                             String action = data.substring(0, 9);
@@ -154,8 +154,8 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
                                 intent.putExtra(G.EXTRA_C_Name, name);
                                 intent.putExtra(G.EXTRA_C_Ip, address.substring(1, address.length()));
 
-                                scoket.disconnect();
-                                scoket.close();
+                                socket.disconnect();
+                                socket.close();
 
                                 startActivity(intent);
 
@@ -169,8 +169,8 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
 
                                 G.IN_CALL = true;
 
-                                scoket.disconnect();
-                                scoket.close();
+                                socket.disconnect();
+                                socket.close();
 
                                 startActivity(intent);
                             } else {
@@ -178,11 +178,12 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
                                 Log.w(LOG_TAG, packet.getAddress() + " sent invalid message: " + data);
                             }
                         } catch (Exception e) {
+//                            e.printStackTrace();
                         }
                     }
                     Logger.i("MainActivity", "startCallListener", "Call Listener ending");
-                    scoket.disconnect();
-                    scoket.close();
+                    socket.disconnect();
+                    socket.close();
                 } catch (SocketException e) {
                     Logger.i("MainActivity", "startCallListener", "SocketException in listener " + e);
                 }
@@ -259,7 +260,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
                     // Looper.prepare();
                     Refreshing = true;
 
-                    refreshRcy();
+//                    refreshRcy();
                     while (Refreshing) {
                         Logger.i("MainActivity", "refreshContacts", "Start");
 
@@ -275,9 +276,15 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
                                 socket.close();
 
                             } catch (IOException e) {
-                                G.contactsList.remove(i);
+                                Logger.e("Main", "Refresh", "exception!!!");
+                                e.printStackTrace();
+                                if (G.contactsList.size() != 0)
+                                    G.contactsList.remove(i);
 
 //                                e.printStackTrace();
+                            }
+                            finally {
+                                refreshRcy();
                             }
                         }
                         Refreshing = false;
@@ -288,8 +295,6 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
                             e.printStackTrace();
                         }
                     }
-
-
                 }
             }
         });

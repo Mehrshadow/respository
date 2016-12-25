@@ -1,11 +1,14 @@
 package com.example.fcc.udptest;
 
+
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.util.Log;
+
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -46,8 +49,8 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         contactIp = intent.getStringExtra(G.EXTRA_C_Ip);
 
         TextView textView = (TextView) findViewById(R.id.textViewCalling);
-        ToggleButton btnSwitch = (ToggleButton) findViewById(R.id.toggleButton2);
-        btnSwitch.setOnCheckedChangeListener(this);
+        ToggleButton btnSwtich = (ToggleButton) findViewById(R.id.toggleButton2);
+        btnSwtich.setOnCheckedChangeListener(this);
         textView.setText(String.format(getString(R.string.calling_lbl), contactName));
 
         endButton = (Button) findViewById(R.id.buttonEndCall);
@@ -86,7 +89,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
 
                     Log.i(LOG_TAG, "Listener started!");
 
-                    DatagramSocket listenerSocket = new DatagramSocket(G.BROADCAST_PORT);
+                    DatagramSocket listenerSocket = new DatagramSocket(G.CALL_LISTENER_PORT);
                     listenerSocket.setSoTimeout(15000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
@@ -176,6 +179,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         replyThread.start();
     }
 
+
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         Log.d(LOG_TAG, "IN CALL: " + G.IN_CALL);
@@ -192,6 +196,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
             } else {
                 m_amAudioManager.setMode(AudioManager.MODE_NORMAL);
                 m_amAudioManager.setSpeakerphoneOn(true);
+
             }
 
             Log.d(LOG_TAG, "Speaker changed" + " & switchStatus is: " + isChecked);
