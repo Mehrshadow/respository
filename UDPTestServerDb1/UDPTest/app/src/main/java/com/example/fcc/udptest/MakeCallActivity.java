@@ -11,7 +11,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import java.io.IOException;
@@ -46,9 +45,8 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         contactName = intent.getStringExtra(G.EXTRA_C_Name);
         contactIp = intent.getStringExtra(G.EXTRA_C_Ip);
 
-        TextView textView = (TextView) findViewById(R.id.textViewCalling);
-        ToggleButton btnSwtich = (ToggleButton) findViewById(R.id.toggleButton2);
-        btnSwtich.setOnCheckedChangeListener(this);
+        ToggleButton btnSwitch = (ToggleButton) findViewById(R.id.toggleButton2);
+        btnSwitch.setOnCheckedChangeListener(this);
         displayName = String.format(getString(R.string.calling_lbl), contactName);
 
         endButton = (Button) findViewById(R.id.buttonEndCall);
@@ -128,8 +126,8 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                         }
                     }
                     Log.i(LOG_TAG, "Listener ending");
-                    listenerSocket.disconnect();
-                    listenerSocket.close();
+//                    listenerSocket.disconnect();
+//                    listenerSocket.close();
                 } catch (SocketException e) {
 
                     Log.e(LOG_TAG, "SocketException in Listener");
@@ -176,13 +174,6 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
             }
         });
         replyThread.start();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.make_call, menu);
-        return true;
     }
 
     @Override
