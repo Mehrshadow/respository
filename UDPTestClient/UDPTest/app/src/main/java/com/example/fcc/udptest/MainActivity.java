@@ -75,7 +75,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
 
         initViews();
-        CheckOnline();
+
         Logger.i("MainActivity", "onCreate", "IP is >> " + getBroadcastIp());
 
     }
@@ -160,6 +160,9 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
                                 Intent intent = new Intent(MainActivity.this, ReceiveCallActivity.class);
                                 intent.putExtra(G.EXTRA_C_Name, name);
                                 intent.putExtra(G.EXTRA_C_Ip, address.substring(1, address.length()));
+                                socket.disconnect();
+                                socket.close();
+
                                 startActivity(intent);
 
                             } else if (action.equals("VIDEOCALL")) {
@@ -171,7 +174,8 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
                                 intent.putExtra(G.EXTRA_C_Ip, address.substring(1, address.length()));
 
                                 G.IN_CALL = true;
-
+                                socket.disconnect();
+                                socket.close();
                                 startActivity(intent);
                             } else {
                                 // Received an invalid request
@@ -392,7 +396,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
         registerReceiver(receiver, new IntentFilter(G.BROADCAST_WIFI_STATUS));
         initName_IP();
-        startCallListener();
+        // startCallListener();
         //startVideoCallListener();
         Log.i(LOG_TAG, "App restarted!");
         G.IN_CALL = false;
@@ -406,8 +410,10 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
     @Override
     protected void onResume() {
+        CheckOnline();
+        startCallListener();
         Logger.e("MainActivity", "Lifecycle", "onResume");
-        if(hasroadcasted) {
+        if (hasroadcasted) {
             InetAddress ServerIp = null;
             try {
                 ServerIp = InetAddress.getByName(SERVER_IP);
@@ -569,19 +575,28 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
+
+                try {
+                ServerSocket serverSocket = new ServerSocket(G.CHECK_ONLINE_MOBILES_PORT);
+                Socket socket =null;
                 Logger.d("MainActivity", "CheckOnline", "Start");
+
                 Online = true;
+
                 while (Online) {
-                    try {
-                        ServerSocket serverSocket = new ServerSocket(G.CHECK_ONLINE_MOBILES_PORT);
-                        Socket socket = serverSocket.accept();
-                        //Logger.d("MainActivity", "CheckOnline", "Socket Accepted . . .");
-                        socket.close();
-                        serverSocket.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    Logger.d("MainActivity", "CheckOnline", "Listening  . .");
+                    socket = serverSocket.accept();
+                        Logger.d("MainActivity", "CheckOnline", "Socket Accepted . . .");
+//                        socket.close();
                     }
+                    socket.close();
+                    serverSocket.close();
+                }catch (IOException e) {
+                    e.printStackTrace();
+                    Logger.e("MainActivity", "CheckOnline", "Socket Exception");
+
                 }
+
             }
         });
         thread.start();
@@ -639,7 +654,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
                     try {
                         InetAddress ServerIp = InetAddress.getByName(SERVER_IP);
                         broadcastName(Username, ServerIp);
-                        hasroadcasted =true;
+                        hasroadcasted = true;
                     } catch (UnknownHostException e) {
                         e.printStackTrace();
                     }

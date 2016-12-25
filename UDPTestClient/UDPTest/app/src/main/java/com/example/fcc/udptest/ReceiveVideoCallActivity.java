@@ -122,7 +122,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         Camera c = null;
 
         try {
-            c = Camera.open(G.BACK_CAMERA);
+            c = Camera.open(G.FRONT_CAMERA);
         } catch (Exception e) {
             Log.e(LOG_TAG, e.toString());
             e.printStackTrace();
@@ -196,6 +196,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                         } else if (action.equals("OKK:")) {
                             Logger.d(LOG_TAG, "startListener", "OK received");
                             shouldSendVideo = true;
+                            call = new AudioCall(address);
+                            call.startCall();
                             // udpFrameListener();
 
                         } else {
@@ -263,7 +265,10 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     private void endCall() {
         mReceiveSocket.disconnect();
         mReceiveSocket.close();
-
+        mSendSocket.disconnect();
+        mSendSocket.close();
+        if (call != null)
+            call.endCall();
         Log.d(LOG_TAG, "end call");
         // Ends the chat sessions
         stopListener();
@@ -288,7 +293,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
                 //\\\\\\\\\\
                 //call = new AudioCall(address);
-               // call.startCall();
+                // call.startCall();
                 //\\\\\\\\\\
 
 
@@ -532,7 +537,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         }
     }
 
-    private void stopCameraPreview(){
+    private void stopCameraPreview() {
 
         runOnUiThread(new Runnable() {
             @Override

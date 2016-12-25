@@ -43,7 +43,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
 
          //get the lowest picture and frame sizes available by camera
-        if ((previewSizes.get(previewSizes.size() - 1).width) < (previewSizes.get(0)).width) {
+        if ((previewSizes.get(previewSizes.size() - 1).width) > (previewSizes.get(0)).width) {
             previewWidth = previewSizes.get(0).width;
             previewHeight = previewSizes.get(0).height;
             parameters.setPreviewSize(previewWidth, previewHeight);
