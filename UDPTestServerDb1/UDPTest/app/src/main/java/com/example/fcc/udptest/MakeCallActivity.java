@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import java.io.IOException;
@@ -44,9 +45,10 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         contactName = intent.getStringExtra(G.EXTRA_C_Name);
         contactIp = intent.getStringExtra(G.EXTRA_C_Ip);
 
+        TextView textView = (TextView) findViewById(R.id.textViewCalling);
         ToggleButton btnSwitch = (ToggleButton) findViewById(R.id.toggleButton2);
         btnSwitch.setOnCheckedChangeListener(this);
-        displayName = String.format(getString(R.string.calling_lbl), contactName);
+        textView.setText(String.format(getString(R.string.calling_lbl), contactName));
 
         endButton = (Button) findViewById(R.id.buttonEndCall);
         endButton.setOnClickListener(this);
@@ -84,8 +86,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
 
                     Log.i(LOG_TAG, "Listener started!");
 
-                    DatagramSocket listenerSocket = new DatagramSocket(G.CALL_LISTENER_PORT);
-                    DatagramSocket senderSocket = new DatagramSocket();
+                    DatagramSocket listenerSocket = new DatagramSocket(G.BROADCAST_PORT);
                     listenerSocket.setSoTimeout(15000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
@@ -100,7 +101,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                             String action = data.substring(0, 4);
                             if (action.equals("ACC:")) {
                                 // Accept notification received. Start call
-                                call = new AudioCall(senderSocket,listenerSocket ,packet.getAddress());
+                                call = new AudioCall(packet.getAddress());
                                 call.startCall();
 
                                 G.IN_CALL = true;
@@ -125,8 +126,8 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                         }
                     }
                     Log.i(LOG_TAG, "Listener ending");
-//                    listenerSocket.disconnect();
-//                    listenerSocket.close();
+                    listenerSocket.disconnect();
+                    listenerSocket.close();
                 } catch (SocketException e) {
 
                     Log.e(LOG_TAG, "SocketException in Listener");

@@ -36,7 +36,7 @@ public class ReceiveCallActivity extends Activity implements OnClickListener {
     private LinearLayout mLinearLayout;
     private Button acceptButton;
     private Button rejectButton;
-    private  Button endButton;
+    private Button endButton;
     private ToggleButton Tgl_Speaker;
     private TextView txtIncomingCall;
 
@@ -213,11 +213,7 @@ public class ReceiveCallActivity extends Activity implements OnClickListener {
 
                     G.IN_CALL = true;
 
-                    DatagramSocket senderSocket = new DatagramSocket();
-                    DatagramSocket listenerSocket = new DatagramSocket(G.CALL_LISTENER_PORT);
-
-
-                    call = new AudioCall(senderSocket, listenerSocket, address);
+                    call = new AudioCall(address);
                     call.startCall();
                     // Hide the buttons as they're not longer required
                     Button accept = (Button) findViewById(R.id.buttonAccept);

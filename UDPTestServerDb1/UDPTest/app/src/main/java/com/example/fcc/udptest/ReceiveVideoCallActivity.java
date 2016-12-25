@@ -46,7 +46,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     private DatagramSocket mReceiveSocket;
     private DatagramSocket mSendSocket;
     private byte[] buffer;
-    private int mFrameWidth, mFrameHeight;
+    private int mSendFrameWidth, mSendFrameHeight, mReceiveFrameWidth, mReceiveFrameHeight;
     private boolean receiving = false;
     private FrameLayout cameraView;
     private Camera camera = null;
@@ -334,16 +334,16 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         try {
 
             JSONObject jsonObject = new JSONObject(data);
-            mFrameWidth = jsonObject.getInt("Width");
-            mFrameHeight = jsonObject.getInt("Height");
+            mReceiveFrameWidth = jsonObject.getInt("Width");
+            mReceiveFrameHeight = jsonObject.getInt("Height");
             mFrameBuffSize = jsonObject.getInt("Size");
             Logger.d("ReceiveVideoCallActivity", "introListener", "mFrameBuffSize >> " + mFrameBuffSize);
 
             Logger.d("ReceiveVideoCallActivity", "introListener", "Received Data " +
-                    ">> width =" + mFrameWidth +
-                    " height = " + mFrameHeight +
+                    ">> width =" + mReceiveFrameWidth +
+                    " height = " + mReceiveFrameHeight +
                     " buffSize = " + mFrameBuffSize);
-            if (mFrameHeight != 0 && mFrameWidth != 0 && mFrameBuffSize != 0) {
+            if (mReceiveFrameWidth != 0 && mReceiveFrameHeight != 0 && mFrameBuffSize != 0) {
                 sendACC();
 
                 udpFrameListener();
@@ -388,12 +388,12 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                 if (bitmap == null)
                     return;
 
-                final Bitmap resizeBitMap = Bitmap.createScaledBitmap(bitmap, mFrameWidth, mFrameHeight, true);
+//                final Bitmap resizeBitMap = Bitmap.createScaledBitmap(bitmap, mFrameWidth, mFrameHeight, true);
 
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        mImgReceive.setImageBitmap(resizeBitMap);
+                        mImgReceive.setImageBitmap(bitmap);
                     }
                 });
             }
@@ -409,12 +409,14 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 //            Logger.d("ReceiveVideoCallActivity", "udpReceived", "mFrameBuffSize >> " + mFrameBuffSize);
 //                    datagramSocket.setSoTimeout(10000);
             DatagramPacket packet = new DatagramPacket(buff, mFrameBuffSize);
+
+            mReceiveSocket.setSoTimeout(5 * 1000);// 5 seconds to receive next frame, else, it will close
+
             while (receiving) {
 
-                mReceiveSocket.setSoTimeout(5 * 1000);// 5 seconds to receive next frame, else, it will close
                 mReceiveSocket.receive(packet);
 
-//                Logger.d("ReceiveVideoCallActivity", "udpReceived", "buff.size()" + buff.length);
+                Logger.d("ReceiveVideoCallActivity", "udpReceived", "buff.size()" + buff.length);
                 previewBitmap(buff);
             }
             mReceiveSocket.disconnect();
@@ -434,49 +436,14 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
     private byte[] compressCameraData(byte[] data) {
 
-        YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mFrameWidth, mFrameHeight, null);
+        YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mSendFrameWidth, mSendFrameHeight, null);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        yuv.compressToJpeg(new Rect(0, 0, mFrameWidth, mFrameHeight), 20, out);
-
-        byte[] bytes = out.toByteArray();
-        final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-
-        Logger.d(LOG_TAG, "compressCameraData", "bytes: " + bitmap.getByteCount());
+        yuv.compressToJpeg(new Rect(0, 0, mSendFrameWidth, mSendFrameHeight), 20, out);
 
         mFrameBuffSize = out.toByteArray().length;
 
-        return bytes;
-    }
-
-    private Bitmap getBitmap(byte[] data) {
-        YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mFrameWidth, mFrameHeight, null);
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        yuv.compressToJpeg(new Rect(0, 0, mFrameWidth, mFrameHeight), 50, out);
-
-        byte[] bytes = out.toByteArray();
-        final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-
-        final Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, mFrameWidth / 2, mFrameHeight / 2, true);
-
-        frameData = bytes;
-        mFrameBuffSize = frameData.length;
-//        Logger.d(LOG_TAG, "getBitmap", "mFrameLength: " + mFrameLength);
-
-        return resizedBitmap;
-    }
-
-    private void showBitmap(final Bitmap bitmap) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                ImageView img = (ImageView) findViewById(R.id.img);
-                img.setRotation(-90);
-                img.setImageBitmap(bitmap);
-            }
-        });
-
+        return out.toByteArray();
     }
 
     private void releaseCamera() {
@@ -528,8 +495,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     private String getFrameJSONData() {
         JSONObject jsonObject = new JSONObject();
         try {
-            jsonObject.put("Width", mFrameWidth);
-            jsonObject.put("Height", mFrameHeight);
+            jsonObject.put("Width", mSendFrameWidth);
+            jsonObject.put("Height", mSendFrameHeight);
             jsonObject.put("Size", mFrameBuffSize);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -568,8 +535,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
             if (data != null && data.length != 0) {
 //                frameData = data;
                 parameters = camera.getParameters();
-                mFrameHeight = parameters.getPreviewSize().height;
-                mFrameWidth = parameters.getPreviewSize().width;
+                mSendFrameHeight = parameters.getPreviewSize().height;
+                mSendFrameWidth = parameters.getPreviewSize().width;
                 frameData = compressCameraData(data);
 
 //                getBitmap(frameData);
