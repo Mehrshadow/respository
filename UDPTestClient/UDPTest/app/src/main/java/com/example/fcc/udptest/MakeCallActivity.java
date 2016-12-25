@@ -1,17 +1,19 @@
 package com.example.fcc.udptest;
 
+
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.util.Log;
+
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import java.io.IOException;
@@ -22,7 +24,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
-public class MakeCallActivity extends Activity implements CompoundButton.OnCheckedChangeListener {
+public class MakeCallActivity extends Activity implements CompoundButton.OnCheckedChangeListener, OnClickListener {
 
     private static final String LOG_TAG = "MakeCall";
     private static final int BUF_SIZE = 1024;
@@ -31,7 +33,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
     private String contactIp;
     private boolean LISTEN = true;
     private AudioCall call;
-
+    private Button endButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,20 +51,13 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         TextView textView = (TextView) findViewById(R.id.textViewCalling);
         ToggleButton btnSwtich = (ToggleButton) findViewById(R.id.toggleButton2);
         btnSwtich.setOnCheckedChangeListener(this);
-        textView.setText("Calling Server: " + G.ServerIp);
+        displayName = String.format(getString(R.string.calling_lbl), contactName);
+
+        endButton = (Button) findViewById(R.id.buttonEndCall);
+        endButton.setOnClickListener(this);
 
         startListener();
         makeCall();
-
-        Button endButton = (Button) findViewById(R.id.buttonEndCall);
-        endButton.setOnClickListener(new OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                // Button to end the call has been pressed
-                endCall();
-            }
-        });
     }
 
     private void makeCall() {
@@ -91,9 +86,12 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
             public void run() {
 
                 try {
+
                     Log.i(LOG_TAG, "Listener started!");
-                    DatagramSocket socket = new DatagramSocket(G.CALL_LISTENER_PORT);
-                    socket.setSoTimeout(10000);
+
+                    DatagramSocket listenerSocket = new DatagramSocket(G.CALL_LISTENER_PORT);
+                    DatagramSocket senderSocket = new DatagramSocket();
+                    listenerSocket.setSoTimeout(15000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
                     while (LISTEN) {
@@ -101,43 +99,21 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                         try {
 
                             Log.i(LOG_TAG, "Listening for packets");
-                            socket.receive(packet);
+                            listenerSocket.receive(packet);
                             String data = new String(buffer, 0, packet.getLength());
                             Log.i(LOG_TAG, "Packet received from " + packet.getAddress() + " with contents: " + data);
                             String action = data.substring(0, 4);
                             if (action.equals("ACC:")) {
-
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        Toast.makeText(MakeCallActivity.this, R.string.call_accepted, Toast.LENGTH_LONG).show();
-                                    }
-                                });
                                 // Accept notification received. Start call
-                                call = new AudioCall(socket,packet.getAddress());
+                                call = new AudioCall(senderSocket,listenerSocket ,packet.getAddress());
                                 call.startCall();
 
                                 G.IN_CALL = true;
                             } else if (action.equals("REJ:")) {
-
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        Toast.makeText(MakeCallActivity.this, R.string.call_rejected, Toast.LENGTH_LONG).show();
-                                    }
-                                });
-
                                 // Reject notification received. End call
                                 endCall();
                             } else if (action.equals("END:")) {
                                 // End call notification received. End call
-
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        Toast.makeText(MakeCallActivity.this, R.string.call_ended, Toast.LENGTH_LONG).show();
-                                    }
-                                });
                                 endCall();
                             } else {
                                 // Invalid notification received
@@ -147,13 +123,6 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                             if (!G.IN_CALL) {
 
                                 Log.i(LOG_TAG, "No reply from contact. Ending call");
-
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        Toast.makeText(MakeCallActivity.this, R.string.server_not_reachable, Toast.LENGTH_LONG).show();
-                                    }
-                                });
                                 endCall();
                             }
                         } catch (IOException e) {
@@ -161,12 +130,12 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                         }
                     }
                     Log.i(LOG_TAG, "Listener ending");
-                    socket.disconnect();
-                    socket.close();
-                    return;
+//                    listenerSocket.disconnect();
+//                    listenerSocket.close();
                 } catch (SocketException e) {
 
                     Log.e(LOG_TAG, "SocketException in Listener");
+                    e.printStackTrace();
                     endCall();
                 }
             }
@@ -211,16 +180,6 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         replyThread.start();
     }
 
-    @Override
-    public void onBackPressed() {
-        if (G.IN_CALL) {
-            return;
-        }
-
-        sendMessage("END:", G.BROADCAST_PORT);
-
-        super.onBackPressed();
-    }
 
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -243,5 +202,10 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
 
             Log.d(LOG_TAG, "Speaker changed" + " & switchStatus is: " + isChecked);
         }
+    }
+
+    @Override
+    public void onClick(View v) {
+        endCall();
     }
 }

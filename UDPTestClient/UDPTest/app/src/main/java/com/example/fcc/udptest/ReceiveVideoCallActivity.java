@@ -287,8 +287,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                 parsePacket();
 
                 //\\\\\\\\\\
-                call = new AudioCall(address);
-                call.startCall();
+                //call = new AudioCall(address);
+               // call.startCall();
                 //\\\\\\\\\\
 
 
