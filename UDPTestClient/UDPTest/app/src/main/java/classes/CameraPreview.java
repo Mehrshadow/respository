@@ -35,15 +35,27 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         parameters = camera.getParameters();
 //        parameters.setPreviewFrameRate(1);
 
+        List<Camera.Size> pictureSizes = parameters.getSupportedPictureSizes();
+        List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
 
-        List<Camera.Size> sizes = parameters.getSupportedPictureSizes();
-//        parameters.setPreviewFrameRate(1);
-        parameters.setPreviewSize(sizes.get(sizes.size() - 1).width, sizes.get(sizes.size() - 1).height);
-        parameters.setPictureSize(sizes.get(sizes.size() - 1).width, sizes.get(sizes.size() - 1).height);
+        int previewWidth, previewHeight;
 
-//        parameters.setPreviewSize(100, 100);
-//        parameters.setPictureSize(100, 100)
-// ;
+
+
+         //get the lowest picture and frame sizes available by camera
+        if ((previewSizes.get(previewSizes.size() - 1).width) < (previewSizes.get(0)).width) {
+            previewWidth = previewSizes.get(0).width;
+            previewHeight = previewSizes.get(0).height;
+            parameters.setPreviewSize(previewWidth, previewHeight);
+
+        } else {
+            previewWidth = previewSizes.get(previewSizes.size() - 1).width;
+            previewHeight = previewSizes.get(previewSizes.size() - 1).height;
+            parameters.setPreviewSize(previewWidth, previewHeight);
+        }
+
+//        parameters.setPreviewSize(previewWidth, previewHeight);
+//        parameters.setPictureSize(pictureWidth, pictureHeight);
         camera.setParameters(parameters);
 
         mHolder = getHolder();

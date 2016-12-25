@@ -89,8 +89,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
 
                     Log.i(LOG_TAG, "Listener started!");
 
-                    DatagramSocket listenerSocket = new DatagramSocket(G.CALL_LISTENER_PORT);
-                    DatagramSocket senderSocket = new DatagramSocket();
+                    DatagramSocket listenerSocket = new DatagramSocket(G.BROADCAST_PORT);
                     listenerSocket.setSoTimeout(15000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
@@ -105,7 +104,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                             String action = data.substring(0, 4);
                             if (action.equals("ACC:")) {
                                 // Accept notification received. Start call
-                                call = new AudioCall(senderSocket,listenerSocket ,packet.getAddress());
+                                call = new AudioCall(packet.getAddress());
                                 call.startCall();
 
                                 G.IN_CALL = true;

@@ -49,7 +49,8 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private DatagramSocket mListenerSocket;
     private DatagramPacket mVideoPacket;
     private CameraPreview cameraPreview;
-    private int mFrameWidth, mFrameHeight, mFrameBuffSize;
+    private int mSendFrameWidth, mSendFrameHeight, mSendFrameBuffSize;
+    private int mReceiveFrameWidth, mReceiveFrameHeight, mReceiverameBuffSize;
     private byte[] frameData;
     private FrameLayout cameraView;
     private InetAddress address;
@@ -105,14 +106,14 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
 //        Logger.d(LOG_TAG, "compressCameraData", "actual camera size: " + data.length);
 
-        YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mFrameWidth, mFrameHeight, null);
+        YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mSendFrameWidth, mSendFrameHeight, null);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        yuv.compressToJpeg(new Rect(0, 0, mFrameWidth, mFrameHeight), 20, out);
+        yuv.compressToJpeg(new Rect(0, 0, mSendFrameWidth, mSendFrameHeight), 20, out);
 
 //        Logger.d(LOG_TAG, "compressCameraData", "compressed size: " + out.toByteArray().length);
 
-        mFrameBuffSize = out.toByteArray().length;
+        mSendFrameBuffSize = out.toByteArray().length;
 
         return out.toByteArray();
     }
@@ -162,7 +163,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         Camera c = null;
 
         try {
-            c = Camera.open(0);
+            c = Camera.open(G.BACK_CAMERA);
         } catch (Exception e) {
             Log.e(LOG_TAG, e.toString());
             e.printStackTrace();
@@ -234,8 +235,8 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                         if (action.equals("ACC:")) {
 
                             //\\\\\
-                            call = new AudioCall(packet.getAddress());
-                            call.startCall();
+                            //call = new AudioCall(packet.getAddress());
+                            // call.startCall();
                             //\\\\\\
 
                             Log.d(LOG_TAG, "video call accepted");
@@ -304,16 +305,16 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         try {
 
             JSONObject jsonObject = new JSONObject(data);
-            mFrameWidth = jsonObject.getInt("Width");
-            mFrameHeight = jsonObject.getInt("Height");
-            mFrameBuffSize = jsonObject.getInt("Size");
-            Logger.d("ReceiveVideoCallActivity", "introListener", "mFrameBuffSize >> " + mFrameBuffSize);
+            mReceiveFrameWidth = jsonObject.getInt("Width");
+            mReceiveFrameHeight = jsonObject.getInt("Height");
+            mReceiverameBuffSize = jsonObject.getInt("Size");
+            Logger.d("ReceiveVideoCallActivity", "introListener", "mFrameBuffSize >> " + mReceiverameBuffSize);
 
             Logger.d("ReceiveVideoCallActivity", "introListener", "Received Data " +
-                    ">> width =" + mFrameWidth +
-                    " height = " + mFrameHeight +
-                    " buffSize = " + mFrameBuffSize);
-            if (mFrameHeight != 0 && mFrameWidth != 0 && mFrameBuffSize != 0) {
+                    ">> width =" + mReceiveFrameWidth +
+                    " height = " + mReceiveFrameHeight +
+                    " buffSize = " + mReceiverameBuffSize);
+            if (mReceiveFrameHeight != 0 && mReceiveFrameWidth != 0 && mReceiverameBuffSize != 0) {
                 sendACC();
 
                 //udpFrameListener();
@@ -351,10 +352,10 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         receiving = true;
         Logger.d("ReceiveVideoCallActivity", "udpReceived", "Start");
         try {
-            final byte[] buff = new byte[mFrameBuffSize*10];
-            Logger.d("ReceiveVideoCallActivity", "udpReceived", "mFrameBuffSize >> " + mFrameBuffSize);
+            final byte[] buff = new byte[mReceiverameBuffSize * 10];
+            Logger.d("ReceiveVideoCallActivity", "udpReceived", "mFrameBuffSize >> " + mReceiverameBuffSize);
 //                    datagramSocket.setSoTimeout(10000);
-            DatagramPacket packet = new DatagramPacket(buff, mFrameBuffSize);
+            DatagramPacket packet = new DatagramPacket(buff, mReceiverameBuffSize);
             while (receiving) {
 
                 mListenerSocket.setSoTimeout(5 * 1000);// 5 seconds to receive next frame, else, it will close
@@ -579,9 +580,9 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private String getFrameJSONData() {
         JSONObject jsonObject = new JSONObject();
         try {
-            jsonObject.put("Width", mFrameWidth);
-            jsonObject.put("Height", mFrameHeight);
-            jsonObject.put("Size", mFrameBuffSize);
+            jsonObject.put("Width", mSendFrameWidth);
+            jsonObject.put("Height", mSendFrameHeight);
+            jsonObject.put("Size", mSendFrameBuffSize);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -595,8 +596,8 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
             if (data != null && data.length != 0) {
                 //frameData = data;
                 parameters = camera.getParameters();
-                mFrameHeight = parameters.getPreviewSize().height;
-                mFrameWidth = parameters.getPreviewSize().width;
+                mSendFrameHeight= parameters.getPreviewSize().height;
+                mSendFrameWidth = parameters.getPreviewSize().width;
 
                 frameData = compressCameraData(data);
 

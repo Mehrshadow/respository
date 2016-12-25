@@ -161,6 +161,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
                                 intent.putExtra(G.EXTRA_C_Name, name);
                                 intent.putExtra(G.EXTRA_C_Ip, address.substring(1, address.length()));
                                 startActivity(intent);
+
                             } else if (action.equals("VIDEOCALL")) {
                                 Logger.i("MainActivity", "startVideoCallListener", "**CAL received**");
                                 // Received a call request. Start the ReceiveCallActivity
@@ -574,7 +575,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
                     try {
                         ServerSocket serverSocket = new ServerSocket(G.CHECK_ONLINE_MOBILES_PORT);
                         Socket socket = serverSocket.accept();
-                        Logger.d("MainActivity", "CheckOnline", "Socket Accepted . . .");
+                        //Logger.d("MainActivity", "CheckOnline", "Socket Accepted . . .");
                         socket.close();
                         serverSocket.close();
                     } catch (IOException e) {

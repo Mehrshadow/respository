@@ -29,12 +29,12 @@
             android:layout_height="100dp"
             android:id="@+id/cameraView"
             android:elevation="7dp"
-
             android:keepScreenOn="true">
 
         </FrameLayout>
 
         <ImageView
+            android:scaleType="fitXY"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/img" />

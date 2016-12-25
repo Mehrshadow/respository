@@ -31,6 +31,13 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
+            <ImageView
+                android:id="@+id/img_receive"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitXY"
+                app:srcCompat="@drawable/background_oncall" />
+
             <FrameLayout
                 android:id="@+id/cameraView"
                 android:layout_width="100dp"
@@ -38,19 +45,8 @@
                 android:layout_marginBottom="10dp"
                 android:elevation="7dp"
                 android:keepScreenOn="true" />
-            <ImageView
-
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                app:srcCompat="@drawable/background_oncall"
-                android:id="@+id/img_receive" />
-
 
         </FrameLayout>
-
-
-
-
 
     </LinearLayout>
 
@@ -72,8 +68,7 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            />
+            android:layout_weight="1" />
 
         <Button
             android:id="@+id/buttonReject"

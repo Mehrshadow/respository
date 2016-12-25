@@ -22,16 +22,13 @@ public class AudioCall {
     private static final int SAMPLE_SIZE = 2; // Bytes
     private static final int BUF_SIZE = SAMPLE_INTERVAL * SAMPLE_INTERVAL * SAMPLE_SIZE * 2; //Bytes
     private InetAddress address; // Address to call
-    private DatagramSocket senderSocket,listenerSocket;
 
     private boolean mic = false; // Enable mic?
     private boolean speakers = false; // Enable speakers?
 
     private AudioTrack track;
 
-    public AudioCall(DatagramSocket senderSocket,DatagramSocket listenerSocket,InetAddress address) {
-        this.senderSocket = senderSocket;
-        this.listenerSocket = listenerSocket;
+    public AudioCall(InetAddress address) {
 
         track = new AudioTrack(AudioManager.STREAM_VOICE_CALL, SAMPLE_RATE, AudioFormat.CHANNEL_OUT_MONO,
                 AudioFormat.ENCODING_PCM_16BIT, BUF_SIZE, AudioTrack.MODE_STREAM);
@@ -80,11 +77,14 @@ public class AudioCall {
                     // Create a socket and start recording
                     Log.i(LOG_TAG, "Packet destination: " + address.toString());
                     audioRecorder.startRecording();
+                    DatagramSocket datagramSocket = new DatagramSocket();
                     while (mic) {
                         // Capture audio from the mic and transmit it
                         bytes_read = audioRecorder.read(buf, 0, BUF_SIZE);
-                        DatagramPacket packet = new DatagramPacket(buf, bytes_read, address, G.CALL_SENDER_PORT);
-                        senderSocket.send(packet);
+
+
+                        DatagramPacket packet = new DatagramPacket(buf, bytes_read, address, G.CALL_LISTENER_PORT);
+                        datagramSocket.send(packet);
                         bytes_sent += bytes_read;
                         Log.i(LOG_TAG, "Total bytes sent: " + bytes_sent);
                         Thread.sleep(SAMPLE_INTERVAL, 0);
@@ -92,8 +92,8 @@ public class AudioCall {
                     // Stop recording and release resources
                     audioRecorder.stop();
                     audioRecorder.release();
-                    senderSocket.disconnect();
-                    senderSocket.close();
+                    datagramSocket.disconnect();
+                    datagramSocket.close();
                     mic = false;
                     return;
                 } catch (InterruptedException e) {
@@ -134,16 +134,17 @@ public class AudioCall {
 
                         // Define a socket to receive the audio
                         byte[] buf = new byte[BUF_SIZE];
+                        DatagramSocket socket = new DatagramSocket(G.CALL_LISTENER_PORT);
                         while (speakers) {
                             // Play back the audio received from packets
                             DatagramPacket packet = new DatagramPacket(buf, BUF_SIZE);
-                            listenerSocket.receive(packet);
+                            socket.receive(packet);
                             Log.i(LOG_TAG, "Packet received: " + packet.getLength());
                             track.write(packet.getData(), 0, BUF_SIZE);
                         }
                         // Stop playing back and release resources
-                        listenerSocket.disconnect();
-                        listenerSocket.close();
+                        socket.disconnect();
+                        socket.close();
                         track.stop();
                         track.flush();
                         track.release();

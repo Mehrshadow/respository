@@ -38,7 +38,7 @@ public class ReceiveCallActivity extends Activity implements OnClickListener {
     private LinearLayout mLinearLayout;
     private Button acceptButton;
     private Button rejectButton;
-    private  Button endButton;
+    private Button endButton;
     private ToggleButton Tgl_Speaker;
     private TextView txtIncomingCall;
 
@@ -150,8 +150,8 @@ public class ReceiveCallActivity extends Activity implements OnClickListener {
                     }
                     Logger.e(LOG_TAG, "startListener", "Listener ending");
 
-                    socket.disconnect();
-                    socket.close();
+//                    socket.disconnect();
+//                    socket.close();
                     return;
                 } catch (SocketException e) {
                     Logger.e(LOG_TAG, "startListener", "SocketException in Listener " + e);
@@ -216,11 +216,7 @@ public class ReceiveCallActivity extends Activity implements OnClickListener {
 
                     G.IN_CALL = true;
 
-                    DatagramSocket senderSocket = new DatagramSocket();
-                    DatagramSocket listenerSocket = new DatagramSocket(G.CALL_LISTENER_PORT);
-
-
-                    call = new AudioCall(senderSocket, listenerSocket, address);
+                    call = new AudioCall(address);
                     call.startCall();
                     // Hide the buttons as they're not longer required
                     Button accept = (Button) findViewById(R.id.buttonAccept);
@@ -238,7 +234,6 @@ public class ReceiveCallActivity extends Activity implements OnClickListener {
                     Logger.e(LOG_TAG, "onCreate", "Exception in acceptButton: " + e);
                 }
                 break;
-
 
 
             case R.id.buttonReject:
