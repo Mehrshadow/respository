@@ -23,8 +23,8 @@ public class G extends Application {
 
     public static final int CONTACTSYNC_PORT = 30000;
 
-    public static final int CALL_SENDER_PORT = 40000;
-    public static final int CALL_LISTENER_PORT = 40001;
+    public static final int CALL_SENDER_PORT = 40001;
+    public static final int CALL_LISTENER_PORT = 40000;
 
     public static final int VIDEOCALL_LISTENER_PORT = 50000;
     public static final int VIDEOCALL_SENDER_PORT = 50001;

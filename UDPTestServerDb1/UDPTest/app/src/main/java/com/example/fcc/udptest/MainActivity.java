@@ -132,15 +132,15 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
                 try {
                     // Set up the socket and packet to receive
                     Logger.i("MainActivity", "startCallListener", "Incoming call listener started");
-                    brodcaastSocket = new DatagramSocket(G.BROADCAST_PORT);
-                    brodcaastSocket.setSoTimeout(10000);
+                    DatagramSocket scoket = new DatagramSocket(G.BROADCAST_PORT);
+                    scoket.setSoTimeout(10000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
                     while (LISTEN) {
                         // Listen for incoming call requests
                         try {
                             Logger.i("MainActivity", "startCallListener", "Listening for incoming calls");
-                            brodcaastSocket.receive(packet);
+                            scoket.receive(packet);
                             String data = new String(buffer, 0, packet.getLength());
                             Logger.i("MainActivity", "startCallListener", "\"Packet received from \" + packet.getAddress() + \" with contents: \" + data");
                             String action = data.substring(0, 9);
@@ -153,7 +153,12 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
                                 Intent intent = new Intent(MainActivity.this, ReceiveCallActivity.class);
                                 intent.putExtra(G.EXTRA_C_Name, name);
                                 intent.putExtra(G.EXTRA_C_Ip, address.substring(1, address.length()));
+
+                                scoket.disconnect();
+                                scoket.close();
+
                                 startActivity(intent);
+
                             } else if (action.equals("VIDEOCALL")) {
                                 Logger.i("MainActivity", "startVideoCallListener", "**CAL received**");
                                 // Received a call request. Start the ReceiveCallActivity
@@ -164,6 +169,9 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
 
                                 G.IN_CALL = true;
 
+                                scoket.disconnect();
+                                scoket.close();
+
                                 startActivity(intent);
                             } else {
                                 // Received an invalid request
@@ -173,8 +181,8 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
                         }
                     }
                     Logger.i("MainActivity", "startCallListener", "Call Listener ending");
-                    brodcaastSocket.disconnect();
-                    brodcaastSocket.close();
+                    scoket.disconnect();
+                    scoket.close();
                 } catch (SocketException e) {
                     Logger.i("MainActivity", "startCallListener", "SocketException in listener " + e);
                 }
@@ -205,7 +213,6 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
         SERVER_RUNNING = false;
         contactManager.stopListening();
         stopCallListener();
-
     }
 
     @Override

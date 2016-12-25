@@ -25,17 +25,12 @@ public class AudioCall {
     private boolean mic = false; // Enable mic?
     private boolean speakers = false; // Enable speakers?
     private AudioTrack track;
-    private DatagramSocket senderSocket, listenerSocket;
 
-    public AudioCall(DatagramSocket senderSocket, DatagramSocket listenerSocket, InetAddress address) {
+    public AudioCall(InetAddress address) {
 
         track = new AudioTrack(AudioManager.STREAM_VOICE_CALL, SAMPLE_RATE, AudioFormat.CHANNEL_OUT_MONO,
                 AudioFormat.ENCODING_PCM_16BIT, BUF_SIZE, AudioTrack.MODE_STREAM);
         this.address = address;
-
-        senderSocket = this.senderSocket;
-        listenerSocket = this.listenerSocket;
-
     }
 
     public void startCall() {
@@ -79,7 +74,7 @@ public class AudioCall {
                 try {
                     // Create a socket and start recording
                     Log.i(LOG_TAG, "Packet destination: " + address.toString());
-                    senderSocket = new DatagramSocket();
+                    DatagramSocket senderSocket = new DatagramSocket();
                     audioRecorder.startRecording();
                     while (mic) {
                         // Capture audio from the mic and transmit it
@@ -133,18 +128,18 @@ public class AudioCall {
                     try {
 
                         // Define a socket to receive the audio
-//                        socket = new DatagramSocket(G.CALL_LISTENER_PORT);
+                        DatagramSocket socket = new DatagramSocket(G.CALL_SENDER_PORT);
                         byte[] buf = new byte[BUF_SIZE];
                         while (speakers) {
                             // Play back the audio received from packets
                             DatagramPacket packet = new DatagramPacket(buf, BUF_SIZE);
-                            listenerSocket.receive(packet);
+                            socket.receive(packet);
                             Log.i(LOG_TAG, "Packet received: " + packet.getLength());
                             track.write(packet.getData(), 0, BUF_SIZE);
                         }
                         // Stop playing back and release resources
-                        listenerSocket.disconnect();
-                        listenerSocket.close();
+                        socket.disconnect();
+                        socket.close();
 
                         track.stop();
                         track.flush();
