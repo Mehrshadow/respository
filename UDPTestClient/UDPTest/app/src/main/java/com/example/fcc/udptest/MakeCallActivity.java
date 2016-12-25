@@ -51,7 +51,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         TextView textView = (TextView) findViewById(R.id.textViewCalling);
         ToggleButton btnSwtich = (ToggleButton) findViewById(R.id.toggleButton2);
         btnSwtich.setOnCheckedChangeListener(this);
-        displayName = String.format(getString(R.string.calling_lbl), contactName);
+        textView.setText(String.format(getString(R.string.calling_lbl), contactName));
 
         endButton = (Button) findViewById(R.id.buttonEndCall);
         endButton.setOnClickListener(this);
@@ -89,7 +89,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
 
                     Log.i(LOG_TAG, "Listener started!");
 
-                    DatagramSocket listenerSocket = new DatagramSocket(G.BROADCAST_PORT);
+                    DatagramSocket listenerSocket = new DatagramSocket(G.CALL_SENDER_PORT);
                     listenerSocket.setSoTimeout(15000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
@@ -129,8 +129,8 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                         }
                     }
                     Log.i(LOG_TAG, "Listener ending");
-//                    listenerSocket.disconnect();
-//                    listenerSocket.close();
+                    listenerSocket.disconnect();
+                    listenerSocket.close();
                 } catch (SocketException e) {
 
                     Log.e(LOG_TAG, "SocketException in Listener");
