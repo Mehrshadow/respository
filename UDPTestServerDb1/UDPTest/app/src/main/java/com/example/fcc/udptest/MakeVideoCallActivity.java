@@ -174,11 +174,10 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     protected void onStop() {
         super.onStop();
 
-        releaseCamera();
+//        releaseCamera();
 
         stopListener();
 
-        stopSendingFrames();
     }
 
     private static Camera getCameraInstance() {
@@ -476,17 +475,30 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
         sendMessage("END:", G.BROADCAST_PORT);
 
+        closeSockets();
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                releaseCamera();
+            }
+        });
+
+
         finish();
     }
 
-    private void stopSendingFrames() {
+    private void closeSockets() {
 
 //        closeSendFrameSocket();
 
-//        mSenderSocket.disconnect();
-//        mSenderSocket.close();
+        mSenderSocket.disconnect();
+        mSenderSocket.close();
 
-        releaseCamera();
+        mListenerSocket.disconnect();
+        mListenerSocket.close();
+
+
     }
 
     private void udpFrameListener() {
