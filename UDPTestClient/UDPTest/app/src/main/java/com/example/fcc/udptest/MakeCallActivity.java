@@ -24,7 +24,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
-public class MakeCallActivity extends Activity implements CompoundButton.OnCheckedChangeListener, OnClickListener,AudioCall.IEndCall {
+public class MakeCallActivity extends Activity implements CompoundButton.OnCheckedChangeListener, OnClickListener/*,AudioCall.IEndCall*/ {
 
     private static final String LOG_TAG = "MakeCall";
     private static final int BUF_SIZE = 1024;
@@ -107,7 +107,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                                 // Accept notification received. Start call
                                 call = new AudioCall(packet.getAddress());
                                 call.startCall();
-                                call.setEndCallListener(MakeCallActivity.this);
+                              //  call.setEndCallListener(MakeCallActivity.this);
                                 G.IN_CALL = true;
                             } else if (action.equals("REJ:")) {
                                 // Reject notification received. End call
@@ -209,8 +209,8 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         endCall();
     }
 
-    @Override
+   /* @Override
     public void endAudioCall() {
         endCall();
-    }
+    }*/
 }

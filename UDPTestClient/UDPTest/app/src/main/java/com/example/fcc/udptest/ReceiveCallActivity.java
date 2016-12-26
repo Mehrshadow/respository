@@ -25,7 +25,7 @@ import java.util.concurrent.TransferQueue;
 
 import classes.Logger;
 
-public class ReceiveCallActivity extends Activity implements OnClickListener ,AudioCall.IEndCall{
+public class ReceiveCallActivity extends Activity implements OnClickListener /*,AudioCall.IEndCall*/{
 
     private static final String LOG_TAG = "ReceiveCallActivity";
     private static final int BUF_SIZE = 1024;
@@ -221,7 +221,7 @@ public class ReceiveCallActivity extends Activity implements OnClickListener ,Au
 
                     call = new AudioCall(address);
                     call.startCall();
-                    call.setEndCallListener(ReceiveCallActivity.this);
+                    //call.setEndCallListener(ReceiveCallActivity.this);
                     // Hide the buttons as they're not longer required
                     Button accept = (Button) findViewById(R.id.buttonAccept);
                     accept.setEnabled(false);
@@ -253,8 +253,8 @@ public class ReceiveCallActivity extends Activity implements OnClickListener ,Au
 
     }
 
-    @Override
+  /*  @Override
     public void endAudioCall() {
         endCall();
-    }
+    }*/
 }
