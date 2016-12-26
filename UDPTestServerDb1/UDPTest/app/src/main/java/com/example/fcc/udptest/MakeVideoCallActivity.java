@@ -103,24 +103,10 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
     private Bitmap getBitmap(byte[] data) {
 
-        YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mFrameWidth, mFrameHeight, null);
+        final Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        yuv.compressToJpeg(new Rect(0, 0, mFrameWidth, mFrameHeight), 50, out);
-
-        byte[] bytes = out.toByteArray();
-        final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-
-        final Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, mFrameWidth / 2, mFrameHeight / 2, true);
-
-        frameData = bytes;
-        mFrameBuffSize = frameData.length;
 //        Logger.d(LOG_TAG, "getBitmap", "mFrameLength: " + mFrameLength);
-
-        return resizedBitmap;
-
-//        final Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, mFrameWidth  , mFrameHeight, true);
-
+        return bitmap;
     }
 
     private byte[] compressCameraData(byte[] data) {
@@ -138,8 +124,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
         return out.toByteArray();
     }
-
-//        final Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, mFrameWidth  , mFrameHeight, true);
 
     private void showBitmap(final Bitmap bitmap) {
         runOnUiThread(new Runnable() {
@@ -174,11 +158,10 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     protected void onStop() {
         super.onStop();
 
-        releaseCamera();
+//        releaseCamera();
 
         stopListener();
 
-        stopSendingFrames();
     }
 
     private static Camera getCameraInstance() {
@@ -264,6 +247,8 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                         String action = data.substring(0, 4);
                         if (action.equals("ACC:")) {
 
+                            showToast(getString(R.string.call_accpeted));
+
                             Log.d(LOG_TAG, "video call accepted");
 
 //                                Send Introduce and Listen to incoming value
@@ -271,10 +256,12 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 //                            startFrameIntroduceAcceptedListener();
 
                         } else if (action.equals("REJ:")) {
+                            showToast(getString(R.string.call_rejected));
                             // Reject notification received. End call
                             Log.d(LOG_TAG, "Ending call...");
                             endCall();
                         } else if (action.equals("END:")) {
+                            showToast(getString(R.string.call_ended));
                             Log.d(LOG_TAG, "Ending call...");
                             endCall();
                         } else if (action.equals("OKK:")) {
@@ -476,17 +463,30 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
         sendMessage("END:", G.BROADCAST_PORT);
 
+        closeSockets();
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                releaseCamera();
+            }
+        });
+
+
         finish();
     }
 
-    private void stopSendingFrames() {
+    private void closeSockets() {
 
 //        closeSendFrameSocket();
 
-//        mSenderSocket.disconnect();
-//        mSenderSocket.close();
+        mSenderSocket.disconnect();
+        mSenderSocket.close();
 
-        releaseCamera();
+        mListenerSocket.disconnect();
+        mListenerSocket.close();
+
+
     }
 
     private void udpFrameListener() {
@@ -644,6 +644,15 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
             }
         }
     };
+
+    public void showToast(final String message) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MakeVideoCallActivity.this, message, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 
     @Override
     public void onClick(View v) {

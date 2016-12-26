@@ -197,6 +197,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
                         String action = data.substring(0, 4);
                         if (action.equals("END:")) {
+                            showToast(getString(R.string.call_ended));
                             endCall();
 
                         } else if (data.startsWith("{")) {
@@ -410,7 +411,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 //                    datagramSocket.setSoTimeout(10000);
             DatagramPacket packet = new DatagramPacket(buff, mFrameBuffSize);
 
-            mReceiveSocket.setSoTimeout(2 * 1000);// 2 seconds to receive next frame, else, it will close
+            mReceiveSocket.setSoTimeout(1000);// 1 seconds to receive next frame, else, it will close
 
             while (receiving) {
 
@@ -419,17 +420,27 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                 Logger.d("ReceiveVideoCallActivity", "udpReceived", "buff.size()" + buff.length);
                 previewBitmap(buff);
             }
+
+            showToast(getString(R.string.call_ended));
+
             mReceiveSocket.disconnect();
             mReceiveSocket.close();
         } catch (SocketException e) {
             Logger.e("ReceiveVideoCallActivity", "udpFrameListener", "SocketException");
+
+            showToast(getString(R.string.call_ended));
+
             endCall();
+
             LISTEN = false;
             e.printStackTrace();
         } catch (IOException e) {
             Logger.e("ReceiveVideoCallActivity", "udpFrameListener", "IOException");
             LISTEN = false;
             e.printStackTrace();
+
+            showToast(getString(R.string.call_ended));
+
             endCall();
         }
     }
@@ -547,6 +558,14 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         }
     };
 
+    public void showToast(final String message) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(ReceiveVideoCallActivity.this, message, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 }
 
 //    private void tcpReceived() {

@@ -129,10 +129,10 @@ public class AudioCall {
                     try {
                         // Define a socket to receive the audio
                         DatagramSocket socket = new DatagramSocket(G.CALL_SENDER_PORT);
-                        byte[] buf = new byte[BUF_SIZE];
+                        byte[] buffer = new byte[BUF_SIZE];
                         while (speakers) {
                             // Play back the audio received from packets
-                            DatagramPacket packet = new DatagramPacket(buf, BUF_SIZE);
+                            DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
                             socket.receive(packet);
                             Log.i(LOG_TAG, "Packet received: " + packet.getLength());
                             track.write(packet.getData(), 0, BUF_SIZE);
