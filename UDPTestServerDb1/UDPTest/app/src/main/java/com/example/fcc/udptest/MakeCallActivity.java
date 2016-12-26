@@ -1,12 +1,14 @@
 package com.example.fcc.udptest;
 
 
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.util.Log;
+
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -22,7 +24,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
-public class MakeCallActivity extends Activity implements CompoundButton.OnCheckedChangeListener, OnClickListener, AudioCall.IEndCall {
+public class MakeCallActivity extends Activity implements CompoundButton.OnCheckedChangeListener, OnClickListener/*,AudioCall.IEndCall */{
 
     private static final String LOG_TAG = "MakeCall";
     private static final int BUF_SIZE = 1024;
@@ -54,9 +56,9 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         endButton = (Button) findViewById(R.id.buttonEndCall);
         endButton.setOnClickListener(this);
 
+
         startListener();
         makeCall();
-
     }
 
     private void makeCall() {
@@ -64,7 +66,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         sendMessage("VOICECALL" + displayName, G.BROADCAST_PORT);
     }
 
-    public void endCall() {
+    private void endCall() {
         // Ends the chat sessions
         stopListener();
         if (G.IN_CALL) {
@@ -105,8 +107,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                                 // Accept notification received. Start call
                                 call = new AudioCall(packet.getAddress());
                                 call.startCall();
-                                call.setEndCallListener(MakeCallActivity.this);
-
+//                                call.setEndCallListener(MakeCallActivity.this);
                                 G.IN_CALL = true;
                             } else if (action.equals("REJ:")) {
                                 // Reject notification received. End call
@@ -190,12 +191,12 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
 
             if (isChecked) {
 
-                m_amAudioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
-                m_amAudioManager.setSpeakerphoneOn(true);
+                m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
+                m_amAudioManager.setSpeakerphoneOn(false);
 
             } else {
-                m_amAudioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
-                m_amAudioManager.setSpeakerphoneOn(false);
+                m_amAudioManager.setMode(AudioManager.MODE_NORMAL);
+                m_amAudioManager.setSpeakerphoneOn(true);
 
             }
 
@@ -208,8 +209,8 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         endCall();
     }
 
-    @Override
-    public void endAudioCall() {
-        endCall();
-    }
+//    @Override
+//    public void endAudioCall() {
+//        endCall();
+//    }
 }
