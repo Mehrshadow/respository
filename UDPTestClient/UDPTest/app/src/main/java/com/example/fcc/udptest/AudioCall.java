@@ -12,6 +12,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
 public class AudioCall {
@@ -27,6 +28,7 @@ public class AudioCall {
     private boolean speakers = false; // Enable speakers?
 
     private AudioTrack track;
+    private IEndCall iEndCall;
 
     public AudioCall(InetAddress address) {
 
@@ -35,6 +37,16 @@ public class AudioCall {
         this.address = address;
     }
 
+    public interface IEndCall{
+        void endAudioCall();
+    }
+
+    public void setEndCallListener(IEndCall endCall){
+        this.iEndCall=endCall;
+    }
+
+
+
     public void startCall() {
 
         startMic();
@@ -42,7 +54,6 @@ public class AudioCall {
     }
 
     public void endCall() {
-
         Log.i(LOG_TAG, "Ending call!");
         muteMic();
         muteSpeakers();
@@ -78,7 +89,9 @@ public class AudioCall {
                     Log.i(LOG_TAG, "Packet destination: " + address.toString());
                     audioRecorder.startRecording();
                     DatagramSocket datagramSocket = new DatagramSocket();
+
                     while (mic) {
+                        datagramSocket.setSoTimeout(2000);
                         // Capture audio from the mic and transmit it
                         bytes_read = audioRecorder.read(buf, 0, BUF_SIZE);
 
@@ -101,7 +114,7 @@ public class AudioCall {
                     Log.e(LOG_TAG, "InterruptedException: " + e.toString());
                     mic = false;
                 } catch (SocketException e) {
-
+                    iEndCall.endAudioCall();
                     Log.e(LOG_TAG, "SocketException: " + e.toString());
                     mic = false;
                 } catch (UnknownHostException e) {
@@ -135,7 +148,9 @@ public class AudioCall {
                         // Define a socket to receive the audio
                         byte[] buf = new byte[BUF_SIZE];
                         DatagramSocket socket = new DatagramSocket(G.CALL_LISTENER_PORT);
+
                         while (speakers) {
+                            socket.setSoTimeout(2000);
                             // Play back the audio received from packets
                             DatagramPacket packet = new DatagramPacket(buf, BUF_SIZE);
                             socket.receive(packet);
@@ -151,7 +166,7 @@ public class AudioCall {
                         speakers = false;
                         return;
                     } catch (SocketException e) {
-
+                        iEndCall.endAudioCall();
                         Log.e(LOG_TAG, "SocketException: " + e.toString());
                         speakers = false;
                     } catch (IOException e) {
