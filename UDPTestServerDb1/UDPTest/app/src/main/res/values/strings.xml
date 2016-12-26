@@ -25,4 +25,7 @@
     <string name="enterinfo">Enter Your Name And ServerIp</string>
     <string name="waiting">Waiting for clients to connect...</string>
     <string name="calling_lbl">Calling  %1$s</string>
+    <string name="call_accpeted">Call accepted</string>
+    <string name="call_rejected">Call rejected</string>
+    <string name="call_ended">Call ended</string>
 </resources>

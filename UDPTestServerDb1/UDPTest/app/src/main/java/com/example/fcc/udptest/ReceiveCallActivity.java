@@ -12,6 +12,7 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import java.io.IOException;
@@ -23,7 +24,7 @@ import java.net.UnknownHostException;
 
 import classes.Logger;
 
-public class ReceiveCallActivity extends Activity implements OnClickListener/* ,AudioCall.IEndCall*/{
+public class ReceiveCallActivity extends Activity implements OnClickListener/* ,AudioCall.IEndCall*/ {
 
     private static final String LOG_TAG = "ReceiveCallActivity";
     private static final int BUF_SIZE = 1024;
@@ -135,6 +136,9 @@ public class ReceiveCallActivity extends Activity implements OnClickListener/* ,
 
                             String action = data.substring(0, 4);
                             if (action.equals("END:")) {
+
+                                showToast(getString(R.string.call_ended));
+
                                 // End call notification received. End call
                                 endCall();
                             } else {
@@ -199,6 +203,15 @@ public class ReceiveCallActivity extends Activity implements OnClickListener/* ,
         replyThread.start();
     }
 
+    public void showToast(final String message) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(ReceiveCallActivity.this, message, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     @Override
     public void onClick(View v) {
 
@@ -207,6 +220,9 @@ public class ReceiveCallActivity extends Activity implements OnClickListener/* ,
 
             case R.id.buttonAccept:
                 try {
+
+                    showToast(getString(R.string.call_accpeted));
+
                     mLinearLayout.setVisibility(View.INVISIBLE);
                     // Accepting call. Send a notification and start the call
                     sendMessage("ACC:");

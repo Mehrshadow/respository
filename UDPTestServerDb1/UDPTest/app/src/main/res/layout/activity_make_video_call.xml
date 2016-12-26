@@ -17,26 +17,32 @@
         android:layout_marginBottom="20dp"
         android:textColor="#fff" />
 
-
-
-    <FrameLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
-
-        <ImageView
-            android:id="@+id/img"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+        android:layout_weight="1"
+        android:orientation="vertical">
 
         <FrameLayout
-            android:id="@+id/cameraView"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:elevation="7dp"
-            android:keepScreenOn="true">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ImageView
+                android:id="@+id/img"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop" />
+
+            <FrameLayout
+                android:id="@+id/cameraView"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_marginBottom="10dp"
+                android:elevation="7dp"
+                android:keepScreenOn="true" />
+
         </FrameLayout>
-    </FrameLayout>
+    </LinearLayout>
 
     <Button
         android:id="@+id/buttonEndCall"
