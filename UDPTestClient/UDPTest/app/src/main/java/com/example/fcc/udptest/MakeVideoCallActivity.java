@@ -163,7 +163,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         Camera c = null;
 
         try {
-            c = Camera.open(G.BACK_CAMERA);
+            c = Camera.open(G.FRONT_CAMERA);
         } catch (Exception e) {
             Log.e(LOG_TAG, e.toString());
             e.printStackTrace();
@@ -236,14 +236,18 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
                             Logger.d(LOG_TAG, "startListener", "video call accepted");
 //                                Send Introduce and Listen to incoming value
+                            showToast(getString(R.string.call_accepted));
                             sendFrameIntroduceData();
+
 
                         } else if (action.equals("REJ:")) {
                             // Reject notification received. End call
+                            showToast(getString(R.string.call_rejected));
                             Logger.d(LOG_TAG, "startListener", "Ending call...");
                             endCall();
 
                         } else if (action.equals("END:")) {
+                            showToast(getString(R.string.call_ended));
                             Log.d(LOG_TAG, "Ending call...");
                             endCall();
 
@@ -355,7 +359,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
             DatagramPacket packet = new DatagramPacket(buff, mReceiverameBuffSize);
             while (receiving) {
 
-                mListenerSocket.setSoTimeout(5 * 1000);// 5 seconds to receive next frame, else, it will close
+                mListenerSocket.setSoTimeout(1 * 1000);// 5 seconds to receive next frame, else, it will close
                 mListenerSocket.receive(packet);
 
                 Logger.d(LOG_TAG, "udpReceived", "buff.size()" + buff.length);
@@ -613,6 +617,15 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         endCall();
+    }
+
+    private void showToast(final String message){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(getApplicationContext(),message,Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
 }

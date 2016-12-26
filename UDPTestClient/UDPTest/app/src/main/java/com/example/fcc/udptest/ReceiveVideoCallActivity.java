@@ -96,6 +96,13 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+//        showToast(getString(R.string.call_ended));
+
+    }
+
     private void openCamera() {
 
         if (checkCameraHardware(this)) {
@@ -122,7 +129,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         Camera c = null;
 
         try {
-            c = Camera.open(G.BACK_CAMERA);
+            c = Camera.open(G.FRONT_CAMERA);
         } catch (Exception e) {
             Log.e(LOG_TAG, e.toString());
             e.printStackTrace();
@@ -188,6 +195,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
                         String action = data.substring(0, 4);
                         if (action.equals("END:")) {
+                            showToast(getString(R.string.call_ended));
                             endCall();
 
                         } else if (data.startsWith("{")) {
@@ -259,6 +267,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     }
 
     private void endCall() {
+        showToast(getString(R.string.call_ended));
+
         mReceiveSocket.disconnect();
         mReceiveSocket.close();
         mSendSocket.disconnect();
@@ -471,22 +481,27 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
             Logger.d(LOG_TAG, "udpFrameListener", "mFrameBuffSize >> " + mFrameBuffSize);
 //                    datagramSocket.setSoTimeout(10000);
             DatagramPacket packet = new DatagramPacket(buff, mFrameBuffSize);
+            mReceiveSocket.setSoTimeout(1 * 1000);// 5 seconds to receive next frame, else, it will close
+
             while (receiving) {
 
-                mReceiveSocket.setSoTimeout(2 * 1000);// 5 seconds to receive next frame, else, it will close
                 mReceiveSocket.receive(packet);
 
                 Logger.d(LOG_TAG, "udpFrameListener", "buff.size()" + buff.length);
                 previewBitmap(buff);
             }
+            showToast(getString(R.string.call_ended));
+
             mReceiveSocket.disconnect();
             mReceiveSocket.close();
         } catch (SocketException e) {
             Logger.e(LOG_TAG, "udpFrameListener", "SocketException");
+            showToast(getString(R.string.call_ended));
             endCall();
             LISTEN = false;
             e.printStackTrace();
         } catch (IOException e) {
+            showToast(getString(R.string.call_ended));
             Logger.e(LOG_TAG, "udpFrameListener", "IOException");
             LISTEN = false;
             e.printStackTrace();
@@ -564,6 +579,15 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                 }
             }
         }).start();
+    }
+
+    private void showToast(final String message) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     Camera.PreviewCallback previewCb = new Camera.PreviewCallback() {

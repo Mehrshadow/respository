@@ -13,6 +13,7 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import java.io.IOException;
@@ -130,7 +131,6 @@ public class ReceiveCallActivity extends Activity implements OnClickListener /*,
 
                     while (LISTEN) {
                         try {
-
                             Logger.e(LOG_TAG, "startListener", "Listening for packets");
 
                             socket.receive(packet);
@@ -139,6 +139,7 @@ public class ReceiveCallActivity extends Activity implements OnClickListener /*,
 
                             String action = data.substring(0, 4);
                             if (action.equals("END:")) {
+                                showToast(getString(R.string.call_ended));
                                 // End call notification received. End call
                                 endCall();
                             } else {
@@ -251,6 +252,15 @@ public class ReceiveCallActivity extends Activity implements OnClickListener /*,
 
         }
 
+    }
+
+    private void showToast(final String message){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(getApplicationContext(),message,Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
   /*  @Override

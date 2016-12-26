@@ -14,6 +14,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import java.io.IOException;
@@ -104,15 +105,19 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                             Log.i(LOG_TAG, "Packet received from " + packet.getAddress() + " with contents: " + data);
                             String action = data.substring(0, 4);
                             if (action.equals("ACC:")) {
+                                showToast(getString(R.string.call_accepted));
                                 // Accept notification received. Start call
                                 call = new AudioCall(packet.getAddress());
                                 call.startCall();
                               //  call.setEndCallListener(MakeCallActivity.this);
                                 G.IN_CALL = true;
                             } else if (action.equals("REJ:")) {
+                                showToast(getString(R.string.call_rejected));
                                 // Reject notification received. End call
                                 endCall();
                             } else if (action.equals("END:")) {
+
+                                showToast(getString(R.string.call_ended));
                                 // End call notification received. End call
                                 endCall();
                             } else {
@@ -207,6 +212,15 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
     @Override
     public void onClick(View v) {
         endCall();
+    }
+
+    private void showToast(final String message){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(getApplicationContext(),message,Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
    /* @Override
