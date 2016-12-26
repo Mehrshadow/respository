@@ -23,7 +23,6 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -59,6 +58,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private boolean LISTEN = false;
     private boolean receiving = false;
     private ImageView img;
+    private AudioCall audioCall;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,7 +127,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
 //        Logger.d(LOG_TAG, "compressCameraData", "actual camera size: " + data.length);
 
-        YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mFrameWidth , mFrameHeight, null);
+        YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mFrameWidth, mFrameHeight, null);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         yuv.compressToJpeg(new Rect(0, 0, mFrameWidth, mFrameHeight), 20, out);
@@ -140,7 +140,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     }
 
 //        final Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, mFrameWidth  , mFrameHeight, true);
-
 
     private void showBitmap(final Bitmap bitmap) {
         runOnUiThread(new Runnable() {
@@ -186,7 +185,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         Camera c = null;
 
         try {
-            c = Camera.open(G.REAR_CAMERA);
+            c = Camera.open(G.FRONT_CAMERA);
         } catch (Exception e) {
             Log.e(LOG_TAG, e.toString());
             e.printStackTrace();
@@ -281,11 +280,12 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                         } else if (action.equals("OKK:")) {
                             Logger.d(LOG_TAG, "startListener", "OK received");
 
-                            shouldSendVideo = true;
+//                            shouldSendVideo = true;
 
 //                            udpFrameListener();
 
                         } else if (data.startsWith("{")) {
+
                             introListener(data);
                         } else {
                             Log.w(LOG_TAG, address + " [else] : [FRAME]");
@@ -420,43 +420,43 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         replyThread.start();
     }
 
-    private void sendFrameDataTCP(final byte[] data) {
-
-        //        Logger.d(LOG_TAG, "Frame rate is: ", parameters.getPreviewFrameRate() + "");
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-
-                try {
-                    int byteSent;
-
-                    OutputStream os = socket_sendFrameData.getOutputStream();
-
-                    if (socket_sendFrameData.isConnected()) {
-
-                        Logger.d(LOG_TAG, "sendFrameData ", "connected");
-
-                        byte[] d = new byte[data.length + 1];
-                        for (int i = 0; i < data.length; i++) {
-                            d[i] = data[i];
-                        }
-                        d[data.length] = '\n';
-                        os.write(d);
-
-                        byteSent = frameData.length;
-
-//                        Logger.d(LOG_TAG, "frame length sent: ", byteSent + "");
-                    }
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-
-                    closeSendFrameSocket();
-                }
-            }
-        }).start();
-    }
+//    private void sendFrameDataTCP(final byte[] data) {
+//
+//        //        Logger.d(LOG_TAG, "Frame rate is: ", parameters.getPreviewFrameRate() + "");
+//
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//
+//                try {
+//                    int byteSent;
+//
+//                    OutputStream os = socket_sendFrameData.getOutputStream();
+//
+//                    if (socket_sendFrameData.isConnected()) {
+//
+//                        Logger.d(LOG_TAG, "sendFrameData ", "connected");
+//
+//                        byte[] d = new byte[data.length + 1];
+//                        for (int i = 0; i < data.length; i++) {
+//                            d[i] = data[i];
+//                        }
+//                        d[data.length] = '\n';
+//                        os.write(d);
+//
+//                        byteSent = frameData.length;
+//
+////                        Logger.d(LOG_TAG, "frame length sent: ", byteSent + "");
+//                    }
+//
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//
+//                    closeSendFrameSocket();
+//                }
+//            }
+//        }).start();
+//    }
 
     private void makeVideoCall() {
         // Send a request to start a call
@@ -470,6 +470,9 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
         LISTEN = false;
         receiving = false;
+
+        if (audioCall != null)
+            audioCall.endCall();
 
         sendMessage("END:", G.BROADCAST_PORT);
 
@@ -496,7 +499,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
             DatagramPacket packet = new DatagramPacket(buff, mFrameBuffSize);
             while (receiving) {
 
-                mListenerSocket.setSoTimeout(5 * 1000);// 5 seconds to receive next frame, else, it will close
+                mListenerSocket.setSoTimeout(2 * 1000);// 2 seconds to receive next frame, else, it will close
                 mListenerSocket.receive(packet);
 
 //                Logger.d(LOG_TAG, "udpReceived", "buff.size()" + buff.length);
@@ -538,7 +541,12 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                     " height = " + mFrameHeight +
                     " buffSize = " + mFrameBuffSize);
             if (mFrameHeight != 0 && mFrameWidth != 0 && mFrameBuffSize != 0) {
-                sendACC();
+//                sendACC();
+
+                shouldSendVideo = true;
+
+                audioCall = new AudioCall(address);
+                audioCall.startCall();
 
 //                udpFrameListener();
 
@@ -631,7 +639,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
             if (shouldSendVideo) {
 
-//                sendFrameDataTCP(frameData);
+
                 sendFrameDataUDP();
             }
         }

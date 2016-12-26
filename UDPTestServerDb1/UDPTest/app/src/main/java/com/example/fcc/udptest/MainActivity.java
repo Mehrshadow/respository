@@ -276,8 +276,8 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
                                 socket.close();
 
                             } catch (IOException e) {
-                                Logger.e("Main", "Refresh", "exception!!!");
-                                e.printStackTrace();
+//                                Logger.e("Main", "Refresh", "exception!!!");
+//                                e.printStackTrace();
                                 if (G.contactsList.size() != 0)
                                     G.contactsList.remove(i);
 

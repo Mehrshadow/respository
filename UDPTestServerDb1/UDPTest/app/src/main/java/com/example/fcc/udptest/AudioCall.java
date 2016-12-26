@@ -1,5 +1,6 @@
 package com.example.fcc.udptest;
 
+import android.app.Activity;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
@@ -14,7 +15,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 
-public class AudioCall {
+public class AudioCall extends Activity {
 
     private static final String LOG_TAG = "AudioCall";
     private static final int SAMPLE_RATE = 8000; // Hertz
@@ -25,12 +26,21 @@ public class AudioCall {
     private boolean mic = false; // Enable mic?
     private boolean speakers = false; // Enable speakers?
     private AudioTrack track;
+    private IEndCall iEndCall;
 
     public AudioCall(InetAddress address) {
 
         track = new AudioTrack(AudioManager.STREAM_VOICE_CALL, SAMPLE_RATE, AudioFormat.CHANNEL_OUT_MONO,
                 AudioFormat.ENCODING_PCM_16BIT, BUF_SIZE, AudioTrack.MODE_STREAM);
         this.address = address;
+    }
+
+    public interface IEndCall {
+        void endAudioCall();
+    }
+
+    public void setEndCallListener(IEndCall iEndCall) {
+        this.iEndCall = iEndCall;
     }
 
     public void startCall() {
@@ -75,11 +85,13 @@ public class AudioCall {
                     // Create a socket and start recording
                     Log.i(LOG_TAG, "Packet destination: " + address.toString());
                     DatagramSocket senderSocket = new DatagramSocket();
+
                     audioRecorder.startRecording();
                     while (mic) {
                         // Capture audio from the mic and transmit it
                         bytes_read = audioRecorder.read(buf, 0, BUF_SIZE);
                         DatagramPacket packet = new DatagramPacket(buf, bytes_read, address, G.CALL_SENDER_PORT);
+                        senderSocket.setSoTimeout(2 * 1000);
                         senderSocket.send(packet);
                         bytes_sent += bytes_read;
                         Log.i(LOG_TAG, "Total bytes sent: " + bytes_sent);
@@ -133,6 +145,7 @@ public class AudioCall {
                         while (speakers) {
                             // Play back the audio received from packets
                             DatagramPacket packet = new DatagramPacket(buf, BUF_SIZE);
+                            socket.setSoTimeout(2 * 1000);
                             socket.receive(packet);
                             Log.i(LOG_TAG, "Packet received: " + packet.getLength());
                             track.write(packet.getData(), 0, BUF_SIZE);
@@ -150,10 +163,12 @@ public class AudioCall {
 
                         Log.e(LOG_TAG, "SocketException: " + e.toString());
                         speakers = false;
+                        iEndCall.endAudioCall();
                     } catch (IOException e) {
 
                         Log.e(LOG_TAG, "IOException: " + e.toString());
                         speakers = false;
+                        iEndCall.endAudioCall();
                     }
                 }
             });

@@ -23,7 +23,7 @@ import java.net.UnknownHostException;
 
 import classes.Logger;
 
-public class ReceiveCallActivity extends Activity implements OnClickListener {
+public class ReceiveCallActivity extends Activity implements OnClickListener, AudioCall.IEndCall {
 
     private static final String LOG_TAG = "ReceiveCallActivity";
     private static final int BUF_SIZE = 1024;
@@ -39,6 +39,7 @@ public class ReceiveCallActivity extends Activity implements OnClickListener {
     private Button endButton;
     private ToggleButton Tgl_Speaker;
     private TextView txtIncomingCall;
+    private InetAddress address;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,9 +52,17 @@ public class ReceiveCallActivity extends Activity implements OnClickListener {
         contactName = intent.getStringExtra(G.EXTRA_C_Name);
         contactIp = intent.getStringExtra(G.EXTRA_C_Ip);
 
+        try {
+            address = InetAddress.getByName(contactIp);
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+
+        call = new AudioCall(address);
+//        call.setEndCallListener(this);
+
         initView();
         startListener();
-
     }
 
     private void initView() {
@@ -65,12 +74,12 @@ public class ReceiveCallActivity extends Activity implements OnClickListener {
 
                     Logger.d("ReceiveCallActivity", "onCreate", "Toggle isChecked)");
                     audioManager.setMode(AudioManager.MODE_IN_CALL);
-                    audioManager.setSpeakerphoneOn(false);
+                    audioManager.setSpeakerphoneOn(true);
 
                 } else {
                     Logger.d(LOG_TAG, "onCreate", "Toggle is not Checked)");
-                    audioManager.setMode(AudioManager.MODE_NORMAL);
-                    audioManager.setSpeakerphoneOn(true);
+//                    audioManager.setMode(AudioManager.MODE_IN_CALL);
+                    audioManager.setSpeakerphoneOn(false);
 
                 }
             }
@@ -185,13 +194,16 @@ public class ReceiveCallActivity extends Activity implements OnClickListener {
                     socket.close();
                 } catch (UnknownHostException e) {
                     Logger.e(LOG_TAG, "sendMessage", "Failure. UnknownHostException in sendMessage: " + contactIp);
+                    e.printStackTrace();
 
                 } catch (SocketException e) {
                     Logger.e(LOG_TAG, "sendMessage", "Failure. SocketException in sendMessage: " + e);
+                    e.printStackTrace();
 
                 } catch (IOException e) {
 
                     Log.e(LOG_TAG, "Failure. IOException in sendMessage: " + e);
+                    e.printStackTrace();
                 }
             }
         });
@@ -209,13 +221,14 @@ public class ReceiveCallActivity extends Activity implements OnClickListener {
                     mLinearLayout.setVisibility(View.INVISIBLE);
                     // Accepting call. Send a notification and start the call
                     sendMessage("ACC:");
-                    InetAddress address = InetAddress.getByName(contactIp);
                     Logger.d(LOG_TAG, "onCreate", "Calling " + address.toString());
 
                     G.IN_CALL = true;
 
-                    call = new AudioCall(address);
+//                    call = new AudioCall(address);
+
                     call.startCall();
+
                     // Hide the buttons as they're not longer required
                     Button accept = (Button) findViewById(R.id.buttonAccept);
                     accept.setEnabled(false);
@@ -224,10 +237,6 @@ public class ReceiveCallActivity extends Activity implements OnClickListener {
                     reject.setEnabled(false);
 
                     endButton.setVisibility(View.VISIBLE);
-                } catch (UnknownHostException e) {
-
-                    Logger.e(LOG_TAG, "onCreate", "UnknownHostException in acceptButton: " + e);
-
                 } catch (Exception e) {
                     Logger.e(LOG_TAG, "onCreate", "Exception in acceptButton: " + e);
                 }
@@ -243,5 +252,10 @@ public class ReceiveCallActivity extends Activity implements OnClickListener {
                 break;
 
         }
+    }
+
+    @Override
+    public void endAudioCall() {
+        endCall();
     }
 }
