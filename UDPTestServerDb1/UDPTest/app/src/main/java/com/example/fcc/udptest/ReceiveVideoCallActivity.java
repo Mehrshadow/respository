@@ -121,7 +121,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         Camera c = null;
 
         try {
-            c = Camera.open(G.REAR_CAMERA);
+            c = Camera.open(G.FRONT_CAMERA);
         } catch (Exception e) {
             Log.e(LOG_TAG, e.toString());
             e.printStackTrace();
@@ -204,14 +204,17 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
                         } else if (action.equals("OKK:")) {
                             Logger.d(LOG_TAG, "startListener", "OK received");
+
+                        } else {
+//                            Logger.d("ReceiveVideoCallActivity", "startListener", packet.getAddress() + " sent invalid message: " + data);
+
                             shouldSendVideo = true;
 
                             audioCall = new AudioCall(address);
                             audioCall.startCall();
 
-                        } else {
-//                            Logger.d("ReceiveVideoCallActivity", "startListener", packet.getAddress() + " sent invalid message: " + data);
                             udpFrameListener();
+
                         }
 
                     } catch (IOException e) {
@@ -298,24 +301,9 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
             case R.id.buttonAccept:
                 sendMessage("ACC:", G.VIDEOCALL_SENDER_PORT);
 
-//                InetAddress address = null;
-
-//                    address = InetAddress.getByName(contactIp);
-
                 parsePacket();
 
-                sendFrameIntroduceData(address);
-
-               /* introReceveid = true;
-
-                while (introReceveid) {
-
-                    Logger.d("ReceiveVideoCallActivity", "onClick", "mFrameBuffSize >> " + mFrameBuffSize);
-                }
-                receiveVideo();*/
-
-
-//                    address = InetAddress.getByName(contactIp);
+//                sendFrameIntroduceData(address);
 
                 Logger.d("ReceiveVideoCallActivity", "onClick", "Calling " + address.toString());
                 IN_VIDEO_CALL = true;
@@ -354,9 +342,11 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                     " height = " + mReceiveFrameHeight +
                     " buffSize = " + mFrameBuffSize);
             if (mReceiveFrameWidth != 0 && mReceiveFrameHeight != 0 && mFrameBuffSize != 0) {
-                sendACC();
+//                sendACC();
 
-                udpFrameListener();
+                sendFrameIntroduceData(address);
+
+//                udpFrameListener();
 
                 Logger.d("ReceiveVideoCallActivity", "introListener", "mIsFrameReceived is true Sent ACC");
             } else {
@@ -420,7 +410,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 //                    datagramSocket.setSoTimeout(10000);
             DatagramPacket packet = new DatagramPacket(buff, mFrameBuffSize);
 
-            mReceiveSocket.setSoTimeout(5 * 1000);// 5 seconds to receive next frame, else, it will close
+            mReceiveSocket.setSoTimeout(2 * 1000);// 2 seconds to receive next frame, else, it will close
 
             while (receiving) {
 
