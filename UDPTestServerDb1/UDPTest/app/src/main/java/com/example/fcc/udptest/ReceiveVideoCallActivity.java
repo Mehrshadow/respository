@@ -45,11 +45,11 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     private Button accept, reject, endCall;
     private ImageView mImgReceive;
     private int BUF_SIZE = 1024;
-    private int mFrameBuffSize;
     private DatagramSocket mReceiveSocket;
     private DatagramSocket mSendSocket;
     private byte[] buffer;
-    private int mSendFrameWidth, mSendFrameHeight, mReceiveFrameWidth, mReceiveFrameHeight;
+    private int mSendFrameWidth, mSendFrameHeight, mSendFrameBuffSize;
+    private int mReceiveFrameWidth, mReceiveFrameHeight, mReceiveFrameBuffSize;
     private boolean receiving = false;
     private FrameLayout cameraView;
     private Camera camera = null;
@@ -164,14 +164,24 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         }
     }
 
-    private static Camera getCameraInstance() {
+    private Camera getCameraInstance() {
         Camera c = null;
 
         try {
             c = Camera.open(G.FRONT_CAMERA);
-        } catch (Exception e) {
-            Log.e(LOG_TAG, e.toString());
-            e.printStackTrace();
+        } catch (RuntimeException e) {
+
+            try {
+                c = Camera.open(G.REAR_CAMERA);
+
+                if (c == null) {
+                    Toast.makeText(ReceiveVideoCallActivity.this, R.string.cameraOpenFailure, Toast.LENGTH_LONG).show();
+                    endCall();
+                }
+            } catch (RuntimeException e2) {
+                Log.e(LOG_TAG, e2.toString());
+                e.printStackTrace();
+            }
         }
 
         return c;
@@ -391,14 +401,14 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
             JSONObject jsonObject = new JSONObject(data);
             mReceiveFrameWidth = jsonObject.getInt("Width");
             mReceiveFrameHeight = jsonObject.getInt("Height");
-            mFrameBuffSize = jsonObject.getInt("Size");
-            Logger.d("ReceiveVideoCallActivity", "introListener", "mFrameBuffSize >> " + mFrameBuffSize);
+            mReceiveFrameBuffSize = jsonObject.getInt("Size");
+            Logger.d("ReceiveVideoCallActivity", "introListener", "mFrameBuffSize >> " + mReceiveFrameBuffSize);
 
             Logger.d("ReceiveVideoCallActivity", "introListener", "Received Data " +
                     ">> width =" + mReceiveFrameWidth +
                     " height = " + mReceiveFrameHeight +
-                    " buffSize = " + mFrameBuffSize);
-            if (mReceiveFrameWidth != 0 && mReceiveFrameHeight != 0 && mFrameBuffSize != 0) {
+                    " buffSize = " + mReceiveFrameBuffSize);
+            if (mReceiveFrameWidth != 0 && mReceiveFrameHeight != 0 && mReceiveFrameBuffSize != 0) {
 //                sendACC();
 
                 sendFrameIntroduceData(address);
@@ -443,10 +453,10 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         receiving = true;
         Logger.d("ReceiveVideoCallActivity", "udpReceived", " Thread Start");
         try {
-            final byte[] buff = new byte[mFrameBuffSize * 10];
+            final byte[] buff = new byte[mReceiveFrameBuffSize * 10];
 //            Logger.d("ReceiveVideoCallActivity", "udpReceived", "mFrameBuffSize >> " + mFrameBuffSize);
 //                    datagramSocket.setSoTimeout(10000);
-            DatagramPacket packet = new DatagramPacket(buff, mFrameBuffSize);
+            DatagramPacket packet = new DatagramPacket(buff, mReceiveFrameBuffSize);
 
             mReceiveSocket.setSoTimeout(1000);// 1 seconds to receive next frame, else, it will close
 
@@ -489,7 +499,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         yuv.compressToJpeg(new Rect(0, 0, mSendFrameWidth, mSendFrameHeight), 60, out);
 
-        mFrameBuffSize = out.toByteArray().length;
+        mSendFrameBuffSize = out.toByteArray().length;
 
         return out.toByteArray();
     }
@@ -545,7 +555,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         try {
             jsonObject.put("Width", mSendFrameWidth);
             jsonObject.put("Height", mSendFrameHeight);
-            jsonObject.put("Size", mFrameBuffSize);
+            jsonObject.put("Size", mSendFrameBuffSize);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -585,6 +595,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                 parameters = camera.getParameters();
                 mSendFrameHeight = parameters.getPreviewSize().height;
                 mSendFrameWidth = parameters.getPreviewSize().width;
+
                 frameData = compressCameraData(data);
             }
 
