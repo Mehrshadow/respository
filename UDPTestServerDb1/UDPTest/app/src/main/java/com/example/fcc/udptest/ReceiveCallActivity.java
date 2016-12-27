@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -41,6 +42,7 @@ public class ReceiveCallActivity extends Activity implements OnClickListener/* ,
     private ToggleButton Tgl_Speaker;
     private TextView txtIncomingCall;
     private AudioManager m_amAudioManager;
+    private Vibrator vibrator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +58,8 @@ public class ReceiveCallActivity extends Activity implements OnClickListener/* ,
         m_amAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
         m_amAudioManager.setSpeakerphoneOn(false);
+
+        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
         initView();
         startListener();
@@ -100,6 +104,8 @@ public class ReceiveCallActivity extends Activity implements OnClickListener/* ,
 
         // END BUTTON
         endButton.setOnClickListener(this);
+
+        vibrate();
     }
 
     private void endCall() {
@@ -111,6 +117,9 @@ public class ReceiveCallActivity extends Activity implements OnClickListener/* ,
             G.IN_CALL = false;
         }
         sendMessage("END:");
+
+        cancelVibrate();
+
         finish();
     }
 
@@ -215,6 +224,24 @@ public class ReceiveCallActivity extends Activity implements OnClickListener/* ,
                 Toast.makeText(ReceiveCallActivity.this, message, Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void vibrate() {
+        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+
+        // Start without a delay
+        // Vibrate for 100 milliseconds
+        // Sleep for 1000 milliseconds
+        long[] pattern = {0, 500, 1000};
+
+        // The '0' here means to repeat indefinitely
+        // '0' is actually the index at which the pattern keeps repeating from (the start)
+        // To repeat the pattern from any other point, you could increase the index, e.g. '1'
+        vibrator.vibrate(pattern, 0);
+    }
+
+    private void cancelVibrate() {
+        vibrator.cancel();
     }
 
     @Override

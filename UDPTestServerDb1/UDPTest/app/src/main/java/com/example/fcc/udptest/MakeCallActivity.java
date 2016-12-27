@@ -5,7 +5,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -33,7 +35,8 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
     private boolean LISTEN = true;
     private AudioCall call;
     private Button endButton;
-    AudioManager m_amAudioManager;
+    private AudioManager m_amAudioManager;
+    private MediaPlayer mediaPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +63,13 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
         m_amAudioManager.setSpeakerphoneOn(false);
 
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
         startListener();
         makeCall();
     }
@@ -78,6 +88,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
             G.IN_CALL = false;
         }
         sendMessage("END:", G.BROADCAST_PORT);
+
         finish();
     }
 
@@ -97,6 +108,9 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                     listenerSocket.setSoTimeout(15000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
+
+                    startPlayingWaitingTone();
+
                     while (LISTEN) {
 
                         try {
@@ -108,6 +122,8 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                             String action = data.substring(0, 4);
                             if (action.equals("ACC:")) {
 
+                                stopPlayingTone();
+
                                 showToast(getString(R.string.call_accpeted));
 
                                 // Accept notification received. Start call
@@ -116,10 +132,18 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
 //                                call.setEndCallListener(MakeCallActivity.this);
                                 G.IN_CALL = true;
                             } else if (action.equals("REJ:")) {
+
+                                stopPlayingTone();
+                                startPlayingBusyTone();
+
                                 showToast(getString(R.string.call_rejected));
                                 // Reject notification received. End call
                                 endCall();
                             } else if (action.equals("END:")) {
+
+                                stopPlayingTone();
+                                startPlayingBusyTone();
+
                                 showToast(getString(R.string.call_ended));
                                 // End call notification received. End call
                                 endCall();
@@ -132,6 +156,9 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
 
                                 Log.i(LOG_TAG, "No reply from contact. Ending call");
                                 endCall();
+
+                                stopPlayingTone();
+                                startPlayingBusyTone();
                             }
                         } catch (IOException e) {
 
@@ -150,6 +177,56 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         });
         listenThread.start();
     }
+
+    private void startPlayingWaitingTone() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mediaPlayer = MediaPlayer.create(MakeCallActivity.this, R.raw.waiting);
+                mediaPlayer.setLooping(true);
+                mediaPlayer.start();
+            }
+        });
+    }
+
+    private void startPlayingBusyTone() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                mediaPlayer = MediaPlayer.create(MakeCallActivity.this, R.raw.busy);
+                mediaPlayer.start();
+
+                CountDownTimer timer = new CountDownTimer(3000, 1000) {
+                    //
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+                    }
+
+                    @Override
+                    public void onFinish() {
+                        stopPlayingTone();
+                    }
+                };
+                timer.start();
+
+            }
+        });
+    }
+
+    private void stopPlayingTone() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                if (mediaPlayer.isPlaying()) {
+                    mediaPlayer.stop();
+//                    mediaPlayer.release();
+                }
+            }
+        });
+    }
+
 
     private void stopListener() {
         // Ends the listener thread
@@ -189,25 +266,34 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
     }
 
     @Override
-    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        Log.d(LOG_TAG, "IN CALL: " + G.IN_CALL);
-        if (G.IN_CALL) {
+    public void onCheckedChanged(CompoundButton buttonView, final boolean isChecked) {
 
-            if (isChecked) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(LOG_TAG, "IN CALL: " + G.IN_CALL);
+//                if (G.IN_CALL) {
 
-                m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
-                m_amAudioManager.setSpeakerphoneOn(true);
+                    if (isChecked) {
 
-                Log.d(LOG_TAG, "speaker off");
+                        m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
+                        m_amAudioManager.setSpeakerphoneOn(true);
+                        mediaPlayer.setAudioStreamType(AudioManager.STREAM_VOICE_CALL);
 
-            } else {
-                m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
-                m_amAudioManager.setSpeakerphoneOn(false);
+                        Log.d(LOG_TAG, "speaker off");
 
-                Log.d(LOG_TAG, "speaker on");
+                    } else {
+                        m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
+                        m_amAudioManager.setSpeakerphoneOn(false);
 
-            }
-        }
+
+                        Log.d(LOG_TAG, "speaker on");
+
+                    }
+                }
+//            }
+        }).start();
+
     }
 
     public void showToast(final String message) {
