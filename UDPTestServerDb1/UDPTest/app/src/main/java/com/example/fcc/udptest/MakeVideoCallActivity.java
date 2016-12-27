@@ -9,7 +9,9 @@ import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
+import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -59,6 +61,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private boolean receiving = false;
     private ImageView img;
     private AudioCall audioCall;
+    private MediaPlayer mediaPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -136,6 +139,55 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
     }
 
+    private void startPlayingWaitingTone() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mediaPlayer = MediaPlayer.create(MakeVideoCallActivity.this, R.raw.waiting);
+                mediaPlayer.setLooping(true);
+                mediaPlayer.start();
+            }
+        });
+    }
+
+    private void startPlayingBusyTone() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                mediaPlayer = MediaPlayer.create(MakeVideoCallActivity.this, R.raw.busy);
+                mediaPlayer.start();
+
+                CountDownTimer timer = new CountDownTimer(3000, 1000) {
+                    //
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+                    }
+
+                    @Override
+                    public void onFinish() {
+                        stopPlayingTone();
+                    }
+                };
+                timer.start();
+
+            }
+        });
+    }
+
+    private void stopPlayingTone() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                if (mediaPlayer.isPlaying()) {
+                    mediaPlayer.stop();
+//                    mediaPlayer.release();
+                }
+            }
+        });
+    }
+
     @Override
     public void onBackPressed() {
         super.onBackPressed();
@@ -168,7 +220,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         Camera c = null;
 
         try {
-            c = Camera.open(G.FRONT_CAMERA);
+            c = Camera.open(G.REAR_CAMERA);
         } catch (Exception e) {
             Log.e(LOG_TAG, e.toString());
             e.printStackTrace();
@@ -222,6 +274,9 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private void startListener() {
         // Create listener thread
         LISTEN = true;
+
+        startPlayingWaitingTone();
+
         Thread listenThread = new Thread(new Runnable() {
 
             @Override
@@ -247,6 +302,8 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                         String action = data.substring(0, 4);
                         if (action.equals("ACC:")) {
 
+                            stopPlayingTone();
+
                             showToast(getString(R.string.call_accpeted));
 
                             Log.d(LOG_TAG, "video call accepted");
@@ -256,21 +313,20 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 //                            startFrameIntroduceAcceptedListener();
 
                         } else if (action.equals("REJ:")) {
+
+                            stopPlayingTone();
+
                             showToast(getString(R.string.call_rejected));
                             // Reject notification received. End call
                             Log.d(LOG_TAG, "Ending call...");
                             endCall();
                         } else if (action.equals("END:")) {
+
+                            stopPlayingTone();
+
                             showToast(getString(R.string.call_ended));
                             Log.d(LOG_TAG, "Ending call...");
                             endCall();
-                        } else if (action.equals("OKK:")) {
-                            Logger.d(LOG_TAG, "startListener", "OK received");
-
-//                            shouldSendVideo = true;
-
-//                            udpFrameListener();
-
                         } else if (data.startsWith("{")) {
 
                             introListener(data);
@@ -281,11 +337,17 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                     } catch (SocketTimeoutException e) {
 
                         Log.i(LOG_TAG, "No reply from contact. Ending call");
+
+                        stopPlayingTone();
+
                         endCall();
 
                     } catch (IOException e) {
                         Log.e(LOG_TAG, e.toString());
                         e.printStackTrace();
+
+                        stopPlayingTone();
+
                         endCall();
                     }
                 }
@@ -455,13 +517,16 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         // Ends the chat sessions
         Log.d(LOG_TAG, "end call");
 
+        stopPlayingTone();
+        startPlayingBusyTone();
+
         LISTEN = false;
         receiving = false;
 
         if (audioCall != null)
             audioCall.endCall();
 
-        sendMessage("END:", G.BROADCAST_PORT);
+        sendMessage("END:", G.VIDEOCALL_SENDER_PORT);
 
         closeSockets();
 
@@ -471,7 +536,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                 releaseCamera();
             }
         });
-
 
         finish();
     }

@@ -1,10 +1,12 @@
 package com.example.fcc.udptest;
 
 import android.app.Activity;
+import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.os.Vibrator;
 import android.util.Log;
 import android.view.View;
@@ -61,6 +63,8 @@ public class ReceiveCallActivity extends Activity implements OnClickListener/* ,
 
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
+        initWakeup();
+
         initView();
         startListener();
 
@@ -106,6 +110,16 @@ public class ReceiveCallActivity extends Activity implements OnClickListener/* ,
         endButton.setOnClickListener(this);
 
         vibrate();
+    }
+
+    private void initWakeup() {
+        PowerManager pm = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
+        PowerManager.WakeLock wakeLock = pm.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP), "TAG");
+        wakeLock.acquire();
+
+        KeyguardManager keyguardManager = (KeyguardManager) getApplicationContext().getSystemService(Context.KEYGUARD_SERVICE);
+        KeyguardManager.KeyguardLock keyguardLock = keyguardManager.newKeyguardLock("TAG");
+        keyguardLock.disableKeyguard();
     }
 
     private void endCall() {
@@ -252,6 +266,8 @@ public class ReceiveCallActivity extends Activity implements OnClickListener/* ,
 
             case R.id.buttonAccept:
                 try {
+
+                    cancelVibrate();
 
                     showToast(getString(R.string.call_accpeted));
 
