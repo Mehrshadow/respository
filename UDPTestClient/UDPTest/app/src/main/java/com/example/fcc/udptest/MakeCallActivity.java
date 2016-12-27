@@ -25,6 +25,8 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
+import classes.Logger;
+
 public class MakeCallActivity extends Activity implements CompoundButton.OnCheckedChangeListener, OnClickListener/*,AudioCall.IEndCall*/ {
 
     private static final String LOG_TAG = "MakeCall";
@@ -36,11 +38,17 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
     private AudioCall call;
     private Button endButton;
 
+    AudioManager m_amAudioManager;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_make_call);
+        m_amAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
+        m_amAudioManager.setSpeakerphoneOn(false);
 
         Log.i(LOG_TAG, "MakeCallActivity started!");
 
@@ -191,17 +199,17 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         Log.d(LOG_TAG, "IN CALL: " + G.IN_CALL);
         if (G.IN_CALL) {
 
-            AudioManager m_amAudioManager;
-            m_amAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+
 
             if (isChecked) {
-
+                Logger.d("MakeCallActivity","onCheckedChanged","setSpeakerphoneOn(false)");
                 m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
-                m_amAudioManager.setSpeakerphoneOn(false);
+                m_amAudioManager.setSpeakerphoneOn(true);
 
             } else {
-                m_amAudioManager.setMode(AudioManager.MODE_NORMAL);
-                m_amAudioManager.setSpeakerphoneOn(true);
+                Logger.d("MakeCallActivity","onCheckedChanged","setSpeakerphoneOn(true)");
+                m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
+                m_amAudioManager.setSpeakerphoneOn(false);
 
             }
 

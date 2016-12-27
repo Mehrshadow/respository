@@ -49,6 +49,8 @@ public class ReceiveCallActivity extends Activity implements OnClickListener /*,
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_receive_call);
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        audioManager.setMode(AudioManager.MODE_IN_CALL);
+        audioManager.setSpeakerphoneOn(false);
 
         Intent intent = getIntent();
         contactName = intent.getStringExtra(G.EXTRA_C_Name);
@@ -70,12 +72,12 @@ public class ReceiveCallActivity extends Activity implements OnClickListener /*,
 
                     Logger.d("ReceiveCallActivity", "onCreate", "Toggle isChecked)");
                     audioManager.setMode(AudioManager.MODE_IN_CALL);
-                    audioManager.setSpeakerphoneOn(false);
+                    audioManager.setSpeakerphoneOn(true);
 
                 } else {
                     Logger.d(LOG_TAG, "onCreate", "Toggle is not Checked)");
-                    audioManager.setMode(AudioManager.MODE_NORMAL);
-                    audioManager.setSpeakerphoneOn(true);
+                    audioManager.setMode(AudioManager.MODE_IN_CALL);
+                    audioManager.setSpeakerphoneOn(false);
 
                 }
             }
