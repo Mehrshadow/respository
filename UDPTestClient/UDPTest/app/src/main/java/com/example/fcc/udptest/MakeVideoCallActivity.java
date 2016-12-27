@@ -109,7 +109,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mSendFrameWidth, mSendFrameHeight, null);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        yuv.compressToJpeg(new Rect(0, 0, mSendFrameWidth, mSendFrameHeight), 20, out);
+        yuv.compressToJpeg(new Rect(0, 0, mSendFrameWidth, mSendFrameHeight), 60, out);
 
 //        Logger.d(LOG_TAG, "compressCameraData", "compressed size: " + out.toByteArray().length);
 

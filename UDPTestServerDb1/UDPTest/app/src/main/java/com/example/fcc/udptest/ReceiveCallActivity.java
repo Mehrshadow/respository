@@ -274,6 +274,9 @@ public class ReceiveCallActivity extends Activity implements OnClickListener/* ,
                     mLinearLayout.setVisibility(View.INVISIBLE);
                     // Accepting call. Send a notification and start the call
                     sendMessage("ACC:");
+
+                    cancelVibrate();
+
                     InetAddress address = InetAddress.getByName(contactIp);
                     Logger.d(LOG_TAG, "onCreate", "Calling " + address.toString());
 

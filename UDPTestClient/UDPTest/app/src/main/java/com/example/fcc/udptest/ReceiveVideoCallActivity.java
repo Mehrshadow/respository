@@ -419,23 +419,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         }
     }
 
-    private void sendACC() {
-        Logger.d(LOG_TAG, "sendACC", "Start");
-
-        try {
-            String message = "OKK:";
-            byte[] data = message.getBytes();
-            DatagramPacket packet = new DatagramPacket(data, data.length, address, G.SENDVIDEO_PORT);
-            mSendSocket.send(packet);
-
-
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     private byte[] compressCameraData(byte[] data) {
 
         Logger.d(LOG_TAG, "compressCameraData", "actual camera size: " + data.length);
@@ -443,7 +426,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mFrameWidth, mFrameHeight, null);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        yuv.compressToJpeg(new Rect(0, 0, mFrameWidth, mFrameHeight), 20, out);
+        yuv.compressToJpeg(new Rect(0, 0, mFrameWidth, mFrameHeight), 60, out);
 
         Logger.d(LOG_TAG, "compressCameraData", "compressed size: " + out.toByteArray().length);
 
@@ -508,36 +491,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
             e.printStackTrace();
             endCall();
         }
-    }
-
-    private Bitmap getBitmap(byte[] data) {
-        YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mFrameWidth, mFrameHeight, null);
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        yuv.compressToJpeg(new Rect(0, 0, mFrameWidth, mFrameHeight), 20, out);
-
-        byte[] bytes = out.toByteArray();
-        final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-
-        final Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, mFrameWidth / 2, mFrameHeight / 2, true);
-
-        frameData = bytes;
-        mFrameBuffSize = frameData.length;
-//        Logger.d(LOG_TAG, "getBitmap", "mFrameLength: " + mFrameLength);
-
-        return resizedBitmap;
-    }
-
-    private void showBitmap(final Bitmap bitmap) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                ImageView img = (ImageView) findViewById(R.id.img);
-                img.setRotation(-90);
-                img.setImageBitmap(bitmap);
-            }
-        });
-
     }
 
     private void releaseCamera() {

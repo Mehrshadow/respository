@@ -114,12 +114,18 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
     private byte[] compressCameraData(byte[] data) {
 
-//        Logger.d(LOG_TAG, "compressCameraData", "actual camera size: " + data.length);
+        Logger.d(LOG_TAG, "compressCameraData", "actual camera size: " + data.length);
+
+        parameters = camera.getParameters();
+        mFrameHeight = parameters.getPreviewSize().height;
+        mFrameWidth = parameters.getPreviewSize().width;
 
         YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mFrameWidth, mFrameHeight, null);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        yuv.compressToJpeg(new Rect(0, 0, mFrameWidth, mFrameHeight), 20, out);
+        yuv.compressToJpeg(new Rect(0, 0, mFrameWidth, mFrameHeight), 100, out);
+
+        Logger.d(LOG_TAG, "compressCameraData", "compressed size: " + out.toByteArray().length);
 
 //        Logger.d(LOG_TAG, "compressCameraData", "compressed size: " + out.toByteArray().length);
 
@@ -694,10 +700,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
             if (data != null && data.length != 0) {
 
-                parameters = camera.getParameters();
-                mFrameHeight = parameters.getPreviewSize().height;
-                mFrameWidth = parameters.getPreviewSize().width;
-//                showBitmap(getBitmap(frameData));
                 frameData = compressCameraData(data);
             }
 
