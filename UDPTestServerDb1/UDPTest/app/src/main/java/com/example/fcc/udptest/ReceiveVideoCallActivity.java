@@ -1,5 +1,6 @@
 package com.example.fcc.udptest;
 
+import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -9,6 +10,8 @@ import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -57,6 +60,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     private InetAddress address;
     private DatagramPacket mVideoPacket;
     private AudioCall audioCall;
+    private Vibrator vibrator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +70,24 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
         Log.d(LOG_TAG, "Receive video call created");
 
+        initViews();
+
+        initWakeup();
+
+        openCamera();
+        startCameraPreview();
+
+        vibrate();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        parsePacket();
+    }
+
+    private void initViews() {
         accept = (Button) findViewById(R.id.buttonAccept);
         reject = (Button) findViewById(R.id.buttonReject);
         endCall = (Button) findViewById(R.id.buttonEndCall);
@@ -81,20 +103,43 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         TextView textView = (TextView) findViewById(R.id.textViewIncomingCall);
         textView.setText("Incoming call: " + displayName);
 
-
-
         cameraView = (FrameLayout) findViewById(R.id.cameraView);
+
+        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
         try {
             address = InetAddress.getByName(contactIp);
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
+    }
 
-        openCamera();
+    private void vibrate() {
+        vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
-        startCameraPreview();
+        // Start without a delay
+        // Vibrate for 100 milliseconds
+        // Sleep for 1000 milliseconds
+        long[] pattern = {0, 500, 1000};
 
+        // The '0' here means to repeat indefinitely
+        // '0' is actually the index at which the pattern keeps repeating from (the start)
+        // To repeat the pattern from any other point, you could increase the index, e.g. '1'
+        vibrator.vibrate(pattern, 0);
+    }
+
+    private void cancelVibrate() {
+        vibrator.cancel();
+    }
+
+    private void initWakeup() {
+        PowerManager pm = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
+        PowerManager.WakeLock wakeLock = pm.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP), "TAG");
+        wakeLock.acquire();
+
+        KeyguardManager keyguardManager = (KeyguardManager) getApplicationContext().getSystemService(Context.KEYGUARD_SERVICE);
+        KeyguardManager.KeyguardLock keyguardLock = keyguardManager.newKeyguardLock("TAG");
+        keyguardLock.disableKeyguard();
     }
 
     private void openCamera() {
@@ -205,12 +250,10 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                         } else if (data.startsWith("{")) {
                             introListener(data);
 
-                        } else if (action.equals("OKK:")) {
-                            Logger.d(LOG_TAG, "startListener", "OK received");
-
                         } else {
 //                            Logger.d("ReceiveVideoCallActivity", "startListener", packet.getAddress() + " sent invalid message: " + data);
 
+                            //frame received
                             shouldSendVideo = true;
 
                             audioCall = new AudioCall(address);
@@ -221,8 +264,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                         }
 
                     } catch (IOException e) {
-                        receiving = false;
-                        LISTEN = false;
                         endCall();
                         Logger.e("ReceiveVideoCallActivity", "IOException", "IOException");
                         e.printStackTrace();
@@ -249,7 +290,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                 Log.d(LOG_TAG, "sending message " + message);
                 try {
 
-//                    InetAddress address = InetAddress.getByName(contactIp);
                     byte[] data = message.getBytes();
 
                     DatagramPacket packet = new DatagramPacket(data, data.length, address, port);
@@ -278,33 +318,47 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     }
 
     private void endCall() {
-        mReceiveSocket.disconnect();
-        mReceiveSocket.close();
+
+        cancelVibrate();
 
         Log.d(LOG_TAG, "end call");
         // Ends the chat sessions
         stopListener();
 
-        if (IN_VIDEO_CALL) {
-            receiving = false;
+//        if (IN_VIDEO_CALL) {
+        receiving = false;
+        LISTEN = false;
 
-            if (audioCall != null)
-                audioCall.endCall();
+        if (audioCall != null)
+            audioCall.endCall();
 
-            stopCameraPreview();
-        }
+        stopCameraPreview();
+
         sendMessage("END:", G.VIDEOCALL_SENDER_PORT);
 
+        stopSockets();
+
         finish();
+    }
+
+    private void stopSockets() {
+        mSendSocket.disconnect();
+        mSendSocket.close();
+
+        mReceiveSocket.disconnect();
+        mReceiveSocket.close();
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.buttonAccept:
+
+                cancelVibrate();
+
                 sendMessage("ACC:", G.VIDEOCALL_SENDER_PORT);
 
-                parsePacket();
+//                parsePacket();
 
 //                sendFrameIntroduceData(address);
 
@@ -358,25 +412,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                 Logger.d("ReceiveVideoCallActivity", "introListener", "finish Activity");
             }
         } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void sendACC() {
-        Logger.d("ReceiveVideoCallActivity", "sendACC", "Start");
-        InetAddress address;
-        try {
-            String message = "OKK:";
-            address = InetAddress.getByName(contactIp);
-            byte[] data = message.getBytes();
-            DatagramPacket packet = new DatagramPacket(data, data.length, address, G.VIDEOCALL_SENDER_PORT);
-            mSendSocket.send(packet);
-            Logger.d("ReceiveVideoCallActivity", "sendACC", "OK Sent");
-            //  udpReceived();
-
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -452,7 +487,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mSendFrameWidth, mSendFrameHeight, null);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        yuv.compressToJpeg(new Rect(0, 0, mSendFrameWidth, mSendFrameHeight), 20, out);
+        yuv.compressToJpeg(new Rect(0, 0, mSendFrameWidth, mSendFrameHeight), 60, out);
 
         mFrameBuffSize = out.toByteArray().length;
 

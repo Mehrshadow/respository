@@ -41,7 +41,6 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
     public static boolean Online = false;
     private boolean LISTEN = false;
-    private boolean LISTEN_Video = true;
     private String contact;
     private InetAddress ip;
 
@@ -53,7 +52,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
     private boolean shouldCheckServer = true;
     private boolean isServerReachable = false;
-    private boolean hasroadcasted = false;
+    private boolean hasBroadcasted = false;
     private ProgressDialog progressDialog;
 
     TextView Txt_Username, Txt_Server_ip;
@@ -401,7 +400,8 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
         Log.i(LOG_TAG, "App restarted!");
         G.IN_CALL = false;
         if (G.isIPChanged) {
-            Btn_Connect.setEnabled(true);
+//            Btn_Connect.setEnabled(true);
+            Btn_Connect.setVisibility(View.VISIBLE);
             callButton.setVisibility(View.INVISIBLE);
             videoCallButton.setVisibility(View.INVISIBLE);
             G.isIPChanged = false;
@@ -413,7 +413,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
         CheckOnline();
         startCallListener();
         Logger.e("MainActivity", "Lifecycle", "onResume");
-        if (hasroadcasted) {
+        if (hasBroadcasted) {
             InetAddress ServerIp = null;
             try {
                 ServerIp = InetAddress.getByName(SERVER_IP);
@@ -577,21 +577,21 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
             public void run() {
 
                 try {
-                ServerSocket serverSocket = new ServerSocket(G.CHECK_ONLINE_MOBILES_PORT);
-                Socket socket =null;
-                Logger.d("MainActivity", "CheckOnline", "Start");
+                    ServerSocket serverSocket = new ServerSocket(G.CHECK_ONLINE_MOBILES_PORT);
+                    Socket socket = null;
+                    Logger.d("MainActivity", "CheckOnline", "Start");
 
-                Online = true;
+                    Online = true;
 
-                while (Online) {
-                    Logger.d("MainActivity", "CheckOnline", "Listening  . .");
-                    socket = serverSocket.accept();
+                    while (Online) {
+                        Logger.d("MainActivity", "CheckOnline", "Listening  . .");
+                        socket = serverSocket.accept();
                         Logger.d("MainActivity", "CheckOnline", "Socket Accepted . . .");
 //                        socket.close();
                     }
                     socket.close();
                     serverSocket.close();
-                }catch (IOException e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                     Logger.e("MainActivity", "CheckOnline", "Socket Exception");
 
@@ -642,7 +642,9 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
 
         if (isServerReachable) {
             Logger.d("MainActivity", "CheckRunApp", "ServerReachable");
-            Btn_Connect.setEnabled(false);
+//            Btn_Connect.setEnabled(false);
+            Btn_Connect.setVisibility(View.INVISIBLE);
+
 
             startCallListener();
             //startVideoCallListener();
@@ -654,7 +656,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
                     try {
                         InetAddress ServerIp = InetAddress.getByName(SERVER_IP);
                         broadcastName(Username, ServerIp);
-                        hasroadcasted = true;
+                        hasBroadcasted = true;
                     } catch (UnknownHostException e) {
                         e.printStackTrace();
                     }

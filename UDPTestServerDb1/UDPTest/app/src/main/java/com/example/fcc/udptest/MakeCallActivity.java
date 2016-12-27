@@ -63,15 +63,9 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
         m_amAudioManager.setSpeakerphoneOn(false);
 
-    }
-
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
         startListener();
         makeCall();
+
     }
 
     private void makeCall() {
@@ -227,7 +221,6 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         });
     }
 
-
     private void stopListener() {
         // Ends the listener thread
         LISTEN = false;
@@ -272,26 +265,23 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
             @Override
             public void run() {
                 Log.d(LOG_TAG, "IN CALL: " + G.IN_CALL);
-//                if (G.IN_CALL) {
+                if (isChecked) {
 
-                    if (isChecked) {
+                    m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
+                    m_amAudioManager.setSpeakerphoneOn(true);
+                    mediaPlayer.setAudioStreamType(AudioManager.STREAM_VOICE_CALL);
 
-                        m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
-                        m_amAudioManager.setSpeakerphoneOn(true);
-                        mediaPlayer.setAudioStreamType(AudioManager.STREAM_VOICE_CALL);
+                    Log.d(LOG_TAG, "speaker off");
 
-                        Log.d(LOG_TAG, "speaker off");
-
-                    } else {
-                        m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
-                        m_amAudioManager.setSpeakerphoneOn(false);
+                } else {
+                    m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
+                    m_amAudioManager.setSpeakerphoneOn(false);
 
 
-                        Log.d(LOG_TAG, "speaker on");
+                    Log.d(LOG_TAG, "speaker on");
 
-                    }
                 }
-//            }
+            }
         }).start();
 
     }
