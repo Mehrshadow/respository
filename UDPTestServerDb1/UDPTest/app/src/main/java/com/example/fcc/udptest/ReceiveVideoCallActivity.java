@@ -81,6 +81,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         TextView textView = (TextView) findViewById(R.id.textViewIncomingCall);
         textView.setText("Incoming call: " + displayName);
 
+
+
         cameraView = (FrameLayout) findViewById(R.id.cameraView);
 
         try {
