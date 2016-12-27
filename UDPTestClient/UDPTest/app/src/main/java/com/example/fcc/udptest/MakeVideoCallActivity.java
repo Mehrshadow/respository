@@ -50,7 +50,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private DatagramSocket mSenderSocket;
     private DatagramSocket mListenerSocket;
     private DatagramPacket mVideoPacket;
-    private CameraPreview cameraPreview;
     private int mSendFrameWidth, mSendFrameHeight, mSendFrameBuffSize;
     private int mReceiveFrameWidth, mReceiveFrameHeight, mReceiverameBuffSize;
     private byte[] frameData;
@@ -530,7 +529,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private void startCameraPreview() {
 //        camera = getCameraInstance();
 
-        cameraPreview = new CameraPreview(MakeVideoCallActivity.this, camera, previewCb);
+        CameraPreview cameraPreview = new CameraPreview(MakeVideoCallActivity.this, camera, previewCb);
         cameraView.addView(cameraPreview);
     }
 
