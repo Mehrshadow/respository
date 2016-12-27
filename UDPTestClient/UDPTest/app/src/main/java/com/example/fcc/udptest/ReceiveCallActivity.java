@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -42,6 +43,7 @@ public class ReceiveCallActivity extends Activity implements OnClickListener /*,
     private Button endButton;
     private ToggleButton Tgl_Speaker;
     private TextView txtIncomingCall;
+    private Vibrator mVibrator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +66,7 @@ public class ReceiveCallActivity extends Activity implements OnClickListener /*,
     }
 
     private void initView() {
+        startVibrator();
         Tgl_Speaker = (ToggleButton) findViewById(R.id.tgl_speaker);
         Tgl_Speaker.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -104,6 +107,7 @@ public class ReceiveCallActivity extends Activity implements OnClickListener /*,
     }
 
     private void endCall() {
+        stopVibrator();
         // End the call and send a notification
         stopListener();
         if (G.IN_CALL) {
@@ -214,6 +218,7 @@ public class ReceiveCallActivity extends Activity implements OnClickListener /*,
 
             case R.id.buttonAccept:
                 try {
+                    stopVibrator();
                     mLinearLayout.setVisibility(View.INVISIBLE);
                     // Accepting call. Send a notification and start the call
                     sendMessage("ACC:");
@@ -263,6 +268,16 @@ public class ReceiveCallActivity extends Activity implements OnClickListener /*,
                 Toast.makeText(getApplicationContext(),message,Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void startVibrator(){
+        mVibrator = (Vibrator)getSystemService(Context.VIBRATOR_SERVICE);
+        long[] patern = {0,500,1000};
+        mVibrator.vibrate(patern,0);
+    }
+
+    private void stopVibrator(){
+        mVibrator.cancel();
     }
 
   /*  @Override

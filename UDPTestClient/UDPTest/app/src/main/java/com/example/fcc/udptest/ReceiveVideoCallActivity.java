@@ -10,9 +10,11 @@ import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.media.AudioManager;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -59,22 +61,17 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     private DatagramPacket mVideoPacket;
     AudioManager audioManager;
     private AudioCall call;
+    private Vibrator mVibrator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_receive_video_call);
-        startSockets();
+
+
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         Log.d(LOG_TAG, "Receive video call created");
 
-        accept = (Button) findViewById(R.id.buttonAccept);
-        reject = (Button) findViewById(R.id.buttonReject);
-        endCall = (Button) findViewById(R.id.buttonEndCall);
-        mImgReceive = (ImageView) findViewById(R.id.img_receive);
-        accept.setOnClickListener(this);
-        reject.setOnClickListener(this);
-        endCall.setOnClickListener(this);
 
         Intent intent = getIntent();
         displayName = intent.getStringExtra(G.EXTRA_C_Name);
@@ -85,14 +82,44 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
             e.printStackTrace();
         }
 
-        TextView textView = (TextView) findViewById(R.id.textViewIncomingCall);
-        textView.setText("Incoming call: " + displayName);
-
-        cameraView = (FrameLayout) findViewById(R.id.cameraView);
+        initView();
 
         openCamera();
 
         startCameraPreview();
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        startSockets();
+        parsePacket();
+        startVibrator();
+        turnOnScreen();
+
+    }
+
+    private void turnOnScreen(){
+        WindowManager.LayoutParams params = getWindow().getAttributes();
+        params.screenBrightness = 1;
+        getWindow().setAttributes(params);
+    }
+
+    private void initView() {
+
+        accept = (Button) findViewById(R.id.buttonAccept);
+        reject = (Button) findViewById(R.id.buttonReject);
+        endCall = (Button) findViewById(R.id.buttonEndCall);
+        mImgReceive = (ImageView) findViewById(R.id.img_receive);
+        accept.setOnClickListener(this);
+        reject.setOnClickListener(this);
+        endCall.setOnClickListener(this);
+
+        TextView textView = (TextView) findViewById(R.id.textViewIncomingCall);
+        textView.setText("Incoming call: " + displayName);
+
+        cameraView = (FrameLayout) findViewById(R.id.cameraView);
 
     }
 
@@ -268,12 +295,11 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     }
 
     private void endCall() {
+
         showToast(getString(R.string.call_ended));
 
-        mReceiveSocket.disconnect();
-        mReceiveSocket.close();
-        mSendSocket.disconnect();
-        mSendSocket.close();
+        stopVibrator();
+
         if (call != null)
             call.endCall();
         Log.d(LOG_TAG, "end call");
@@ -285,18 +311,28 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
             stopCameraPreview();
         }
+
         sendMessage("END:", G.SENDVIDEO_PORT);
 
+        closeSockets();
+
         finish();
+    }
+    private void closeSockets(){
+        mReceiveSocket.disconnect();
+        mReceiveSocket.close();
+        mSendSocket.disconnect();
+        mSendSocket.close();
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.buttonAccept:
+                stopVibrator();
                 sendMessage("ACC:", G.SENDVIDEO_PORT);
                 //sendFrameIntroduceData();
-                parsePacket();
+
 
                 //\\\\\\\\\\
                 //call = new AudioCall(address);
@@ -612,6 +648,16 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
             }
         }
     };
+
+    private void startVibrator() {
+        mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        long[] patern = {0, 500, 1000};
+        mVibrator.vibrate(patern, 0);
+    }
+
+    private void stopVibrator() {
+        mVibrator.cancel();
+    }
 
 }
 

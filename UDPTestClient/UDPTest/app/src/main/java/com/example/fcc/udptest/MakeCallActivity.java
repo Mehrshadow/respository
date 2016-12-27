@@ -6,7 +6,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.util.Log;
 
 import android.view.View;
@@ -37,6 +39,8 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
     private boolean LISTEN = true;
     private AudioCall call;
     private Button endButton;
+
+    private MediaPlayer mediaPlayer;
 
     AudioManager m_amAudioManager;
 
@@ -103,6 +107,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                     listenerSocket.setSoTimeout(15000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
+                    startPlayingWaitingTone();
                     while (LISTEN) {
 
                         try {
@@ -113,6 +118,8 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                             Log.i(LOG_TAG, "Packet received from " + packet.getAddress() + " with contents: " + data);
                             String action = data.substring(0, 4);
                             if (action.equals("ACC:")) {
+
+                                stopPlayingTone();
                                 showToast(getString(R.string.call_accepted));
                                 // Accept notification received. Start call
                                 call = new AudioCall(packet.getAddress());
@@ -120,10 +127,20 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                               //  call.setEndCallListener(MakeCallActivity.this);
                                 G.IN_CALL = true;
                             } else if (action.equals("REJ:")) {
+
+                                stopPlayingTone();
+                                startPlayingBusyTone();
+
                                 showToast(getString(R.string.call_rejected));
                                 // Reject notification received. End call
                                 endCall();
                             } else if (action.equals("END:")) {
+
+
+                                stopPlayingTone();
+                                startPlayingBusyTone();
+
+
 
                                 showToast(getString(R.string.call_ended));
                                 // End call notification received. End call
@@ -134,6 +151,11 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                             }
                         } catch (SocketTimeoutException e) {
                             if (!G.IN_CALL) {
+
+
+                                stopPlayingTone();
+                                startPlayingBusyTone();
+
 
                                 Log.i(LOG_TAG, "No reply from contact. Ending call");
                                 endCall();
@@ -193,18 +215,15 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         replyThread.start();
     }
 
-
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         Log.d(LOG_TAG, "IN CALL: " + G.IN_CALL);
-        if (G.IN_CALL) {
-
-
 
             if (isChecked) {
                 Logger.d("MakeCallActivity","onCheckedChanged","setSpeakerphoneOn(false)");
                 m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
                 m_amAudioManager.setSpeakerphoneOn(true);
+                mediaPlayer.setAudioStreamType(AudioManager.STREAM_VOICE_CALL);
 
             } else {
                 Logger.d("MakeCallActivity","onCheckedChanged","setSpeakerphoneOn(true)");
@@ -214,7 +233,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
             }
 
             Log.d(LOG_TAG, "Speaker changed" + " & switchStatus is: " + isChecked);
-        }
+
     }
 
     @Override
@@ -227,6 +246,55 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
             @Override
             public void run() {
                 Toast.makeText(getApplicationContext(),message,Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void startPlayingWaitingTone() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mediaPlayer = MediaPlayer.create(MakeCallActivity.this, R.raw.waiting);
+                mediaPlayer.setLooping(true);
+                mediaPlayer.start();
+            }
+        });
+    }
+
+    private void startPlayingBusyTone() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                mediaPlayer = MediaPlayer.create(MakeCallActivity.this, R.raw.busy);
+                mediaPlayer.start();
+
+                CountDownTimer timer = new CountDownTimer(3000, 1000) {
+                    //
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+                    }
+
+                    @Override
+                    public void onFinish() {
+                        stopPlayingTone();
+                    }
+                };
+                timer.start();
+
+            }
+        });
+    }
+
+    private void stopPlayingTone() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                if (mediaPlayer.isPlaying()) {
+                    mediaPlayer.stop();
+//                    mediaPlayer.release();
+                }
             }
         });
     }
