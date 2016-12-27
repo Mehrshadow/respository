@@ -168,7 +168,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         Camera c = null;
 
         try {
-            c = Camera.open(G.REAR_CAMERA);
+            c = Camera.open(G.FRONT_CAMERA);
         } catch (Exception e) {
             Log.e(LOG_TAG, e.toString());
             e.printStackTrace();
@@ -253,6 +253,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                         } else {
 //                            Logger.d("ReceiveVideoCallActivity", "startListener", packet.getAddress() + " sent invalid message: " + data);
 
+                            //frame received
                             shouldSendVideo = true;
 
                             audioCall = new AudioCall(address);
@@ -263,8 +264,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                         }
 
                     } catch (IOException e) {
-                        receiving = false;
-                        LISTEN = false;
                         endCall();
                         Logger.e("ReceiveVideoCallActivity", "IOException", "IOException");
                         e.printStackTrace();
@@ -328,12 +327,13 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
 //        if (IN_VIDEO_CALL) {
         receiving = false;
+        LISTEN = false;
 
         if (audioCall != null)
             audioCall.endCall();
 
         stopCameraPreview();
-//        }
+
         sendMessage("END:", G.VIDEOCALL_SENDER_PORT);
 
         stopSockets();
