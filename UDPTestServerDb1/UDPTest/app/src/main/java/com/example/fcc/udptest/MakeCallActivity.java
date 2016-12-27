@@ -1,14 +1,12 @@
 package com.example.fcc.udptest;
 
 
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.util.Log;
-
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -25,7 +23,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
-public class MakeCallActivity extends Activity implements CompoundButton.OnCheckedChangeListener, OnClickListener/*,AudioCall.IEndCall */{
+public class MakeCallActivity extends Activity implements CompoundButton.OnCheckedChangeListener, OnClickListener/*,AudioCall.IEndCall */ {
 
     private static final String LOG_TAG = "MakeCall";
     private static final int BUF_SIZE = 1024;
@@ -35,6 +33,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
     private boolean LISTEN = true;
     private AudioCall call;
     private Button endButton;
+    AudioManager m_amAudioManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +56,9 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         endButton = (Button) findViewById(R.id.buttonEndCall);
         endButton.setOnClickListener(this);
 
+        m_amAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
+        m_amAudioManager.setSpeakerphoneOn(false);
 
         startListener();
         makeCall();
@@ -186,27 +188,25 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         replyThread.start();
     }
 
-
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         Log.d(LOG_TAG, "IN CALL: " + G.IN_CALL);
         if (G.IN_CALL) {
 
-            AudioManager m_amAudioManager;
-            m_amAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-
             if (isChecked) {
 
                 m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
-                m_amAudioManager.setSpeakerphoneOn(false);
-
-            } else {
-                m_amAudioManager.setMode(AudioManager.MODE_NORMAL);
                 m_amAudioManager.setSpeakerphoneOn(true);
 
-            }
+                Log.d(LOG_TAG, "speaker off");
 
-            Log.d(LOG_TAG, "Speaker changed" + " & switchStatus is: " + isChecked);
+            } else {
+                m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
+                m_amAudioManager.setSpeakerphoneOn(false);
+
+                Log.d(LOG_TAG, "speaker on");
+
+            }
         }
     }
 

@@ -40,6 +40,7 @@ public class ReceiveCallActivity extends Activity implements OnClickListener/* ,
     private Button endButton;
     private ToggleButton Tgl_Speaker;
     private TextView txtIncomingCall;
+    private AudioManager m_amAudioManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +52,10 @@ public class ReceiveCallActivity extends Activity implements OnClickListener/* ,
         Intent intent = getIntent();
         contactName = intent.getStringExtra(G.EXTRA_C_Name);
         contactIp = intent.getStringExtra(G.EXTRA_C_Ip);
+
+        m_amAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
+        m_amAudioManager.setSpeakerphoneOn(false);
 
         initView();
         startListener();
@@ -66,12 +71,12 @@ public class ReceiveCallActivity extends Activity implements OnClickListener/* ,
 
                     Logger.d("ReceiveCallActivity", "onCreate", "Toggle isChecked)");
                     audioManager.setMode(AudioManager.MODE_IN_CALL);
-                    audioManager.setSpeakerphoneOn(false);
+                    audioManager.setSpeakerphoneOn(true);
 
                 } else {
                     Logger.d(LOG_TAG, "onCreate", "Toggle is not Checked)");
-                    audioManager.setMode(AudioManager.MODE_NORMAL);
-                    audioManager.setSpeakerphoneOn(true);
+                    audioManager.setMode(AudioManager.MODE_IN_CALL);
+                    audioManager.setSpeakerphoneOn(false);
 
                 }
             }
