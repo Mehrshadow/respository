@@ -265,12 +265,15 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
                         Logger.i("MainActivity", "refreshContacts", "Start");
 
                         for (int i = 0; i < G.contactsList.size(); i++) {
-                            Socket socket = new Socket();
+
                             try {
+                                Socket socket = new Socket();
                                 socket.connect(new InetSocketAddress(G.contactsList.get(i).getC_Ip(), G.CHECK_ONLINE_MOBILES_PORT), 1000);
+                                Logger.i("MainActivity", "refreshContacts", "try to connect >>" + G.contactsList.get(i).getC_Ip());
 
                                 if (!socket.isConnected()) {
                                     socket.close();
+                                    Logger.i("MainActivity", "refreshContacts", "Remove  >>" + G.contactsList.get(i).getC_Ip());
                                     G.contactsList.remove(i);
                                 }
                                 socket.close();
@@ -279,11 +282,10 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
 //                                Logger.e("Main", "Refresh", "exception!!!");
 //                                e.printStackTrace();
                                 if (G.contactsList.size() != 0)
+                                    Logger.i("MainActivity", "refreshContacts", "Remove  >>" + G.contactsList.get(i).getC_Ip());
                                     G.contactsList.remove(i);
-
 //                                e.printStackTrace();
-                            }
-                            finally {
+                            } finally {
                                 refreshRcy();
                             }
                         }
