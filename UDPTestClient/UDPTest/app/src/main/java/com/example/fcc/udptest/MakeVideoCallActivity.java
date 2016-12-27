@@ -9,7 +9,9 @@ import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
+import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -61,10 +63,14 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private boolean receiving = false;
     private AudioCall call;
 
+    private MediaPlayer mediaPlayer;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_make_video_call);
+        startPlayingWaitingTone();
 
         Log.d(LOG_TAG, "Make video call started");
 
@@ -234,6 +240,8 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                         String action = data.substring(0, 4);
                         if (action.equals("ACC:")) {
 
+                            stopPlayingTone();
+
                             Logger.d(LOG_TAG, "startListener", "video call accepted");
 //                                Send Introduce and Listen to incoming value
                             showToast(getString(R.string.call_accepted));
@@ -241,12 +249,21 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
 
                         } else if (action.equals("REJ:")) {
+
+                            startPlayingBusyTone();
+                            stopPlayingTone();
+
                             // Reject notification received. End call
                             showToast(getString(R.string.call_rejected));
                             Logger.d(LOG_TAG, "startListener", "Ending call...");
                             endCall();
 
                         } else if (action.equals("END:")) {
+
+                            startPlayingBusyTone();
+                            stopPlayingTone();
+
+
                             showToast(getString(R.string.call_ended));
                             Log.d(LOG_TAG, "Ending call...");
                             endCall();
@@ -259,6 +276,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                             udpFrameListener();
                         }
                     } catch (SocketTimeoutException e) {
+                        stopPlayingTone();
 
                         Log.i(LOG_TAG, "No reply from contact. Ending call");
                         endCall();
@@ -428,7 +446,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         // Ends the chat sessions
         Log.d(LOG_TAG, "end call");
 
-        sendMessage("END:", G.BROADCAST_PORT);
+        sendMessage("END:", G.SENDVIDEO_PORT);
         closeSockets();
         finish();
     }
@@ -627,6 +645,57 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
             }
         });
     }
+
+    private void startPlayingWaitingTone() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mediaPlayer = MediaPlayer.create(MakeVideoCallActivity.this, R.raw.waiting);
+                mediaPlayer.setLooping(true);
+                mediaPlayer.start();
+            }
+        });
+    }
+
+    private void startPlayingBusyTone() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                mediaPlayer = MediaPlayer.create(MakeVideoCallActivity.this, R.raw.busy);
+                mediaPlayer.start();
+
+                CountDownTimer timer = new CountDownTimer(3000, 1000) {
+                    //
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+                    }
+
+                    @Override
+                    public void onFinish() {
+                        stopPlayingTone();
+                    }
+                };
+                timer.start();
+
+            }
+        });
+    }
+
+    private void stopPlayingTone() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                if (mediaPlayer.isPlaying()) {
+                    mediaPlayer.stop();
+//                    mediaPlayer.release();
+                }
+            }
+        });
+    }
+
+
 
 }
 
