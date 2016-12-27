@@ -13,6 +13,7 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import java.io.IOException;
@@ -25,7 +26,7 @@ import java.util.concurrent.TransferQueue;
 
 import classes.Logger;
 
-public class ReceiveCallActivity extends Activity implements OnClickListener ,AudioCall.IEndCall{
+public class ReceiveCallActivity extends Activity implements OnClickListener /*,AudioCall.IEndCall*/{
 
     private static final String LOG_TAG = "ReceiveCallActivity";
     private static final int BUF_SIZE = 1024;
@@ -130,7 +131,6 @@ public class ReceiveCallActivity extends Activity implements OnClickListener ,Au
 
                     while (LISTEN) {
                         try {
-
                             Logger.e(LOG_TAG, "startListener", "Listening for packets");
 
                             socket.receive(packet);
@@ -139,6 +139,7 @@ public class ReceiveCallActivity extends Activity implements OnClickListener ,Au
 
                             String action = data.substring(0, 4);
                             if (action.equals("END:")) {
+                                showToast(getString(R.string.call_ended));
                                 // End call notification received. End call
                                 endCall();
                             } else {
@@ -221,7 +222,7 @@ public class ReceiveCallActivity extends Activity implements OnClickListener ,Au
 
                     call = new AudioCall(address);
                     call.startCall();
-                    call.setEndCallListener(ReceiveCallActivity.this);
+                    //call.setEndCallListener(ReceiveCallActivity.this);
                     // Hide the buttons as they're not longer required
                     Button accept = (Button) findViewById(R.id.buttonAccept);
                     accept.setEnabled(false);
@@ -253,8 +254,17 @@ public class ReceiveCallActivity extends Activity implements OnClickListener ,Au
 
     }
 
-    @Override
+    private void showToast(final String message){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(getApplicationContext(),message,Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+  /*  @Override
     public void endAudioCall() {
         endCall();
-    }
+    }*/
 }
