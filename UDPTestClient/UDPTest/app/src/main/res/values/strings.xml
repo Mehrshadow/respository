@@ -36,5 +36,6 @@
     <string name="network_not_available">Network not available</string>
     <string name="ip_not_valid">Enter a valid ip address</string>
     <string name="calling_lbl">Calling  %1$s</string>
+    <string name="cameraOpenFailure">cannot open the camera, exiting application</string>
 
 </resources>

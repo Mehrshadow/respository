@@ -129,7 +129,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mSenderWidth, mSenderHeight, null);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        yuv.compressToJpeg(new Rect(0, 0, mSenderWidth, mSenderHeight), 60, out);
+        yuv.compressToJpeg(new Rect(0, 0, mSenderWidth, mSenderHeight), 50, out);
 
         mSendFrameBuffSize = out.toByteArray().length;
 
@@ -549,10 +549,10 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         receiving = true;
         Logger.d(LOG_TAG, "udpFrameListener", "Receiving Thread Start");
         try {
-            final byte[] buff = new byte[mReceiveFrameBuffSize * 10];
+            final byte[] buff = new byte[mReceiveFrameBuffSize * 6];
             Logger.d(LOG_TAG, "udpFrameListener", "mFrameBuffSize >> " + mReceiveFrameBuffSize);
 //                    datagramSocket.setSoTimeout(10000);
-            DatagramPacket packet = new DatagramPacket(buff, mReceiveFrameBuffSize);
+            DatagramPacket packet = new DatagramPacket(buff, buff.length);
             while (receiving) {
 
                 mListenerSocket.setSoTimeout(2 * 1000);// 2 seconds to receive next frame, else, it will close

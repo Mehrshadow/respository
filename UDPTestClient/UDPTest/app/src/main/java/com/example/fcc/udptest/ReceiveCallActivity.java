@@ -1,10 +1,12 @@
 package com.example.fcc.udptest;
 
 import android.app.Activity;
+import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.os.Vibrator;
 import android.util.Log;
 import android.view.Menu;
@@ -61,6 +63,7 @@ public class ReceiveCallActivity extends Activity implements OnClickListener /*,
 
 
         initView();
+        initWakeup();
         startListener();
 
     }
@@ -104,6 +107,16 @@ public class ReceiveCallActivity extends Activity implements OnClickListener /*,
 
         // END BUTTON
         endButton.setOnClickListener(this);
+    }
+
+    private void initWakeup() {
+        PowerManager pm = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
+        PowerManager.WakeLock wakeLock = pm.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP), "TAG");
+        wakeLock.acquire();
+
+        KeyguardManager keyguardManager = (KeyguardManager) getApplicationContext().getSystemService(Context.KEYGUARD_SERVICE);
+        KeyguardManager.KeyguardLock keyguardLock = keyguardManager.newKeyguardLock("TAG");
+        keyguardLock.disableKeyguard();
     }
 
     private void endCall() {

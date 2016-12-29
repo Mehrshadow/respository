@@ -10,7 +10,7 @@ public class G extends Application {
     public static boolean IN_CALL = false;
 
     public static int FRONT_CAMERA = 1;
-    public static int BACK_CAMERA = 0;
+    public static int REAR_CAMERA = 0;
 
     public static final int BROADCAST_PORT = 20000;
 

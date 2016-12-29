@@ -1,15 +1,18 @@
 package com.example.fcc.udptest;
 
+import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.media.AudioManager;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -25,7 +28,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -66,6 +71,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_receive_video_call);
         startSockets();
+        initWakeup();
 
 
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -122,6 +128,16 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
     }
 
+    private void initWakeup() {
+        PowerManager pm = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
+        PowerManager.WakeLock wakeLock = pm.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP), "TAG");
+        wakeLock.acquire();
+
+        KeyguardManager keyguardManager = (KeyguardManager) getApplicationContext().getSystemService(Context.KEYGUARD_SERVICE);
+        KeyguardManager.KeyguardLock keyguardLock = keyguardManager.newKeyguardLock("TAG");
+        keyguardLock.disableKeyguard();
+    }
+
     @Override
     protected void onStop() {
         super.onStop();
@@ -151,14 +167,24 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         }
     }
 
-    private static Camera getCameraInstance() {
+    private  Camera getCameraInstance() {
         Camera c = null;
 
         try {
-            c = Camera.open(G.BACK_CAMERA);
-        } catch (Exception e) {
-            Log.e(LOG_TAG, e.toString());
-            e.printStackTrace();
+            c = Camera.open(G.FRONT_CAMERA);
+        } catch (RuntimeException e) {
+
+            try {
+                c = Camera.open(G.REAR_CAMERA);
+
+                if (c == null) {
+                    Toast.makeText(ReceiveVideoCallActivity.this, R.string.cameraOpenFailure, Toast.LENGTH_LONG).show();
+                    endCall();
+                }
+            } catch (RuntimeException e2) {
+                Log.e(LOG_TAG, e2.toString());
+                e.printStackTrace();
+            }
         }
 
         return c;
@@ -230,8 +256,9 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
                         } else {
                             shouldSendVideo = true;
-                            call = new AudioCall(address);
-                            call.startCall();
+
+                             call = new AudioCall(address);
+                             call.startCall();
                             //previewBitmap(buffer);
                             Logger.d("ReceiveVideoCallActivity", "startListener", packet.getAddress() + " sent invalid message: " + data);
                             udpFrameListener();
@@ -457,17 +484,22 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
     private byte[] compressCameraData(byte[] data) {
 
+
         Logger.d(LOG_TAG, "compressCameraData", "actual camera size: " + data.length);
 
         YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mSendFrameWidth, mSendFrameHeight, null);
+        Logger.d(LOG_TAG, "compressCameraData0", "mSendFrameWidth, mSendFrameHeight: " + mSendFrameWidth + " " + mSendFrameHeight);
+        Logger.d(LOG_TAG, "compressCameraData0", "mSendFrameBuffSize" + mSendFrameBuffSize);
+        Logger.d(LOG_TAG, "compressCameraData0", "Camera " + data.length);
+
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        yuv.compressToJpeg(new Rect(0, 0, mSendFrameWidth, mSendFrameHeight), 60, out);
+        yuv.compressToJpeg(new Rect(0, 0, mSendFrameWidth, mSendFrameHeight), 40, out);
+
 
         Logger.d(LOG_TAG, "compressCameraData", "compressed size: " + out.toByteArray().length);
 
         mSendFrameBuffSize = out.toByteArray().length;
-
         return out.toByteArray();
     }
 
@@ -477,8 +509,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
             @Override
             public void run() {
                 final Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
-             //   final Bitmap resizeBitMap = Bitmap.createScaledBitmap(bitmap, mReceiveFrameWidth, mReceiveFrameHeight, true);
-                if(bitmap==null){
+                //   final Bitmap resizeBitMap = Bitmap.createScaledBitmap(bitmap, mReceiveFrameWidth, mReceiveFrameHeight, true);
+                if (bitmap == null) {
                     return;
                 }
                 runOnUiThread(new Runnable() {
@@ -499,11 +531,11 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         Logger.d(LOG_TAG, "udpFrameListener", "Start");
         Logger.d(LOG_TAG, "udpFrameListener", " Thread Start");
         try {
-            final byte[] buff = new byte[mReceiverFameBuffSize * 10];
+            final byte[] buff = new byte[mReceiverFameBuffSize * 6];
             Logger.d(LOG_TAG, "udpFrameListener", "mFrameBuffSize >> " + mReceiverFameBuffSize);
 //                    datagramSocket.setSoTimeout(10000);
-            DatagramPacket packet = new DatagramPacket(buff, mReceiverFameBuffSize);
-            mReceiveSocket.setSoTimeout(1 * 1000);// 5 seconds to receive next frame, else, it will close
+            DatagramPacket packet = new DatagramPacket(buff, buff.length);
+            mReceiveSocket.setSoTimeout(2 * 1000);// 5 seconds to receive next frame, else, it will close
 
             while (receiving) {
 
@@ -615,6 +647,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     }
 
 }
+
+
 
 //    private void tcpReceived() {
 //        if (!receiving) {

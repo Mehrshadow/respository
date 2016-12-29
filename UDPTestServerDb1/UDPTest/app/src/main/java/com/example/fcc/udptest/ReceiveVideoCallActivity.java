@@ -453,12 +453,12 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         receiving = true;
         Logger.d("ReceiveVideoCallActivity", "udpReceived", " Thread Start");
         try {
-            final byte[] buff = new byte[mReceiveFrameBuffSize * 10];
+            final byte[] buff = new byte[mReceiveFrameBuffSize * 6];
 //            Logger.d("ReceiveVideoCallActivity", "udpReceived", "mFrameBuffSize >> " + mFrameBuffSize);
 //                    datagramSocket.setSoTimeout(10000);
-            DatagramPacket packet = new DatagramPacket(buff, mReceiveFrameBuffSize);
+            DatagramPacket packet = new DatagramPacket(buff, buff.length);
 
-            mReceiveSocket.setSoTimeout(1000);// 1 seconds to receive next frame, else, it will close
+            mReceiveSocket.setSoTimeout(2*1000);// 1 seconds to receive next frame, else, it will close
 
             while (receiving) {
 
@@ -497,7 +497,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mSendFrameWidth, mSendFrameHeight, null);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        yuv.compressToJpeg(new Rect(0, 0, mSendFrameWidth, mSendFrameHeight), 60, out);
+        yuv.compressToJpeg(new Rect(0, 0, mSendFrameWidth, mSendFrameHeight), 50, out);
 
         mSendFrameBuffSize = out.toByteArray().length;
 

@@ -32,6 +32,7 @@
             android:layout_height="match_parent">
 
             <ImageView
+                android:rotation="90"
                 android:adjustViewBounds="true"
                 android:id="@+id/img_receive"
                 android:layout_width="match_parent"

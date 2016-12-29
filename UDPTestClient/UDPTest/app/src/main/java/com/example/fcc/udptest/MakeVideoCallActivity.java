@@ -114,7 +114,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mSendFrameWidth, mSendFrameHeight, null);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        yuv.compressToJpeg(new Rect(0, 0, mSendFrameWidth, mSendFrameHeight), 60, out);
+        yuv.compressToJpeg(new Rect(0, 0, mSendFrameWidth, mSendFrameHeight), 80, out);
 
 //        Logger.d(LOG_TAG, "compressCameraData", "compressed size: " + out.toByteArray().length);
 
@@ -164,14 +164,24 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         stopSendingFrames();
     }
 
-    private static Camera getCameraInstance() {
+    private  Camera getCameraInstance() {
         Camera c = null;
 
         try {
-            c = Camera.open(G.BACK_CAMERA);
-        } catch (Exception e) {
-            Log.e(LOG_TAG, e.toString());
-            e.printStackTrace();
+            c = Camera.open(G.FRONT_CAMERA);
+        } catch (RuntimeException e) {
+
+            try {
+                c = Camera.open(G.REAR_CAMERA);
+
+                if (c == null) {
+                    Toast.makeText(MakeVideoCallActivity.this, R.string.cameraOpenFailure, Toast.LENGTH_LONG).show();
+                    endCall();
+                }
+            } catch (RuntimeException e2) {
+                Log.e(LOG_TAG, e2.toString());
+                e.printStackTrace();
+            }
         }
 
         return c;
@@ -370,13 +380,13 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         receiving = true;
         Logger.d(LOG_TAG, "udpReceived", "Start");
         try {
-            final byte[] buff = new byte[mReceiverameBuffSize * 10];
+            final byte[] buff = new byte[mReceiverameBuffSize * 6];
             Logger.d(LOG_TAG, "udpReceived", "mFrameBuffSize >> " + mReceiverameBuffSize);
 //                    datagramSocket.setSoTimeout(10000);
-            DatagramPacket packet = new DatagramPacket(buff, mReceiverameBuffSize);
+            DatagramPacket packet = new DatagramPacket(buff, buff.length);
             while (receiving) {
 
-                mListenerSocket.setSoTimeout(1 * 1000);// 5 seconds to receive next frame, else, it will close
+                mListenerSocket.setSoTimeout(2 * 1000);// 5 seconds to receive next frame, else, it will close
                 mListenerSocket.receive(packet);
 
                 Logger.d(LOG_TAG, "udpReceived", "buff.size()" + buff.length);
