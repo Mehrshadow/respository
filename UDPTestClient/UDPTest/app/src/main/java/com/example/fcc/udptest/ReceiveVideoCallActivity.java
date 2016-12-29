@@ -167,7 +167,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         }
     }
 
-    private  Camera getCameraInstance() {
+    private Camera getCameraInstance() {
         Camera c = null;
 
         try {
@@ -257,8 +257,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                         } else {
                             shouldSendVideo = true;
 
-                             call = new AudioCall(address);
-                             call.startCall();
+                            call = new AudioCall(address);
+                            call.startCall();
                             //previewBitmap(buffer);
                             Logger.d("ReceiveVideoCallActivity", "startListener", packet.getAddress() + " sent invalid message: " + data);
                             udpFrameListener();
@@ -494,7 +494,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        yuv.compressToJpeg(new Rect(0, 0, mSendFrameWidth, mSendFrameHeight), 40, out);
+        yuv.compressToJpeg(new Rect(0, 0, mSendFrameWidth, mSendFrameHeight), 100, out);
 
 
         Logger.d(LOG_TAG, "compressCameraData", "compressed size: " + out.toByteArray().length);
@@ -503,12 +503,20 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         return out.toByteArray();
     }
 
-    private void previewBitmap(final byte[] data) {
+    private void previewBitmap(final byte[] data, int packetlength) {
+
+        final String receivedValue = new String(data, 0, packetlength);
+        int index = receivedValue.indexOf("]");
+        int buferSize = Integer.parseInt(receivedValue.substring(0, index));
+        final byte[] bufferToSend = new byte[buferSize];
+        System.arraycopy(data, index + 1, bufferToSend, 0, buferSize);
+
+
         Logger.d(LOG_TAG, "previewBitmap", "Start");
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                final Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+                final Bitmap bitmap = BitmapFactory.decodeByteArray(bufferToSend, 0, bufferToSend.length);
                 //   final Bitmap resizeBitMap = Bitmap.createScaledBitmap(bitmap, mReceiveFrameWidth, mReceiveFrameHeight, true);
                 if (bitmap == null) {
                     return;
@@ -531,18 +539,21 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         Logger.d(LOG_TAG, "udpFrameListener", "Start");
         Logger.d(LOG_TAG, "udpFrameListener", " Thread Start");
         try {
-            final byte[] buff = new byte[mReceiverFameBuffSize * 6];
+            final byte[] buff = new byte[mReceiverFameBuffSize * 10];
             Logger.d(LOG_TAG, "udpFrameListener", "mFrameBuffSize >> " + mReceiverFameBuffSize);
 //                    datagramSocket.setSoTimeout(10000);
             DatagramPacket packet = new DatagramPacket(buff, buff.length);
+
+
             mReceiveSocket.setSoTimeout(2 * 1000);// 5 seconds to receive next frame, else, it will close
+
 
             while (receiving) {
 
                 mReceiveSocket.receive(packet);
 
                 Logger.d(LOG_TAG, "udpFrameListener", "buff.size()" + buff.length);
-                previewBitmap(buff);
+                previewBitmap(buff, packet.getLength());
             }
             showToast(getString(R.string.call_ended));
 
@@ -647,7 +658,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     }
 
 }
-
 
 
 //    private void tcpReceived() {
