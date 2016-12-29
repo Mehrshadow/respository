@@ -58,6 +58,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private MediaPlayer mediaPlayer;
     private Camera.Parameters parameters;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -129,11 +130,19 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mSenderWidth, mSenderHeight, null);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        yuv.compressToJpeg(new Rect(0, 0, mSenderWidth, mSenderHeight), 50, out);
+        yuv.compressToJpeg(new Rect(0, 0, mSenderWidth, mSenderHeight), 100, out);
 
         mSendFrameBuffSize = out.toByteArray().length;
 
-        return out.toByteArray();
+        String size = mSendFrameBuffSize + "]";
+
+        byte[] bufferToSend = new byte[mSendFrameBuffSize + size.getBytes().length];
+
+        System.arraycopy(size.getBytes(), 0, bufferToSend, 0, size.getBytes().length);
+        System.arraycopy(out.toByteArray(), 0, bufferToSend, size.getBytes().length, out.size());
+
+        return bufferToSend;
+//        return out.toByteArray();
     }
 
 
@@ -205,6 +214,12 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
 
@@ -218,6 +233,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         Camera c = null;
 
         try {
+
             c = Camera.open(G.FRONT_CAMERA);
         } catch (RuntimeException e) {
 
@@ -549,7 +565,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         receiving = true;
         Logger.d(LOG_TAG, "udpFrameListener", "Receiving Thread Start");
         try {
-            final byte[] buff = new byte[mReceiveFrameBuffSize * 6];
+            final byte[] buff = new byte[mReceiveFrameBuffSize * 10];
             Logger.d(LOG_TAG, "udpFrameListener", "mFrameBuffSize >> " + mReceiveFrameBuffSize);
 //                    datagramSocket.setSoTimeout(10000);
             DatagramPacket packet = new DatagramPacket(buff, buff.length);
@@ -652,7 +668,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
         return jsonObject.toString();
     }
-
 
     Camera.PreviewCallback previewCb = new Camera.PreviewCallback() {
         public void onPreviewFrame(byte[] data, Camera camera) {

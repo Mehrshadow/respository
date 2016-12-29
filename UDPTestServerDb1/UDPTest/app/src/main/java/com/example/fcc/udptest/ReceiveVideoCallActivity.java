@@ -458,7 +458,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 //                    datagramSocket.setSoTimeout(10000);
             DatagramPacket packet = new DatagramPacket(buff, buff.length);
 
-            mReceiveSocket.setSoTimeout(2*1000);// 1 seconds to receive next frame, else, it will close
+            mReceiveSocket.setSoTimeout(2 * 1000);// 1 seconds to receive next frame, else, it will close
 
             while (receiving) {
 
@@ -586,6 +586,23 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
             }
         }).start();
     }
+
+    private void doAutoFocus() {
+        new Runnable() {
+            @Override
+            public void run() {
+                camera.autoFocus(autoFocusCallback);
+            }
+        };
+    }
+
+    Camera.AutoFocusCallback autoFocusCallback = new Camera.AutoFocusCallback() {
+        @Override
+        public void onAutoFocus(boolean success, Camera camera) {
+//            autoFocusHandler.postDelayed(doAutoFocus, 2000);
+            doAutoFocus();
+        }
+    };
 
     Camera.PreviewCallback previewCb = new Camera.PreviewCallback() {
         public void onPreviewFrame(byte[] data, Camera camera) {
