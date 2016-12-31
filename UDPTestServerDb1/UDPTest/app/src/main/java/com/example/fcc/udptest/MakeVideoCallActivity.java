@@ -15,6 +15,7 @@ import android.os.CountDownTimer;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Chronometer;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -57,6 +58,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private AudioCall audioCall;
     private MediaPlayer mediaPlayer;
     private Camera.Parameters parameters;
+    private Chronometer mChronometer;
 
 
     @Override
@@ -83,6 +85,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         textView.setText("Calling: " + contactName);
 
         img = (ImageView) findViewById(R.id.img);
+        mChronometer = (Chronometer) findViewById(R.id.chronometer);
 
         Button buttonEndCall = (Button) findViewById(R.id.buttonEndCall);
         buttonEndCall.setOnClickListener(this);
@@ -110,25 +113,49 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
             @Override
             public void run() {
 
-                final String receivedValue = new String(data, 0, packetLength);
-                int index = receivedValue.indexOf("]");
-                int bufferSize = Integer.parseInt(receivedValue.substring(0, index));
-                final byte[] bufferToSend = new byte[bufferSize];
-                System.arraycopy(data, index + 1, bufferToSend, 0, bufferSize);
+                try {
 
-                final Bitmap bitmap = BitmapFactory.decodeByteArray(bufferToSend, 0, bufferToSend.length);
-                if (bitmap == null)
-                    return;
+                    final String receivedValue = new String(data, 0, packetLength);
+                    int index = receivedValue.indexOf("]");
+                    int bufferSize = Integer.parseInt(receivedValue.substring(0, index));
+                    final byte[] bufferToSend = new byte[bufferSize];
+                    System.arraycopy(data, index + 1, bufferToSend, 0, bufferSize);
 
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        img.setImageBitmap(bitmap);
-                    }
-                });
+                    final Bitmap bitmap = BitmapFactory.decodeByteArray(bufferToSend, 0, bufferToSend.length);
+                    if (bitmap == null)
+                        return;
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            img.setImageBitmap(bitmap);
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
         thread.start();
+    }
+
+    private void startChronometer() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mChronometer.start();
+            }
+        });
+    }
+
+    private void stopChronometer() {
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mChronometer.stop();
+            }
+        });
     }
 
     private byte[] compressCameraData(byte[] data) {
@@ -136,7 +163,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mSenderWidth, mSenderHeight, null);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        yuv.compressToJpeg(new Rect(0, 0, mSenderWidth, mSenderHeight), 100, out);
+        yuv.compressToJpeg(new Rect(0, 0, mSenderWidth, mSenderHeight), 50, out);
 
         mSendFrameBuffSize = out.toByteArray().length;
 
@@ -150,7 +177,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         return bufferToSend;
 //        return out.toByteArray();
     }
-
 
     private void startPlayingWaitingTone() {
         runOnUiThread(new Runnable() {
@@ -534,6 +560,8 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         stopPlayingTone();
         startPlayingBusyTone();
 
+        stopChronometer();
+
         LISTEN = false;
         receiving = false;
 
@@ -573,11 +601,10 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         try {
             final byte[] buff = new byte[mReceiveFrameBuffSize * 10];
             Logger.d(LOG_TAG, "udpFrameListener", "mFrameBuffSize >> " + mReceiveFrameBuffSize);
-//                    datagramSocket.setSoTimeout(10000);
             DatagramPacket packet = new DatagramPacket(buff, buff.length);
             while (receiving) {
 
-                mListenerSocket.setSoTimeout(2 * 1000);// 2 seconds to receive next frame, else, it will close
+                mListenerSocket.setSoTimeout(5 * 1000);// 2 seconds to receive next frame, else, it will close
                 mListenerSocket.receive(packet);
 
                 Logger.d(LOG_TAG, "udpReceived", "buff.size()" + buff.length);
@@ -587,10 +614,10 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
             mListenerSocket.disconnect();
             mListenerSocket.close();
         } catch (SocketException e) {
-//            Logger.e(LOG_TAG, "udpFrameListener", "SocketException");
+            Logger.e(LOG_TAG, "udpFrameListener", "SocketException");
             endCall();
             LISTEN = false;
-//            e.printStackTrace();
+            e.printStackTrace();
         } catch (IOException e) {
             Logger.e(LOG_TAG, "udpFrameListener", "IOException");
             LISTEN = false;
@@ -647,6 +674,8 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                 try {
 //                    Logger.d(LOG_TAG, "address: ", address + "");
 
+                    startChronometer();
+
                     DatagramSocket socket = new DatagramSocket();
                     mVideoPacket = new DatagramPacket(frameData, frameData.length, address, G.VIDEOCALL_SENDER_PORT);
 
@@ -656,6 +685,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
                 } catch (IOException e) {
                     releaseCamera();
+                    Logger.d(LOG_TAG, "sendFrameDataUDP", "IOException!!");
                     e.printStackTrace();
                 }
             }

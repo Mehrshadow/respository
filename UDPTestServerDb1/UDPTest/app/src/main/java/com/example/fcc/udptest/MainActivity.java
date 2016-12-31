@@ -49,7 +49,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
     protected void onCreate(Bundle savedInstanceState) {
         Realm.init(getApplicationContext());
         Logger.i("MainActivity", "onCreate", "Before Db G.contactsList.size()>> " + G.contactsList.size());
-        copyToIist();
+        copyToList();
         Logger.i("MainActivity", "onCreate", "After Db G.contactsList.size()>> " + G.contactsList.size());
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_server);
@@ -77,7 +77,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
         callListenerSocket.close();
     }
 
-    private void copyToIist() {
+    private void copyToList() {
 
         Realm mRealm = Realm.getInstance(G.myConfig);
         for (DatabaseMap Db : mRealm.where(DatabaseMap.class).findAll()) {

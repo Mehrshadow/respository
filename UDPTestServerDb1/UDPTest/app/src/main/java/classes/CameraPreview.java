@@ -34,7 +34,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 //        int minimumFPS = supportedFrameRates.get(supportedFrameRates.size() - 1)[0];
         int maximumFPS = supportedFrameRates.get(supportedFrameRates.size() - 1)[1];
 
-        parameters.setPreviewFpsRange(maximumFPS, maximumFPS);
+//        parameters.setPreviewFpsRange(maximumFPS, maximumFPS);
 
         List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
 
@@ -46,14 +46,21 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
             previewWidth = previewSizes.get(previewSizes.size() / 2).width;
             previewHeight = previewSizes.get(previewSizes.size() / 2).height;
 
-            parameters.setPreviewSize(previewWidth, previewHeight);
+//            previewWidth = previewSizes.get(0).width;
+//            previewHeight = previewSizes.get(0).height;
+
 
         } else {
 
-            previewWidth = previewSizes.get(previewSizes.size()  / 2).width;
-            previewHeight = previewSizes.get(previewSizes.size()/ 2).height;
-            parameters.setPreviewSize(previewWidth, previewHeight);
+            previewWidth = previewSizes.get(previewSizes.size() / 2).width;
+            previewHeight = previewSizes.get(previewSizes.size() / 2).height;
+
+//            previewWidth = previewSizes.get(previewSizes.size()  - 1).width;
+//            previewHeight = previewSizes.get(previewSizes.size() - 1).height;
+
         }
+
+        parameters.setPreviewSize(previewWidth, previewHeight);
 
         camera.setParameters(parameters);
 

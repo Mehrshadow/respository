@@ -16,6 +16,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Chronometer;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -61,6 +62,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     private DatagramPacket mVideoPacket;
     private AudioCall audioCall;
     private Vibrator vibrator;
+    private Chronometer mChronometer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +94,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         reject = (Button) findViewById(R.id.buttonReject);
         endCall = (Button) findViewById(R.id.buttonEndCall);
         mImgReceive = (ImageView) findViewById(R.id.img);
+        mChronometer = (Chronometer) findViewById(R.id.chronometer);
+
         accept.setOnClickListener(this);
         reject.setOnClickListener(this);
         endCall.setOnClickListener(this);
@@ -130,6 +134,25 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
     private void cancelVibrate() {
         vibrator.cancel();
+    }
+
+    private void startChronometer() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mChronometer.start();
+            }
+        });
+    }
+
+    private void stopChronometer() {
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mChronometer.stop();
+            }
+        });
     }
 
     private void initWakeup() {
@@ -329,9 +352,12 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
     private void endCall() {
 
+        Log.d(LOG_TAG, "end call");
+
         cancelVibrate();
 
-        Log.d(LOG_TAG, "end call");
+        stopChronometer();
+
         // Ends the chat sessions
         stopListener();
 
@@ -432,24 +458,27 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
             @Override
             public void run() {
 
-                final String receivedValue = new String(data, 0, packetLength);
-                int index = receivedValue.indexOf("]");
-                int bufferSize = Integer.parseInt(receivedValue.substring(0, index));
-                final byte[] bufferToSend = new byte[bufferSize];
-                System.arraycopy(data, index + 1, bufferToSend, 0, bufferSize);
+                try {
 
-                final Bitmap bitmap = BitmapFactory.decodeByteArray(bufferToSend, 0, bufferToSend.length);
-                if (bitmap == null)
-                    return;
+                    final String receivedValue = new String(data, 0, packetLength);
+                    int index = receivedValue.indexOf("]");
+                    int bufferSize = Integer.parseInt(receivedValue.substring(0, index));
+                    final byte[] bufferToSend = new byte[bufferSize];
+                    System.arraycopy(data, index + 1, bufferToSend, 0, bufferSize);
 
-//                final Bitmap resizeBitMap = Bitmap.createScaledBitmap(bitmap, mFrameWidth, mFrameHeight, true);
+                    final Bitmap bitmap = BitmapFactory.decodeByteArray(bufferToSend, 0, bufferToSend.length);
+                    if (bitmap == null)
+                        return;
 
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mImgReceive.setImageBitmap(bitmap);
-                    }
-                });
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mImgReceive.setImageBitmap(bitmap);
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
         thread.start();
@@ -457,6 +486,9 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
     private void udpFrameListener() {
         receiving = true;
+
+        startChronometer();
+
         Logger.d("ReceiveVideoCallActivity", "udpReceived", " Thread Start");
         try {
             final byte[] buff = new byte[mReceiveFrameBuffSize * 10];
@@ -464,10 +496,9 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 //                    datagramSocket.setSoTimeout(10000);
             DatagramPacket packet = new DatagramPacket(buff, buff.length);
 
-            mReceiveSocket.setSoTimeout(2 * 1000);// 1 seconds to receive next frame, else, it will close
-
             while (receiving) {
 
+                mReceiveSocket.setSoTimeout(5 * 1000);// 5 seconds to receive next frame, else, it will close
                 mReceiveSocket.receive(packet);
 
                 Logger.d("ReceiveVideoCallActivity", "udpReceived", "buff.size()" + buff.length);
@@ -507,7 +538,15 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
         mSendFrameBuffSize = out.toByteArray().length;
 
-        return out.toByteArray();
+        String size = mSendFrameBuffSize + "]";
+
+        byte[] bufferToSend = new byte[mSendFrameBuffSize + size.getBytes().length];
+
+        System.arraycopy(size.getBytes(), 0, bufferToSend, 0, size.getBytes().length);
+        System.arraycopy(out.toByteArray(), 0, bufferToSend, size.getBytes().length, out.size());
+
+        return bufferToSend;
+//        return out.toByteArray();
     }
 
     private void releaseCamera() {

@@ -22,7 +22,6 @@ public class AudioCall {
     private static final int SAMPLE_SIZE = 2; // Bytes
     private static final int BUF_SIZE = SAMPLE_INTERVAL * SAMPLE_INTERVAL * SAMPLE_SIZE * 2; //Bytes
     private InetAddress address; // Address to call
-    private int port = 50000; // Port the packets are addressed to
     private boolean mic = false; // Enable mic?
     private boolean speakers = false; // Enable speakers?
 
@@ -136,13 +135,13 @@ public class AudioCall {
                             socket.receive(packet);
                             Log.i(LOG_TAG, "Packet received: " + packet.getLength());
                             track.write(packet.getData(), 0, BUF_SIZE);
-                            track.flush();
+//                            track.flush();
                         }
                         // Stop playing back and release resources
                         socket.disconnect();
                         socket.close();
                         track.stop();
-//                        track.flush();
+                        track.flush();
                         track.release();
                         speakers = false;
                         return;
