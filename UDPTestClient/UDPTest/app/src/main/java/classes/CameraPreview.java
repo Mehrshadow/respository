@@ -33,24 +33,22 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         mCamera = camera;
         previewCallback = previewCb;
         parameters = camera.getParameters();
-//        parameters.setPreviewFrameRate(1);
 
-        List<Camera.Size> pictureSizes = parameters.getSupportedPictureSizes();
+        //send frames by maximum rate
+
         List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
 
         int previewWidth, previewHeight;
 
-
-
-         //get the lowest picture and frame sizes available by camera
+        //get the lowest picture and frame sizes available by camera
         if ((previewSizes.get(previewSizes.size() - 1).width) > (previewSizes.get(0)).width) {
-            previewWidth = previewSizes.get(previewSizes.size()/2).width;
-            previewHeight = previewSizes.get(previewSizes.size()/2).height;
+            previewWidth = previewSizes.get(previewSizes.size() / 2).width;
+            previewHeight = previewSizes.get(previewSizes.size() / 2).height;
             parameters.setPreviewSize(previewWidth, previewHeight);
 
         } else {
-            previewWidth = previewSizes.get(previewSizes.size()/2).width;
-            previewHeight = previewSizes.get(previewSizes.size()/2).height;
+            previewWidth = previewSizes.get(previewSizes.size() / 2).width;
+            previewHeight = previewSizes.get(previewSizes.size() / 2).height;
             parameters.setPreviewSize(previewWidth, previewHeight);
         }
 

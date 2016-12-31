@@ -104,13 +104,19 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         }
     }
 
-    private void previewBitmap(final byte[] data) {
+    private void previewBitmap(final byte[] data, final int packetLength) {
 
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
 
-                final Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+                final String receivedValue = new String(data, 0, packetLength);
+                int index = receivedValue.indexOf("]");
+                int bufferSize = Integer.parseInt(receivedValue.substring(0, index));
+                final byte[] bufferToSend = new byte[bufferSize];
+                System.arraycopy(data, index + 1, bufferToSend, 0, bufferSize);
+
+                final Bitmap bitmap = BitmapFactory.decodeByteArray(bufferToSend, 0, bufferToSend.length);
                 if (bitmap == null)
                     return;
 
@@ -575,7 +581,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                 mListenerSocket.receive(packet);
 
                 Logger.d(LOG_TAG, "udpReceived", "buff.size()" + buff.length);
-                previewBitmap(buff);
+                previewBitmap(buff, packet.getLength());
 
             }
             mListenerSocket.disconnect();

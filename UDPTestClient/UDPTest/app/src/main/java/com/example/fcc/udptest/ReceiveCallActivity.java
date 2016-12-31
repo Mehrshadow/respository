@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.Vibrator;
 import android.util.Log;
-import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -25,11 +24,10 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.concurrent.TransferQueue;
 
 import classes.Logger;
 
-public class ReceiveCallActivity extends Activity implements OnClickListener /*,AudioCall.IEndCall*/{
+public class ReceiveCallActivity extends Activity implements OnClickListener /*,AudioCall.IEndCall*/ {
 
     private static final String LOG_TAG = "ReceiveCallActivity";
     private static final int BUF_SIZE = 1024;
@@ -59,7 +57,6 @@ public class ReceiveCallActivity extends Activity implements OnClickListener /*,
         Intent intent = getIntent();
         contactName = intent.getStringExtra(G.EXTRA_C_Name);
         contactIp = intent.getStringExtra(G.EXTRA_C_Ip);
-
 
 
         initView();
@@ -274,22 +271,22 @@ public class ReceiveCallActivity extends Activity implements OnClickListener /*,
 
     }
 
-    private void showToast(final String message){
+    private void showToast(final String message) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(getApplicationContext(),message,Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void startVibrator(){
-        mVibrator = (Vibrator)getSystemService(Context.VIBRATOR_SERVICE);
-        long[] patern = {0,500,1000};
-        mVibrator.vibrate(patern,0);
+    private void startVibrator() {
+        mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        long[] patern = {0, 500, 1000};
+        mVibrator.vibrate(patern, 0);
     }
 
-    private void stopVibrator(){
+    private void stopVibrator() {
         mVibrator.cancel();
     }
 

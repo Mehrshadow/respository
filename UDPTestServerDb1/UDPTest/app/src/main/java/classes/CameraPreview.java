@@ -29,6 +29,13 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         previewCallback = previewCb;
         parameters = camera.getParameters();
 
+        List<int[]> supportedFrameRates = parameters.getSupportedPreviewFpsRange();
+
+//        int minimumFPS = supportedFrameRates.get(supportedFrameRates.size() - 1)[0];
+        int maximumFPS = supportedFrameRates.get(supportedFrameRates.size() - 1)[1];
+
+        parameters.setPreviewFpsRange(maximumFPS, maximumFPS);
+
         List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
 
         int previewWidth, previewHeight;

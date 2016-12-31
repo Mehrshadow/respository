@@ -41,10 +41,9 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
     private RecyclerView rcy_contacts;
     RcyContactsAdapter adapter;
 
-    DatagramSocket callLIstenerSocket;
+    DatagramSocket callListenerSocket;
 
     ContactManager contactManager = new ContactManager();
-    private DatagramSocket brodcaastSocket;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,16 +65,16 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
 
     private void connectCallListenerSocket(){
         try {
-            callLIstenerSocket= new DatagramSocket(G.BROADCAST_PORT);
-            callLIstenerSocket.setSoTimeout(10000);
+            callListenerSocket = new DatagramSocket(G.BROADCAST_PORT);
+            callListenerSocket.setSoTimeout(10000);
         } catch (SocketException e) {
             e.printStackTrace();
         }
     }
 
     private void closeCallListenerSocket(){
-        callLIstenerSocket.disconnect();
-        callLIstenerSocket.close();
+        callListenerSocket.disconnect();
+        callListenerSocket.close();
     }
 
     private void copyToIist() {
@@ -154,7 +153,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
                     // Listen for incoming call requests
                     try {
                         Logger.i("MainActivity", "startCallListener", "Listening for incoming calls");
-                        callLIstenerSocket.receive(packet);
+                        callListenerSocket.receive(packet);
                         String data = new String(buffer, 0, packet.getLength());
                         Logger.i("MainActivity", "startCallListener", "\"Packet received from \" + packet.getAddress() + \" with contents: \" + data");
                         String action = data.substring(0, 9);
