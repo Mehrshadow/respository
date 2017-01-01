@@ -11,7 +11,9 @@ import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.PowerManager;
 import android.os.SystemClock;
 import android.os.Vibrator;
@@ -68,18 +70,20 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     AudioManager audioManager;
     private AudioCall call;
     private Vibrator mVibrator;
+    private MediaPlayer mMediaPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_receive_video_call);
+
         startSockets();
+
         initWakeup();
 
+        initSpeaker();
 
-        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         Log.d(LOG_TAG, "Receive video call created");
-
 
         Intent intent = getIntent();
         displayName = intent.getStringExtra(G.EXTRA_C_Name);
@@ -97,6 +101,16 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         startCameraPreview();
 
     }
+
+    private void initSpeaker(){
+
+        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        audioManager.setMode(AudioManager.MODE_IN_CALL);
+        audioManager.setSpeakerphoneOn(true);
+        mMediaPlayer.setAudioStreamType(AudioManager.STREAM_VOICE_CALL);
+
+    }
+
 
     @Override
     protected void onResume() {
@@ -681,6 +695,55 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
     private void stopVibrator() {
         mVibrator.cancel();
+    }
+
+    private void startPlayingWaitingTone() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mMediaPlayer = MediaPlayer.create(ReceiveVideoCallActivity.this, R.raw.waiting);
+                mMediaPlayer.setLooping(true);
+                mMediaPlayer.start();
+            }
+        });
+    }
+
+    private void startPlayingBusyTone() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                mMediaPlayer = MediaPlayer.create(ReceiveVideoCallActivity.this, R.raw.busy);
+                mMediaPlayer.start();
+
+                CountDownTimer timer = new CountDownTimer(3000, 1000) {
+                    //
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+                    }
+
+                    @Override
+                    public void onFinish() {
+                        stopPlayingTone();
+                    }
+                };
+                timer.start();
+
+            }
+        });
+    }
+
+    private void stopPlayingTone() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                if (mMediaPlayer.isPlaying()) {
+                    mMediaPlayer.stop();
+//                    mMediaPlayer.release();
+                }
+            }
+        });
     }
 
 }

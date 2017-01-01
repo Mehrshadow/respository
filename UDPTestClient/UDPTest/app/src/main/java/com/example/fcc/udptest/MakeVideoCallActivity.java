@@ -9,6 +9,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -64,6 +65,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private boolean receiving = false;
     private AudioCall call;
     private ImageView mImgReceive;
+    private AudioManager mAudioManaget;
 
     private MediaPlayer mediaPlayer;
 
@@ -82,12 +84,14 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         contactIp = intent.getStringExtra(G.EXTRA_C_Ip);
 
         initView();
+        initSpeaker();
 
         openCamera();
         startCameraPreview();
     }
 
     private void initView(){
+
         TextView textView = (TextView) findViewById(R.id.contactName);
         textView.setText("Calling: " + contactName);
 
@@ -97,6 +101,15 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         cameraView = (FrameLayout) findViewById(R.id.cameraView);
         chronometer = (Chronometer) findViewById(R.id.chronometer);
         mImgReceive = (ImageView) findViewById(R.id.img_receive);
+    }
+
+    private void initSpeaker(){
+
+        mAudioManaget = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        mAudioManaget.setMode(AudioManager.MODE_IN_CALL);
+        mAudioManaget.setSpeakerphoneOn(true);
+        mediaPlayer.setAudioStreamType(AudioManager.STREAM_VOICE_CALL);
+
     }
 
     private void startChronometer() {
@@ -556,7 +569,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
             }
         }).start();
     }
-
 
     private void closeSendFrameSocket() {
         try {
