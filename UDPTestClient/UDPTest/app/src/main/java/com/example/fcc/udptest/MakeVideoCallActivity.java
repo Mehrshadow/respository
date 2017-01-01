@@ -9,12 +9,14 @@ import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Chronometer;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -47,6 +49,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private static final int BUF_SIZE = 1024;
     private Camera camera = null;
     private Button buttonEndCall;
+    private Chronometer chronometer;
     private DatagramSocket mSenderSocket;
     private DatagramSocket mListenerSocket;
     private DatagramPacket mVideoPacket;
@@ -61,6 +64,8 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private boolean LISTEN = false;
     private boolean receiving = false;
     private AudioCall call;
+    private ImageView mImgReceive;
+    private AudioManager mAudioManaget;
 
     private MediaPlayer mediaPlayer;
 
@@ -78,6 +83,15 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         contactName = intent.getStringExtra(G.EXTRA_C_Name);
         contactIp = intent.getStringExtra(G.EXTRA_C_Ip);
 
+        initView();
+        initSpeaker();
+
+        openCamera();
+        startCameraPreview();
+    }
+
+    private void initView(){
+
         TextView textView = (TextView) findViewById(R.id.contactName);
         textView.setText("Calling: " + contactName);
 
@@ -85,10 +99,35 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         buttonEndCall.setOnClickListener(this);
 
         cameraView = (FrameLayout) findViewById(R.id.cameraView);
+        chronometer = (Chronometer) findViewById(R.id.chronometer);
+        mImgReceive = (ImageView) findViewById(R.id.img_receive);
+    }
 
-        openCamera();
+    private void initSpeaker(){
 
-        startCameraPreview();
+        mAudioManaget = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        mAudioManaget.setMode(AudioManager.MODE_IN_CALL);
+        mAudioManaget.setSpeakerphoneOn(true);
+        mediaPlayer.setAudioStreamType(AudioManager.STREAM_VOICE_CALL);
+
+    }
+
+    private void startChronometer() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                chronometer.start();
+            }
+        });
+    }
+
+    private void stopChronometer() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                chronometer.stop();
+            }
+        });
     }
 
     private void releaseCamera() {
@@ -99,40 +138,60 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         }
     }
 
-    private Bitmap getBitmap(byte[] data) {
+    private void previewBitmap(final byte[] data, final int packetlength) {
 
-        final Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+        Logger.d(LOG_TAG, "previewBitmap", "Start");
 
-//        Logger.d(LOG_TAG, "getBitmap", "mFrameLength: " + mFrameLength);
-        return bitmap;
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    final String receivedValue = new String(data, 0, packetlength);
+                    int index = receivedValue.indexOf("]");
+                    int bufferSize = Integer.parseInt(receivedValue.substring(0, index));
+                    final byte[] bufferToSend = new byte[bufferSize];
+                    System.arraycopy(data, index + 1, bufferToSend, 0, bufferSize);
+
+                    final Bitmap bitmap = BitmapFactory.decodeByteArray(bufferToSend, 0, bufferToSend.length);
+                    //   final Bitmap resizeBitMap = Bitmap.createScaledBitmap(bitmap, mReceiveFrameWidth, mReceiveFrameHeight, true);
+                    if (bitmap == null) {
+                        return;
+                    }
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mImgReceive.setImageBitmap(bitmap);
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        thread.start();
+
+
+
+
+
     }
 
     private byte[] compressCameraData(byte[] data) {
-
-//        Logger.d(LOG_TAG, "compressCameraData", "actual camera size: " + data.length);
-
         YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mSendFrameWidth, mSendFrameHeight, null);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        yuv.compressToJpeg(new Rect(0, 0, mSendFrameWidth, mSendFrameHeight), 80, out);
-
-//        Logger.d(LOG_TAG, "compressCameraData", "compressed size: " + out.toByteArray().length);
+        yuv.compressToJpeg(new Rect(0, 0, mSendFrameWidth, mSendFrameHeight), 50, out);
 
         mSendFrameBuffSize = out.toByteArray().length;
 
-        return out.toByteArray();
-    }
+        String size = mSendFrameBuffSize + "]";
 
-    private void showBitmap(final Bitmap bitmap) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                ImageView img = (ImageView) findViewById(R.id.img);
-                img.setRotation(-90);
-                img.setImageBitmap(bitmap);
-            }
-        });
+        byte[] bufferToSend = new byte[mSendFrameBuffSize + size.getBytes().length];
 
+        System.arraycopy(size.getBytes(), 0, bufferToSend, 0, size.getBytes().length);
+        System.arraycopy(out.toByteArray(), 0, bufferToSend, size.getBytes().length, out.size());
+
+        return bufferToSend;
     }
 
     @Override
@@ -358,25 +417,8 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         }
     }
 
-    private void sendACC() {
-        Logger.d(LOG_TAG, "sendACC", "Start");
-        InetAddress address;
-        try {
-            String message = "OKK:";
-            address = InetAddress.getByName(contactIp);
-            byte[] data = message.getBytes();
-            DatagramPacket packet = new DatagramPacket(data, data.length, address, G.SENDVIDEO_PORT);
-            mSenderSocket.send(packet);
-            //  udpReceived();
-
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     private void udpFrameListener() {
+        startChronometer();
         receiving = true;
         Logger.d(LOG_TAG, "udpReceived", "Start");
         try {
@@ -386,11 +428,11 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
             DatagramPacket packet = new DatagramPacket(buff, buff.length);
             while (receiving) {
 
-                mListenerSocket.setSoTimeout(2 * 1000);// 5 seconds to receive next frame, else, it will close
+                mListenerSocket.setSoTimeout(5 * 1000);// 5 seconds to receive next frame, else, it will close
                 mListenerSocket.receive(packet);
 
                 Logger.d(LOG_TAG, "udpReceived", "buff.size()" + buff.length);
-                showBitmap(getBitmap(buff));
+                previewBitmap(buff,packet.getLength());
             }
             mListenerSocket.disconnect();
             mListenerSocket.close();
@@ -449,6 +491,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     }
 
     private void endCall() {
+        stopChronometer();
         if (call != null)
             call.endCall();
 
@@ -526,7 +569,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
             }
         }).start();
     }
-
 
     private void closeSendFrameSocket() {
         try {

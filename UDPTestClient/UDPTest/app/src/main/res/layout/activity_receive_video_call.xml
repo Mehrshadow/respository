@@ -20,6 +20,11 @@
         android:layout_margin="8dp"
         android:text="@string/incomingCall"
         android:textAppearance="?android:attr/textAppearanceLarge" />
+    <Chronometer
+        android:layout_gravity="center"
+        android:id="@+id/chronometer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
     <LinearLayout
         android:layout_width="match_parent"

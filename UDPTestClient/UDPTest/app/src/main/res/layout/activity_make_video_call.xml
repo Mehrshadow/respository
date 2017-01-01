@@ -18,6 +18,12 @@
         android:layout_marginBottom="20dp"
         android:textColor="#fff" />
 
+    <Chronometer
+        android:layout_gravity="center"
+        android:id="@+id/chronometer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -29,7 +35,7 @@
             android:scaleType="centerCrop"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/img" />
+            android:id="@+id/img_receive" />
 
         <FrameLayout
             android:layout_width="100dp"
