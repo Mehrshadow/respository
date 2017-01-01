@@ -24,10 +24,19 @@ public class AudioCall {
     private InetAddress address; // Address to call
     private boolean mic = false; // Enable mic?
     private boolean speakers = false; // Enable speakers?
+    private IEndCall iEndCall;
 
     public AudioCall(InetAddress address) {
 
         this.address = address;
+    }
+
+    public interface IEndCall {
+        void endAudioCall();
+    }
+
+    public void setEndCallListener(IEndCall iEndCall) {
+        this.iEndCall = iEndCall;
     }
 
     public void startCall() {
@@ -128,6 +137,7 @@ public class AudioCall {
                     try {
                         // Define a socket to receive the audio
                         DatagramSocket socket = new DatagramSocket(G.CALL_SENDER_PORT);
+                        socket.setSoTimeout(5 * 1000);
                         byte[] buffer = new byte[BUF_SIZE];
                         while (speakers) {
                             // Play back the audio received from packets
@@ -147,9 +157,13 @@ public class AudioCall {
                         return;
                     } catch (SocketException e) {
 
+                        iEndCall.endAudioCall();
+
                         Log.e(LOG_TAG, "SocketException: " + e.toString());
                         speakers = false;
                     } catch (IOException e) {
+
+                        iEndCall.endAudioCall();
 
                         Log.e(LOG_TAG, "IOException: " + e.toString());
                         speakers = false;

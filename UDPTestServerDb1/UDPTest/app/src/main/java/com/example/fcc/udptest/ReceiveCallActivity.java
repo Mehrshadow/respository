@@ -27,7 +27,7 @@ import java.net.UnknownHostException;
 
 import classes.Logger;
 
-public class ReceiveCallActivity extends Activity implements OnClickListener/* ,AudioCall.IEndCall*/ {
+public class ReceiveCallActivity extends Activity implements OnClickListener, AudioCall.IEndCall {
 
     private static final String LOG_TAG = "ReceiveCallActivity";
     private static final int BUF_SIZE = 1024;
@@ -147,7 +147,7 @@ public class ReceiveCallActivity extends Activity implements OnClickListener/* ,
 
                 try {
 
-                    Logger.e(LOG_TAG, "startListener", "Listener started!");
+                    Logger.d(LOG_TAG, "startListener", "Listener started!");
                     DatagramSocket socket = new DatagramSocket(G.BROADCAST_PORT);
                     socket.setSoTimeout(15000);
                     byte[] buffer = new byte[BUF_SIZE];
@@ -156,11 +156,11 @@ public class ReceiveCallActivity extends Activity implements OnClickListener/* ,
                     while (LISTEN) {
                         try {
 
-                            Logger.e(LOG_TAG, "startListener", "Listening for packets");
+                            Logger.d(LOG_TAG, "startListener", "Listening for packets");
 
                             socket.receive(packet);
                             String data = new String(buffer, 0, packet.getLength());
-                            Logger.e(LOG_TAG, "startListener", "Packet received from " + packet.getAddress() + " with contents: " + data);
+                            Logger.d(LOG_TAG, "startListener", "Packet received from " + packet.getAddress() + " with contents: " + data);
 
                             String action = data.substring(0, 4);
                             if (action.equals("END:")) {
@@ -171,7 +171,7 @@ public class ReceiveCallActivity extends Activity implements OnClickListener/* ,
                                 endCall();
                             } else {
                                 // Invalid notification received.
-                                Logger.e(LOG_TAG, "startListener", "Packet received from " + packet.getAddress() + " with contents: " + data);
+                                Logger.d(LOG_TAG, "startListener", "Packet received from " + packet.getAddress() + " with contents: " + data);
 
                             }
                         } catch (IOException e) {
@@ -284,7 +284,7 @@ public class ReceiveCallActivity extends Activity implements OnClickListener/* ,
 
                     call = new AudioCall(address);
                     call.startCall();
-//                    call.setEndCallListener(ReceiveCallActivity.this);
+                    call.setEndCallListener(ReceiveCallActivity.this);
                     // Hide the buttons as they're not longer required
                     Button accept = (Button) findViewById(R.id.buttonAccept);
                     accept.setEnabled(false);
@@ -316,8 +316,8 @@ public class ReceiveCallActivity extends Activity implements OnClickListener/* ,
 
     }
 
-//    @Override
-//    public void endAudioCall() {
-//        endCall();
-//    }
+    @Override
+    public void endAudioCall() {
+        endCall();
+    }
 }
