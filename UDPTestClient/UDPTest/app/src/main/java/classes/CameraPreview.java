@@ -34,26 +34,38 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         previewCallback = previewCb;
         parameters = camera.getParameters();
 
-        //send frames by maximum rate
+        List<int[]> supportedFrameRates = parameters.getSupportedPreviewFpsRange();
+        int minimumFPS = supportedFrameRates.get(supportedFrameRates.size() - 1)[0];
+        int maximumFPS = supportedFrameRates.get(supportedFrameRates.size() - 1)[1];
+
+        // parameters.setPreviewFpsRange(maximumFPS, maximumFPS);
 
         List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
 
         int previewWidth, previewHeight;
 
-        //get the lowest picture and frame sizes available by camera
-        if ((previewSizes.get(previewSizes.size() - 1).width) > (previewSizes.get(0)).width) {
-            previewWidth = previewSizes.get(previewSizes.size() / 2).width;
-            previewHeight = previewSizes.get(previewSizes.size() / 2).height;
+        // get the lowest frame size available by camera
+        if ((previewSizes.get(previewSizes.size() - 1).width) < (previewSizes.get(0)).width) {
+
+//            previewWidth = previewSizes.get(0).width;
+//            previewHeight = previewSizes.get(0).height;
+
+            previewWidth = previewSizes.get(previewSizes.size()/2).width;
+            previewHeight = previewSizes.get(previewSizes.size()/2).height;
+
             parameters.setPreviewSize(previewWidth, previewHeight);
 
         } else {
-            previewWidth = previewSizes.get(previewSizes.size() / 2).width;
-            previewHeight = previewSizes.get(previewSizes.size() / 2).height;
+
+//            previewWidth = previewSizes.get(previewSizes.size() - 2).width;
+//            previewHeight = previewSizes.get(previewSizes.size() - 2).height;
+
+            previewWidth = previewSizes.get(previewSizes.size()/2).width;
+            previewHeight = previewSizes.get(previewSizes.size()/2).height;
+
             parameters.setPreviewSize(previewWidth, previewHeight);
         }
 
-//        parameters.setPreviewSize(previewWidth, previewHeight);
-//        parameters.setPictureSize(pictureWidth, pictureHeight);
         camera.setParameters(parameters);
 
         mHolder = getHolder();
@@ -99,7 +111,6 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         try {
             // Hard code camera surface rotation 90 degs to match Activity view in portrait
             mCamera.setDisplayOrientation(90);
-
             mCamera.setPreviewDisplay(mHolder);
             mCamera.setPreviewCallback(previewCallback);
             mCamera.startPreview();

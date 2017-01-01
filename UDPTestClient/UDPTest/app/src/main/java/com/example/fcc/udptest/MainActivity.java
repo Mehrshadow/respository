@@ -473,7 +473,7 @@ public class MainActivity extends Activity implements OnClickListener, DialogInt
         Intent i = new Intent(MainActivity.this, MakeVideoCallActivity.class);
         i.putExtra(G.EXTRA_C_Name, C_Name);
         i.putExtra(G.EXTRA_C_Ip, C_Ip.toString().substring(1));
-        i.putExtra(G.EXTRA_DISPLAYNAME, "SERVER");
+        i.putExtra(G.EXTRA_DISPLAYNAME, C_Name);
         startActivity(i);
     }
 

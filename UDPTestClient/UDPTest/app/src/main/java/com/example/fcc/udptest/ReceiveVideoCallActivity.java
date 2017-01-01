@@ -13,12 +13,14 @@ import android.hardware.Camera;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.os.SystemClock;
 import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.Chronometer;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -49,6 +51,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     private boolean LISTEN = false;
     private Button accept, reject, endCall;
     private ImageView mImgReceive;
+    private Chronometer chronometer;
     private int BUF_SIZE = 1024;
     DatagramSocket mReceiveSocket;
     DatagramSocket mSendSocket;
@@ -113,6 +116,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
     private void initView() {
 
+        chronometer = (Chronometer) findViewById(R.id.chronometer);
+        stopChronometer();
         accept = (Button) findViewById(R.id.buttonAccept);
         reject = (Button) findViewById(R.id.buttonReject);
         endCall = (Button) findViewById(R.id.buttonEndCall);
@@ -126,6 +131,25 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
         cameraView = (FrameLayout) findViewById(R.id.cameraView);
 
+    }
+
+    private void startChronometer() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+              //  chronometer.setBase(SystemClock.elapsedRealtime());
+                chronometer.start();
+            }
+        });
+    }
+
+    private void stopChronometer() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                chronometer.stop();
+            }
+        });
     }
 
     private void initWakeup() {
@@ -322,6 +346,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
     private void endCall() {
 
+        stopChronometer();
+
         showToast(getString(R.string.call_ended));
 
         stopVibrator();
@@ -365,9 +391,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                 //call = new AudioCall(address);
                 // call.startCall();
                 //\\\\\\\\\\
-
-
-
 
                /* introReceveid = true;
 
@@ -484,49 +507,51 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
     private byte[] compressCameraData(byte[] data) {
 
-
-        Logger.d(LOG_TAG, "compressCameraData", "actual camera size: " + data.length);
-
         YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), mSendFrameWidth, mSendFrameHeight, null);
-        Logger.d(LOG_TAG, "compressCameraData0", "mSendFrameWidth, mSendFrameHeight: " + mSendFrameWidth + " " + mSendFrameHeight);
-        Logger.d(LOG_TAG, "compressCameraData0", "mSendFrameBuffSize" + mSendFrameBuffSize);
-        Logger.d(LOG_TAG, "compressCameraData0", "Camera " + data.length);
-
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        yuv.compressToJpeg(new Rect(0, 0, mSendFrameWidth, mSendFrameHeight), 100, out);
-
-
-        Logger.d(LOG_TAG, "compressCameraData", "compressed size: " + out.toByteArray().length);
+        yuv.compressToJpeg(new Rect(0, 0, mSendFrameWidth, mSendFrameHeight), 50, out);
 
         mSendFrameBuffSize = out.toByteArray().length;
-        return out.toByteArray();
+
+        String size = mSendFrameBuffSize + "]";
+
+        byte[] bufferToSend = new byte[mSendFrameBuffSize + size.getBytes().length];
+
+        System.arraycopy(size.getBytes(), 0, bufferToSend, 0, size.getBytes().length);
+        System.arraycopy(out.toByteArray(), 0, bufferToSend, size.getBytes().length, out.size());
+
+        return bufferToSend;
     }
 
-    private void previewBitmap(final byte[] data, int packetlength) {
-
-        final String receivedValue = new String(data, 0, packetlength);
-        int index = receivedValue.indexOf("]");
-        int buferSize = Integer.parseInt(receivedValue.substring(0, index));
-        final byte[] bufferToSend = new byte[buferSize];
-        System.arraycopy(data, index + 1, bufferToSend, 0, buferSize);
-
+    private void previewBitmap(final byte[] data, final int packetlength) {
 
         Logger.d(LOG_TAG, "previewBitmap", "Start");
+
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                final Bitmap bitmap = BitmapFactory.decodeByteArray(bufferToSend, 0, bufferToSend.length);
-                //   final Bitmap resizeBitMap = Bitmap.createScaledBitmap(bitmap, mReceiveFrameWidth, mReceiveFrameHeight, true);
-                if (bitmap == null) {
-                    return;
-                }
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mImgReceive.setImageBitmap(bitmap);
+                try {
+                    final String receivedValue = new String(data, 0, packetlength);
+                    int index = receivedValue.indexOf("]");
+                    int bufferSize = Integer.parseInt(receivedValue.substring(0, index));
+                    final byte[] bufferToSend = new byte[bufferSize];
+                    System.arraycopy(data, index + 1, bufferToSend, 0, bufferSize);
+
+                    final Bitmap bitmap = BitmapFactory.decodeByteArray(bufferToSend, 0, bufferToSend.length);
+                    //   final Bitmap resizeBitMap = Bitmap.createScaledBitmap(bitmap, mReceiveFrameWidth, mReceiveFrameHeight, true);
+                    if (bitmap == null) {
+                        return;
                     }
-                });
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mImgReceive.setImageBitmap(bitmap);
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
         thread.start();
@@ -535,6 +560,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     }
 
     private void udpFrameListener() {
+        startChronometer();
         receiving = true;
         Logger.d(LOG_TAG, "udpFrameListener", "Start");
         Logger.d(LOG_TAG, "udpFrameListener", " Thread Start");
@@ -545,7 +571,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
             DatagramPacket packet = new DatagramPacket(buff, buff.length);
 
 
-            mReceiveSocket.setSoTimeout(2 * 1000);// 5 seconds to receive next frame, else, it will close
+            mReceiveSocket.setSoTimeout(5 * 1000);// 5 seconds to receive next frame, else, it will close
 
 
             while (receiving) {
