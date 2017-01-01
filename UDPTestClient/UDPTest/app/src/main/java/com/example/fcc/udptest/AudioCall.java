@@ -26,9 +26,19 @@ public class AudioCall {
     private boolean mic = false; // Enable mic?
     private boolean speakers = false; // Enable speakers?
 
+    private IEndCall iEndCall;
+
     public AudioCall(InetAddress address) {
 
         this.address = address;
+    }
+
+    public interface IEndCall {
+        void endAudioCall();
+    }
+
+    public void setEndCallListener(IEndCall iEndCall) {
+        this.iEndCall = iEndCall;
     }
 
     public void startCall() {
@@ -152,11 +162,14 @@ public class AudioCall {
                         return;
                     }
                     catch(SocketException e) {
+                        iEndCall.endAudioCall();
 
                         Log.e(LOG_TAG, "SocketException: " + e.toString());
                         speakers = false;
                     }
                     catch(IOException e) {
+
+                        iEndCall.endAudioCall();
 
                         Log.e(LOG_TAG, "IOException: " + e.toString());
                         speakers = false;
