@@ -9,7 +9,9 @@ import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
+import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.PowerManager;
 import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
@@ -36,7 +38,7 @@ import java.net.UnknownHostException;
 import classes.CameraPreview;
 import classes.Logger;
 
-public class ReceiveVideoCallActivity extends AppCompatActivity implements View.OnClickListener {
+public class ReceiveVideoCallActivity extends AppCompatActivity implements View.OnClickListener, AudioCall.IEndCall {
 
     private final static String LOG_TAG = "ReceiveVideoCall";
     private String contactIp;
@@ -63,6 +65,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     private AudioCall audioCall;
     private Vibrator vibrator;
     private Chronometer mChronometer;
+    private MediaPlayer mediaPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -151,6 +154,44 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
             @Override
             public void run() {
                 mChronometer.stop();
+            }
+        });
+    }
+
+    private void startPlayingBusyTone() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                mediaPlayer = MediaPlayer.create(ReceiveVideoCallActivity.this, R.raw.busy);
+                mediaPlayer.start();
+
+                CountDownTimer timer = new CountDownTimer(3000, 1000) {
+                    //
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+                    }
+
+                    @Override
+                    public void onFinish() {
+                        stopPlayingTone();
+                    }
+                };
+                timer.start();
+
+            }
+        });
+    }
+
+    private void stopPlayingTone() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                if (mediaPlayer.isPlaying()) {
+                    mediaPlayer.stop();
+//                    mediaPlayer.release();
+                }
             }
         });
     }
@@ -291,6 +332,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
                             audioCall = new AudioCall(address);
                             audioCall.startCall();
+                            audioCall.setEndCallListener(ReceiveVideoCallActivity.this);
 
                             udpFrameListener();
 
@@ -355,7 +397,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         Log.d(LOG_TAG, "end call");
 
         cancelVibrate();
-
+        startPlayingBusyTone();
         stopChronometer();
 
         // Ends the chat sessions
@@ -658,6 +700,11 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                 Toast.makeText(ReceiveVideoCallActivity.this, message, Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    @Override
+    public void endAudioCall() {
+//        endCall();
     }
 }
 

@@ -29,4 +29,5 @@
     <string name="call_rejected">Call rejected</string>
     <string name="call_ended">Call ended</string>
     <string name="cameraOpenFailure">cannot open the camera, exiting application</string>
+    <string name="audio_receive_failure_endingcall">No audio received. Ending call...</string>
 </resources>

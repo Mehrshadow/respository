@@ -266,7 +266,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
 
                     mAudioManager.setMode(AudioManager.MODE_IN_CALL);
                     mAudioManager.setSpeakerphoneOn(true);
-                    mediaPlayer.setAudioStreamType(AudioManager.STREAM_VOICE_CALL);
+//                    mediaPlayer.setAudioStreamType(AudioManager.STREAM_VOICE_CALL);
 
                 } else {
                     mAudioManager.setMode(AudioManager.MODE_IN_CALL);

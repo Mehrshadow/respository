@@ -36,7 +36,6 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
     private boolean Refreshing = true;
     private boolean SERVER_RUNNING = true;
     private boolean LISTEN = false;
-    private boolean LISTEN_Video = true;
     private RelativeLayout progressLayout;
     private RecyclerView rcy_contacts;
     RcyContactsAdapter adapter;

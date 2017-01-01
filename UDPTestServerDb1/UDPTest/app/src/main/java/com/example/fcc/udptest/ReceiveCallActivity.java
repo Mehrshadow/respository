@@ -5,7 +5,9 @@ import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.PowerManager;
 import android.os.Vibrator;
 import android.util.Log;
@@ -45,6 +47,7 @@ public class ReceiveCallActivity extends Activity implements OnClickListener, Au
     private TextView txtIncomingCall;
     private AudioManager m_amAudioManager;
     private Vibrator vibrator;
+    private MediaPlayer mediaPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,6 +136,7 @@ public class ReceiveCallActivity extends Activity implements OnClickListener, Au
         sendMessage("END:");
 
         cancelVibrate();
+        startPlayingBusyTone();
 
         finish();
     }
@@ -256,6 +260,44 @@ public class ReceiveCallActivity extends Activity implements OnClickListener, Au
 
     private void cancelVibrate() {
         vibrator.cancel();
+    }
+
+    private void startPlayingBusyTone() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                mediaPlayer = MediaPlayer.create(ReceiveCallActivity.this, R.raw.busy);
+                mediaPlayer.start();
+
+                CountDownTimer timer = new CountDownTimer(3000, 1000) {
+                    //
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+                    }
+
+                    @Override
+                    public void onFinish() {
+                        stopPlayingTone();
+                    }
+                };
+                timer.start();
+
+            }
+        });
+    }
+
+    private void stopPlayingTone() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                if (mediaPlayer.isPlaying()) {
+                    mediaPlayer.stop();
+//                    mediaPlayer.release();
+                }
+            }
+        });
     }
 
     @Override

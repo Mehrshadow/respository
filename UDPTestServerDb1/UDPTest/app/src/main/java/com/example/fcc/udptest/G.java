@@ -38,8 +38,6 @@ public class G extends Application {
     public final static String EXTRA_C_Name = "CNAME";
     public final static String EXTRA_C_Ip = "CIP";
     public final static String EXTRA_DISPLAYNAME = "DISPNAME";
-    public final static String EXTRA_CONTACT = "CONTACT";
-    public final static String EXTRA_IP = "IP";
 
     public static RealmConfiguration myConfig = new RealmConfiguration.Builder()
             .name("Contacts")

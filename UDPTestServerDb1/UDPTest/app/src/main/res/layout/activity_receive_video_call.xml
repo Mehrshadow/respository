@@ -43,8 +43,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:adjustViewBounds="true"
-                android:rotation="90"
                 android:scaleType="centerCrop"
+                android:rotation="-90"
                 app:srcCompat="@drawable/background_oncall" />
 
             <FrameLayout

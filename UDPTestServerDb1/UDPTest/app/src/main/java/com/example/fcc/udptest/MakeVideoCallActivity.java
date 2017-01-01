@@ -37,7 +37,7 @@ import java.net.UnknownHostException;
 import classes.CameraPreview;
 import classes.Logger;
 
-public class MakeVideoCallActivity extends Activity implements View.OnClickListener {
+public class MakeVideoCallActivity extends Activity implements View.OnClickListener, AudioCall.IEndCall {
 
     private static final String LOG_TAG = "MakeVideoCall";
 
@@ -89,6 +89,8 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         img = (ImageView) findViewById(R.id.img);
         mChronometer = (Chronometer) findViewById(R.id.chronometer);
 
+        startPlayingWaitingTone();
+
         initSpeaker();
 
         Button buttonEndCall = (Button) findViewById(R.id.buttonEndCall);
@@ -107,7 +109,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         mAudioManager.setMode(AudioManager.MODE_IN_CALL);
         mAudioManager.setSpeakerphoneOn(true);
-        mediaPlayer.setAudioStreamType(AudioManager.STREAM_VOICE_CALL);
     }
 
     private void releaseCamera() {
@@ -341,7 +342,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         // Create listener thread
         LISTEN = true;
 
-        startPlayingWaitingTone();
 
         Thread listenThread = new Thread(new Runnable() {
 
@@ -380,15 +380,11 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
                         } else if (action.equals("REJ:")) {
 
-                            stopPlayingTone();
-
                             showToast(getString(R.string.call_rejected));
                             // Reject notification received. End call
                             Log.d(LOG_TAG, "Ending call...");
                             endCall();
                         } else if (action.equals("END:")) {
-
-                            stopPlayingTone();
 
                             showToast(getString(R.string.call_ended));
                             Log.d(LOG_TAG, "Ending call...");
@@ -404,15 +400,11 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
                         Log.i(LOG_TAG, "No reply from contact. Ending call");
 
-                        stopPlayingTone();
-
                         endCall();
 
                     } catch (IOException e) {
                         Log.e(LOG_TAG, e.toString());
                         e.printStackTrace();
-
-                        stopPlayingTone();
 
                         endCall();
                     }
@@ -656,6 +648,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
                 audioCall = new AudioCall(address);
                 audioCall.startCall();
+                audioCall.setEndCallListener(MakeVideoCallActivity.this);
 
                 Logger.d(LOG_TAG, "introListener", "OK Sent");
             } else {
@@ -730,7 +723,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
             if (shouldSendVideo) {
 
-
                 sendFrameDataUDP();
             }
         }
@@ -748,6 +740,11 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         endCall();
+    }
+
+    @Override
+    public void endAudioCall() {
+
     }
 }
 
