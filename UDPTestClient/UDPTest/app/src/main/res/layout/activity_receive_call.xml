@@ -19,6 +19,12 @@
         android:text="@string/incomingCall"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:layout_margin="8dp" />
+    <Chronometer
+        android:textSize="30dp"
+        android:layout_gravity="center"
+        android:id="@+id/chronometer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
 
     <LinearLayout
@@ -35,7 +41,9 @@
         android:id="@+id/tgl_speaker"
         android:layout_margin="8dp"
         android:background="@drawable/toggle_background"
-        android:layout_gravity="center" />
+        android:layout_gravity="center"
+        android:textOff="@null"
+        android:textOn="@null" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -47,7 +55,7 @@
         <Button
             android:id="@+id/buttonAccept"
             android:background="@drawable/call_accept"
-            android:layout_margin="8dp"
+            android:layout_margin="20dp"
             android:layout_width="80dp"
             android:layout_height="80dp" />
 
@@ -58,7 +66,7 @@
 
         <Button
             android:id="@+id/buttonReject"
-            android:layout_margin="8dp"
+            android:layout_margin="20dp"
             android:background="@drawable/call_reject"
             android:layout_width="80dp"
             android:layout_height="80dp"

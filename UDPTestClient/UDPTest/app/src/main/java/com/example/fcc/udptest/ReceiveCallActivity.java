@@ -8,12 +8,18 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
 import android.os.PowerManager;
 import android.os.Vibrator;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
+import android.view.animation.RotateAnimation;
+import android.view.animation.ScaleAnimation;
 import android.widget.Button;
+import android.widget.Chronometer;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -29,7 +35,7 @@ import java.net.UnknownHostException;
 
 import classes.Logger;
 
-public class ReceiveCallActivity extends Activity implements OnClickListener ,AudioCall.IEndCall {
+public class ReceiveCallActivity extends Activity implements OnClickListener, AudioCall.IEndCall {
 
     private static final String LOG_TAG = "ReceiveCallActivity";
     private static final int BUF_SIZE = 1024;
@@ -47,6 +53,7 @@ public class ReceiveCallActivity extends Activity implements OnClickListener ,Au
     private TextView txtIncomingCall;
     private Vibrator mVibrator;
     private MediaPlayer mMediaPlayer;
+    private Chronometer chronometer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,8 +75,47 @@ public class ReceiveCallActivity extends Activity implements OnClickListener ,Au
 
     }
 
+    private void startShakeByViewAnim(View view, float scaleSmall, float scaleLarge, float shakeDegrees, long duration) {
+        if (view == null) {
+            return;
+        }
+
+        Animation scaleAnim = new ScaleAnimation(scaleSmall, scaleLarge, scaleSmall, scaleLarge);
+        final Animation scaleAnim2 = new ScaleAnimation(scaleSmall, 1 / scaleLarge, scaleSmall, 1 / scaleLarge);
+        Animation rotateAnim = new RotateAnimation(-shakeDegrees, shakeDegrees, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+
+        scaleAnim.setDuration(duration);
+        scaleAnim.setRepeatMode(Animation.REVERSE);
+        scaleAnim.setRepeatCount(Animation.INFINITE);
+
+        scaleAnim2.setDuration(duration);
+        scaleAnim2.setRepeatMode(Animation.REVERSE);
+        scaleAnim2.setRepeatCount(Animation.INFINITE);
+
+
+        rotateAnim.setDuration(duration / 10);
+        rotateAnim.setRepeatMode(Animation.REVERSE);
+        rotateAnim.setRepeatCount(Animation.INFINITE);
+
+        final AnimationSet smallAnimationSet = new AnimationSet(false);
+        smallAnimationSet.addAnimation(scaleAnim);
+        smallAnimationSet.addAnimation(rotateAnim);
+
+
+        view.startAnimation(smallAnimationSet);
+
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                smallAnimationSet.addAnimation(scaleAnim2);
+            }
+        }, 500);
+    }
+
     private void initView() {
-        startVibrator();
+
+        chronometer = (Chronometer) findViewById(R.id.chronometer);
         Tgl_Speaker = (ToggleButton) findViewById(R.id.tgl_speaker);
         Tgl_Speaker.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -107,6 +153,27 @@ public class ReceiveCallActivity extends Activity implements OnClickListener ,Au
 
         // END BUTTON
         endButton.setOnClickListener(this);
+        startVibrator();
+        startShakeByViewAnim(acceptButton, 1, 1.2f, 10, 500);
+    }
+
+    private void startChronometer() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                //  chronometer.setBase(SystemClock.elapsedRealtime());
+                chronometer.start();
+            }
+        });
+    }
+
+    private void stopChronometer() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                chronometer.stop();
+            }
+        });
     }
 
     private void initWakeup() {
@@ -120,6 +187,7 @@ public class ReceiveCallActivity extends Activity implements OnClickListener ,Au
     }
 
     private void endCall() {
+        stopChronometer();
         startPlayingBusyTone();
 
         stopVibrator();
@@ -233,6 +301,8 @@ public class ReceiveCallActivity extends Activity implements OnClickListener ,Au
 
             case R.id.buttonAccept:
                 try {
+
+                    startChronometer();
                     stopVibrator();
                     mLinearLayout.setVisibility(View.INVISIBLE);
                     // Accepting call. Send a notification and start the call

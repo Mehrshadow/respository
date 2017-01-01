@@ -21,6 +21,7 @@
         android:text="@string/incomingCall"
         android:textAppearance="?android:attr/textAppearanceLarge" />
     <Chronometer
+        android:textSize="30dp"
         android:layout_gravity="center"
         android:id="@+id/chronometer"
         android:layout_width="match_parent"
@@ -37,7 +38,7 @@
             android:layout_height="match_parent">
 
             <ImageView
-                android:rotation="90"
+                android:rotation="-90"
                 android:adjustViewBounds="true"
                 android:id="@+id/img_receive"
                 android:layout_width="match_parent"
@@ -69,7 +70,7 @@
             android:id="@+id/buttonAccept"
             android:layout_width="80dp"
             android:layout_height="80dp"
-            android:layout_margin="8dp"
+            android:layout_margin="20dp"
             android:background="@drawable/call_accept" />
 
         <LinearLayout
@@ -81,7 +82,7 @@
             android:id="@+id/buttonReject"
             android:layout_width="80dp"
             android:layout_height="80dp"
-            android:layout_margin="8dp"
+            android:layout_margin="20dp"
             android:layout_marginRight="24dp"
             android:background="@drawable/call_reject" />
 

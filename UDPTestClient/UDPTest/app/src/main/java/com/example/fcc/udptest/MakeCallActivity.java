@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.Chronometer;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,6 +39,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
     private boolean LISTEN = true;
     private AudioCall call;
     private Button endButton;
+    private Chronometer chronometer;
 
     private MediaPlayer mediaPlayer;
 
@@ -68,6 +70,8 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         endButton = (Button) findViewById(R.id.buttonEndCall);
         endButton.setOnClickListener(this);
 
+        chronometer = (Chronometer) findViewById(R.id.chronometer);
+
 
         startListener();
         makeCall();
@@ -79,6 +83,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
     }
 
     private void endCall() {
+        stopChronometer();
         stopPlayingTone();
         startPlayingBusyTone();
         // Ends the chat sessions
@@ -119,7 +124,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                             Log.i(LOG_TAG, "Packet received from " + packet.getAddress() + " with contents: " + data);
                             String action = data.substring(0, 4);
                             if (action.equals("ACC:")) {
-
+                                startChronometer();
                                 stopPlayingTone();
                                 showToast(getString(R.string.call_accepted));
                                 // Accept notification received. Start call
@@ -170,6 +175,26 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         // Ends the listener thread
         LISTEN = false;
     }
+
+    private void startChronometer() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                //  chronometer.setBase(SystemClock.elapsedRealtime());
+                chronometer.start();
+            }
+        });
+    }
+
+    private void stopChronometer() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                chronometer.stop();
+            }
+        });
+    }
+
 
     private void sendMessage(final String message, final int port) {
         // Creates a thread used for sending notifications
