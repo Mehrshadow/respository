@@ -152,7 +152,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
                 while (LISTEN) {
                     // Listen for incoming call requests
                     try {
-                        Logger.i("MainActivity", "startCallListener", "Listening for incoming calls");
+//                        Logger.i("MainActivity", "startCallListener", "Listening for incoming calls");
                         callListenerSocket.receive(packet);
                         String data = new String(buffer, 0, packet.getLength());
                         Logger.i("MainActivity", "startCallListener", "\"Packet received from \" + packet.getAddress() + \" with contents: \" + data");

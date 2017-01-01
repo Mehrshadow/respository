@@ -25,7 +25,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
-public class MakeCallActivity extends Activity implements CompoundButton.OnCheckedChangeListener, OnClickListener/*,AudioCall.IEndCall */ {
+public class MakeCallActivity extends Activity implements CompoundButton.OnCheckedChangeListener, OnClickListener, AudioCall.IEndCall {
 
     private static final String LOG_TAG = "MakeCall";
     private static final int BUF_SIZE = 1024;
@@ -35,7 +35,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
     private boolean LISTEN = true;
     private AudioCall call;
     private Button endButton;
-    private AudioManager m_amAudioManager;
+    private AudioManager mAudioManager;
     private MediaPlayer mediaPlayer;
 
     @Override
@@ -59,9 +59,9 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         endButton = (Button) findViewById(R.id.buttonEndCall);
         endButton.setOnClickListener(this);
 
-        m_amAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
-        m_amAudioManager.setSpeakerphoneOn(false);
+        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        mAudioManager.setMode(AudioManager.MODE_IN_CALL);
+        mAudioManager.setSpeakerphoneOn(false);
 
         startListener();
         makeCall();
@@ -75,6 +75,10 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
 
     private void endCall() {
         // Ends the chat sessions
+
+        stopPlayingTone();
+        startPlayingBusyTone();
+
         stopListener();
         if (G.IN_CALL) {
 
@@ -109,10 +113,10 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
 
                         try {
 
-                            Log.i(LOG_TAG, "Listening for packets");
+                            Log.d(LOG_TAG, "Listening for packets");
                             listenerSocket.receive(packet);
                             String data = new String(buffer, 0, packet.getLength());
-                            Log.i(LOG_TAG, "Packet received from " + packet.getAddress() + " with contents: " + data);
+                            Log.d(LOG_TAG, "Packet received from " + packet.getAddress() + " with contents: " + data);
                             String action = data.substring(0, 4);
                             if (action.equals("ACC:")) {
 
@@ -123,20 +127,16 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                                 // Accept notification received. Start call
                                 call = new AudioCall(packet.getAddress());
                                 call.startCall();
-//                                call.setEndCallListener(MakeCallActivity.this);
+
+                                call.setEndCallListener(MakeCallActivity.this);
+
                                 G.IN_CALL = true;
                             } else if (action.equals("REJ:")) {
-
-                                stopPlayingTone();
-                                startPlayingBusyTone();
 
                                 showToast(getString(R.string.call_rejected));
                                 // Reject notification received. End call
                                 endCall();
                             } else if (action.equals("END:")) {
-
-                                stopPlayingTone();
-                                startPlayingBusyTone();
 
                                 showToast(getString(R.string.call_ended));
                                 // End call notification received. End call
@@ -150,9 +150,6 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
 
                                 Log.i(LOG_TAG, "No reply from contact. Ending call");
                                 endCall();
-
-                                stopPlayingTone();
-                                startPlayingBusyTone();
                             }
                         } catch (IOException e) {
 
@@ -267,13 +264,13 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                 Log.d(LOG_TAG, "IN CALL: " + G.IN_CALL);
                 if (isChecked) {
 
-                    m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
-                    m_amAudioManager.setSpeakerphoneOn(true);
+                    mAudioManager.setMode(AudioManager.MODE_IN_CALL);
+                    mAudioManager.setSpeakerphoneOn(true);
                     mediaPlayer.setAudioStreamType(AudioManager.STREAM_VOICE_CALL);
 
                 } else {
-                    m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
-                    m_amAudioManager.setSpeakerphoneOn(false);
+                    mAudioManager.setMode(AudioManager.MODE_IN_CALL);
+                    mAudioManager.setSpeakerphoneOn(false);
                 }
             }
         }).start();
@@ -294,8 +291,8 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         endCall();
     }
 
-//    @Override
-//    public void endAudioCall() {
-//        endCall();
-//    }
+    @Override
+    public void endAudioCall() {
+        endCall();
+    }
 }
