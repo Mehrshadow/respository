@@ -44,7 +44,7 @@ import java.net.UnknownHostException;
 import classes.CameraPreview;
 import classes.Logger;
 
-public class ReceiveVideoCallActivity extends AppCompatActivity implements View.OnClickListener {
+public class ReceiveVideoCallActivity extends AppCompatActivity implements View.OnClickListener,AudioCall.IEndCall {
 
     private final static String LOG_TAG = "ReceiveVideoCall";
     private String contactIp;
@@ -78,6 +78,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         setContentView(R.layout.activity_receive_video_call);
 
         startSockets();
+
+
 
         initWakeup();
 
@@ -296,6 +298,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                             shouldSendVideo = true;
 
                             call = new AudioCall(address);
+                            call.setEndCallListener(ReceiveVideoCallActivity.this);
                             call.startCall();
                             //previewBitmap(buffer);
                             Logger.d("ReceiveVideoCallActivity", "startListener", packet.getAddress() + " sent invalid message: " + data);
@@ -746,6 +749,10 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         });
     }
 
+    @Override
+    public void endAudioCall() {
+        endCall();
+    }
 }
 
 

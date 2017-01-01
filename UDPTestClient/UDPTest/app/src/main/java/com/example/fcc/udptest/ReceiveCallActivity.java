@@ -27,7 +27,7 @@ import java.net.UnknownHostException;
 
 import classes.Logger;
 
-public class ReceiveCallActivity extends Activity implements OnClickListener /*,AudioCall.IEndCall*/ {
+public class ReceiveCallActivity extends Activity implements OnClickListener ,AudioCall.IEndCall {
 
     private static final String LOG_TAG = "ReceiveCallActivity";
     private static final int BUF_SIZE = 1024;
@@ -239,6 +239,8 @@ public class ReceiveCallActivity extends Activity implements OnClickListener /*,
 
                     call = new AudioCall(address);
                     call.startCall();
+                    call.setEndCallListener(ReceiveCallActivity.this);
+
                     //call.setEndCallListener(ReceiveCallActivity.this);
                     // Hide the buttons as they're not longer required
                     Button accept = (Button) findViewById(R.id.buttonAccept);
@@ -290,8 +292,8 @@ public class ReceiveCallActivity extends Activity implements OnClickListener /*,
         mVibrator.cancel();
     }
 
-  /*  @Override
+    @Override
     public void endAudioCall() {
         endCall();
-    }*/
+    }
 }

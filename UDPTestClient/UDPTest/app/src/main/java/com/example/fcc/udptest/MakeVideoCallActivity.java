@@ -39,7 +39,7 @@ import java.net.UnknownHostException;
 import classes.CameraPreview;
 import classes.Logger;
 
-public class MakeVideoCallActivity extends Activity implements View.OnClickListener {
+public class MakeVideoCallActivity extends Activity implements View.OnClickListener ,AudioCall.IEndCall {
 
     private static final String LOG_TAG = "MakeVideoCall";
 
@@ -70,11 +70,13 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private MediaPlayer mediaPlayer;
 
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_make_video_call);
         startPlayingWaitingTone();
+
 
         Log.d(LOG_TAG, "Make video call started");
 
@@ -90,7 +92,10 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         startCameraPreview();
     }
 
-    private void initView(){
+
+
+
+    private void initView() {
 
         TextView textView = (TextView) findViewById(R.id.contactName);
         textView.setText("Calling: " + contactName);
@@ -103,7 +108,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         mImgReceive = (ImageView) findViewById(R.id.img_receive);
     }
 
-    private void initSpeaker(){
+    private void initSpeaker() {
 
         mAudioManaget = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         mAudioManaget.setMode(AudioManager.MODE_IN_CALL);
@@ -171,9 +176,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         thread.start();
 
 
-
-
-
     }
 
     private byte[] compressCameraData(byte[] data) {
@@ -223,7 +225,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         stopSendingFrames();
     }
 
-    private  Camera getCameraInstance() {
+    private Camera getCameraInstance() {
         Camera c = null;
 
         try {
@@ -405,7 +407,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                 shouldSendVideo = true;
                 call = new AudioCall(address);
                 call.startCall();
-
+                call.setEndCallListener(this);
                 Logger.d(LOG_TAG, "introListener", "mIsFrameReceived is true Sent ACC");
             } else {
                 //finish();
@@ -432,7 +434,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                 mListenerSocket.receive(packet);
 
                 Logger.d(LOG_TAG, "udpReceived", "buff.size()" + buff.length);
-                previewBitmap(buff,packet.getLength());
+                previewBitmap(buff, packet.getLength());
             }
             mListenerSocket.disconnect();
             mListenerSocket.close();
@@ -688,11 +690,11 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         endCall();
     }
 
-    private void showToast(final String message){
+    private void showToast(final String message) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(getApplicationContext(),message,Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -746,7 +748,9 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         });
     }
 
-
-
+    @Override
+    public void endAudioCall() {
+        endCall();
+    }
 }
 

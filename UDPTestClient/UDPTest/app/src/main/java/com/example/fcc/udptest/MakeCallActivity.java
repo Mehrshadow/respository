@@ -1,7 +1,6 @@
 package com.example.fcc.udptest;
 
 
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -29,7 +28,7 @@ import java.net.UnknownHostException;
 
 import classes.Logger;
 
-public class MakeCallActivity extends Activity implements CompoundButton.OnCheckedChangeListener, OnClickListener/*,AudioCall.IEndCall*/ {
+public class MakeCallActivity extends Activity implements CompoundButton.OnCheckedChangeListener, OnClickListener, AudioCall.IEndCall {
 
     private static final String LOG_TAG = "MakeCall";
     private static final int BUF_SIZE = 1024;
@@ -80,6 +79,8 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
     }
 
     private void endCall() {
+        stopPlayingTone();
+        startPlayingBusyTone();
         // Ends the chat sessions
         stopListener();
         if (G.IN_CALL) {
@@ -124,23 +125,15 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                                 // Accept notification received. Start call
                                 call = new AudioCall(packet.getAddress());
                                 call.startCall();
-                              //  call.setEndCallListener(MakeCallActivity.this);
+                                call.setEndCallListener(MakeCallActivity.this);
+                                //  call.setEndCallListener(MakeCallActivity.this);
                                 G.IN_CALL = true;
                             } else if (action.equals("REJ:")) {
-
-                                stopPlayingTone();
-                                startPlayingBusyTone();
 
                                 showToast(getString(R.string.call_rejected));
                                 // Reject notification received. End call
                                 endCall();
                             } else if (action.equals("END:")) {
-
-
-                                stopPlayingTone();
-                                startPlayingBusyTone();
-
-
 
                                 showToast(getString(R.string.call_ended));
                                 // End call notification received. End call
@@ -151,11 +144,6 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                             }
                         } catch (SocketTimeoutException e) {
                             if (!G.IN_CALL) {
-
-
-                                stopPlayingTone();
-                                startPlayingBusyTone();
-
 
                                 Log.i(LOG_TAG, "No reply from contact. Ending call");
                                 endCall();
@@ -219,20 +207,20 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         Log.d(LOG_TAG, "IN CALL: " + G.IN_CALL);
 
-            if (isChecked) {
-                Logger.d("MakeCallActivity","onCheckedChanged","setSpeakerphoneOn(false)");
-                m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
-                m_amAudioManager.setSpeakerphoneOn(true);
-                mediaPlayer.setAudioStreamType(AudioManager.STREAM_VOICE_CALL);
+        if (isChecked) {
+            Logger.d("MakeCallActivity", "onCheckedChanged", "setSpeakerphoneOn(false)");
+            m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
+            m_amAudioManager.setSpeakerphoneOn(true);
+            mediaPlayer.setAudioStreamType(AudioManager.STREAM_VOICE_CALL);
 
-            } else {
-                Logger.d("MakeCallActivity","onCheckedChanged","setSpeakerphoneOn(true)");
-                m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
-                m_amAudioManager.setSpeakerphoneOn(false);
+        } else {
+            Logger.d("MakeCallActivity", "onCheckedChanged", "setSpeakerphoneOn(true)");
+            m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
+            m_amAudioManager.setSpeakerphoneOn(false);
 
-            }
+        }
 
-            Log.d(LOG_TAG, "Speaker changed" + " & switchStatus is: " + isChecked);
+        Log.d(LOG_TAG, "Speaker changed" + " & switchStatus is: " + isChecked);
 
     }
 
@@ -241,11 +229,11 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         endCall();
     }
 
-    private void showToast(final String message){
+    private void showToast(final String message) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(getApplicationContext(),message,Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -299,8 +287,8 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         });
     }
 
-   /* @Override
+    @Override
     public void endAudioCall() {
         endCall();
-    }*/
+    }
 }
