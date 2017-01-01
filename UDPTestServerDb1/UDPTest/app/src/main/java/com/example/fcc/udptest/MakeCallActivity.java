@@ -52,8 +52,8 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         contactIp = intent.getStringExtra(G.EXTRA_C_Ip);
 
         TextView textView = (TextView) findViewById(R.id.textViewCalling);
-        ToggleButton btnSwtich = (ToggleButton) findViewById(R.id.toggleButton2);
-        btnSwtich.setOnCheckedChangeListener(this);
+        ToggleButton btnSwitch = (ToggleButton) findViewById(R.id.toggleButton2);
+        btnSwitch.setOnCheckedChangeListener(this);
         textView.setText(String.format(getString(R.string.calling_lbl), contactName));
 
         endButton = (Button) findViewById(R.id.buttonEndCall);
@@ -271,15 +271,9 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                     m_amAudioManager.setSpeakerphoneOn(true);
                     mediaPlayer.setAudioStreamType(AudioManager.STREAM_VOICE_CALL);
 
-                    Log.d(LOG_TAG, "speaker off");
-
                 } else {
                     m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
                     m_amAudioManager.setSpeakerphoneOn(false);
-
-
-                    Log.d(LOG_TAG, "speaker on");
-
                 }
             }
         }).start();
