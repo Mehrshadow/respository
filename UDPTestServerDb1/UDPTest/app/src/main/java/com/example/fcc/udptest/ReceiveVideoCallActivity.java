@@ -384,7 +384,9 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                         }
 
                     } catch (IOException e) {
-                        endCall();
+                        if (!mReceiveSocket.isClosed())
+                            endCall();
+
                         Logger.e("ReceiveVideoCallActivity", "IOException", "IOException");
                         e.printStackTrace();
                     }
