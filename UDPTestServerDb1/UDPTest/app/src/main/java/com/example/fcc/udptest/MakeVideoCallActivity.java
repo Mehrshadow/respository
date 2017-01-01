@@ -9,6 +9,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -59,6 +60,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private MediaPlayer mediaPlayer;
     private Camera.Parameters parameters;
     private Chronometer mChronometer;
+    private AudioManager mAudioManager;
 
 
     @Override
@@ -87,6 +89,8 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         img = (ImageView) findViewById(R.id.img);
         mChronometer = (Chronometer) findViewById(R.id.chronometer);
 
+        initSpeaker();
+
         Button buttonEndCall = (Button) findViewById(R.id.buttonEndCall);
         buttonEndCall.setOnClickListener(this);
 
@@ -97,6 +101,13 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         }
 
         cameraView = (FrameLayout) findViewById(R.id.cameraView);
+    }
+
+    private void initSpeaker() {
+        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        mAudioManager.setMode(AudioManager.MODE_IN_CALL);
+        mAudioManager.setSpeakerphoneOn(true);
+        mediaPlayer.setAudioStreamType(AudioManager.STREAM_VOICE_CALL);
     }
 
     private void releaseCamera() {
