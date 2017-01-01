@@ -5,7 +5,9 @@ import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.PowerManager;
 import android.os.Vibrator;
 import android.util.Log;
@@ -44,6 +46,7 @@ public class ReceiveCallActivity extends Activity implements OnClickListener ,Au
     private ToggleButton Tgl_Speaker;
     private TextView txtIncomingCall;
     private Vibrator mVibrator;
+    private MediaPlayer mMediaPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,6 +120,8 @@ public class ReceiveCallActivity extends Activity implements OnClickListener ,Au
     }
 
     private void endCall() {
+        startPlayingBusyTone();
+
         stopVibrator();
         // End the call and send a notification
         stopListener();
@@ -295,5 +300,43 @@ public class ReceiveCallActivity extends Activity implements OnClickListener ,Au
     @Override
     public void endAudioCall() {
         endCall();
+    }
+
+    private void startPlayingBusyTone() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                mMediaPlayer = MediaPlayer.create(ReceiveCallActivity.this, R.raw.busy);
+                mMediaPlayer.start();
+
+                CountDownTimer timer = new CountDownTimer(3000, 1000) {
+                    //
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+                    }
+
+                    @Override
+                    public void onFinish() {
+                        stopPlayingTone();
+                    }
+                };
+                timer.start();
+
+            }
+        });
+    }
+
+    private void stopPlayingTone() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                if (mMediaPlayer.isPlaying()) {
+                    mMediaPlayer.stop();
+//                    mMediaPlayer.release();
+                }
+            }
+        });
     }
 }

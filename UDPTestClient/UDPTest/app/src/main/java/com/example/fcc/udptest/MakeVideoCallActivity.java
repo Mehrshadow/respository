@@ -75,8 +75,9 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_make_video_call);
-        startPlayingWaitingTone();
 
+
+        startPlayingWaitingTone();
 
         Log.d(LOG_TAG, "Make video call started");
 
@@ -113,7 +114,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         mAudioManaget = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         mAudioManaget.setMode(AudioManager.MODE_IN_CALL);
         mAudioManaget.setSpeakerphoneOn(true);
-        mediaPlayer.setAudioStreamType(AudioManager.STREAM_VOICE_CALL);
 
     }
 
@@ -303,6 +303,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
                         Log.i(LOG_TAG, "Listening for packets");
                         mListenerSocket.receive(packet);
+                        mListenerSocket.setSoTimeout(10 * 1000);
 //                        mListenerSocket.setSoTimeout(10 * 1000);
                         String data = new String(buffer, 0, packet.getLength());
                         address = packet.getAddress();
@@ -320,19 +321,12 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
                         } else if (action.equals("REJ:")) {
 
-                            startPlayingBusyTone();
-                            stopPlayingTone();
-
                             // Reject notification received. End call
                             showToast(getString(R.string.call_rejected));
                             Logger.d(LOG_TAG, "startListener", "Ending call...");
                             endCall();
 
                         } else if (action.equals("END:")) {
-
-                            startPlayingBusyTone();
-                            stopPlayingTone();
-
 
                             showToast(getString(R.string.call_ended));
                             Log.d(LOG_TAG, "Ending call...");
@@ -346,7 +340,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                             udpFrameListener();
                         }
                     } catch (SocketTimeoutException e) {
-                        stopPlayingTone();
 
                         Log.i(LOG_TAG, "No reply from contact. Ending call");
                         endCall();
@@ -408,6 +401,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                 call = new AudioCall(address);
                 call.startCall();
                 call.setEndCallListener(this);
+
                 Logger.d(LOG_TAG, "introListener", "mIsFrameReceived is true Sent ACC");
             } else {
                 //finish();
@@ -493,6 +487,10 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     }
 
     private void endCall() {
+
+        stopPlayingTone();
+        startPlayingBusyTone();
+
         stopChronometer();
         if (call != null)
             call.endCall();
@@ -736,10 +734,10 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     }
 
     private void stopPlayingTone() {
+
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-
                 if (mediaPlayer.isPlaying()) {
                     mediaPlayer.stop();
 //                    mediaPlayer.release();

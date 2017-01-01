@@ -77,6 +77,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_receive_video_call);
 
+
+
         startSockets();
 
 
@@ -109,8 +111,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         audioManager.setMode(AudioManager.MODE_IN_CALL);
         audioManager.setSpeakerphoneOn(true);
-        mMediaPlayer.setAudioStreamType(AudioManager.STREAM_VOICE_CALL);
-
     }
 
 
@@ -298,9 +298,9 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                             shouldSendVideo = true;
 
                             call = new AudioCall(address);
-                            call.setEndCallListener(ReceiveVideoCallActivity.this);
                             call.startCall();
-                            //previewBitmap(buffer);
+                            call.setEndCallListener(ReceiveVideoCallActivity.this);
+
                             Logger.d("ReceiveVideoCallActivity", "startListener", packet.getAddress() + " sent invalid message: " + data);
                             udpFrameListener();
                         }
@@ -362,6 +362,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     }
 
     private void endCall() {
+
+        startPlayingBusyTone();
 
         stopChronometer();
 
@@ -751,7 +753,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
     @Override
     public void endAudioCall() {
-        endCall();
     }
 }
 
