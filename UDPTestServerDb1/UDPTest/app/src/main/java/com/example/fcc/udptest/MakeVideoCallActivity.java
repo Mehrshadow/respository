@@ -13,6 +13,7 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -61,6 +62,8 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private Camera.Parameters parameters;
     private Chronometer mChronometer;
     private AudioManager mAudioManager;
+    int mReceiveFrameWidth;
+    int mReceiveFrameHeight;
 
 
     @Override
@@ -121,6 +124,14 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
     private void previewBitmap(final byte[] data, final int packetLength) {
 
+        DisplayMetrics displaymetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
+        final int height = displaymetrics.heightPixels;
+        final int width = displaymetrics.widthPixels;
+
+        final float scaleX =(float)height/mReceiveFrameWidth;
+        final float scaleY = (float)width/mReceiveFrameHeight;
+
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -140,6 +151,8 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            img.setScaleX(scaleX);
+                            img.setScaleY(scaleY);
                             img.setImageBitmap(bitmap);
                         }
                     });
@@ -633,8 +646,8 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         try {
 
             JSONObject jsonObject = new JSONObject(data);
-            int mReceiveFrameWidth = jsonObject.getInt("Width");
-            int mReceiveFrameHeight = jsonObject.getInt("Height");
+            mReceiveFrameWidth = jsonObject.getInt("Width");
+            mReceiveFrameHeight = jsonObject.getInt("Height");
             mReceiveFrameBuffSize = jsonObject.getInt("Size");
             Logger.d(LOG_TAG, "introListener", "mFrameBuffSize >> " + mReceiveFrameBuffSize);
 

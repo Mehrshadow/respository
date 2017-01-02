@@ -269,6 +269,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         return c;
     }
 
+
     private boolean checkCameraHardware(Context context) {
         if (context.getPackageManager().hasSystemFeature(
                 PackageManager.FEATURE_CAMERA)) {

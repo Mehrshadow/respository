@@ -16,6 +16,7 @@ import android.os.Handler;
 import android.os.PowerManager;
 import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
@@ -239,6 +240,11 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                 smallAnimationSet.addAnimation(scaleAnim2);
             }
         }, 500);
+    }
+
+    private void stopAnimation(View view){
+
+        view.clearAnimation();
     }
 
     private void initWakeup() {
@@ -478,7 +484,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.buttonAccept:
-
+                stopAnimation(accept);
                 cancelVibrate();
 
                 sendMessage("ACC:", G.VIDEOCALL_SENDER_PORT);
@@ -543,6 +549,15 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
     private void previewBitmap(final byte[] data, final int packetLength) {
 
+        DisplayMetrics displaymetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
+        final int height = displaymetrics.heightPixels;
+        final int width = displaymetrics.widthPixels;
+
+        final float scaleX =(float)height/mReceiveFrameWidth;
+        final float scaleY = (float)width/mReceiveFrameHeight;
+
+
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -562,6 +577,8 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            mImgReceive.setScaleX(scaleX);
+                            mImgReceive.setScaleY(scaleY);
                             mImgReceive.setImageBitmap(bitmap);
                         }
                     });
