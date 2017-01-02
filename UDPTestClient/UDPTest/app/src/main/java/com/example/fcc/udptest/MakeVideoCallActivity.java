@@ -93,10 +93,10 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         startCameraPreview();
     }
 
-
-
-
     private void initView() {
+
+
+        chronometer = (Chronometer) findViewById(R.id.chronometer);
 
         TextView textView = (TextView) findViewById(R.id.contactName);
         textView.setText("Calling: " + contactName);
@@ -491,6 +491,9 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
         stopPlayingTone();
         startPlayingBusyTone();
 
+        LISTEN = false;
+        receiving = false;
+
         stopChronometer();
         if (call != null)
             call.endCall();
@@ -748,7 +751,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
     @Override
     public void endAudioCall() {
-        endCall();
+      //  endCall();
     }
 }
 

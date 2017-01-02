@@ -19,6 +19,7 @@
         android:textColor="#fff" />
 
     <Chronometer
+        android:textSize="30dp"
         android:layout_gravity="center"
         android:id="@+id/chronometer"
         android:layout_width="match_parent"
@@ -31,7 +32,7 @@
         android:layout_weight="1">
 
         <ImageView
-            android:rotation="90"
+            android:rotation="-90"
             android:adjustViewBounds="true"
             android:scaleType="centerCrop"
             android:layout_width="match_parent"

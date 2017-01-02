@@ -14,6 +14,7 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
 import android.os.PowerManager;
 import android.os.SystemClock;
 import android.os.Vibrator;
@@ -21,6 +22,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
+import android.view.animation.RotateAnimation;
+import android.view.animation.ScaleAnimation;
 import android.widget.Button;
 import android.widget.Chronometer;
 import android.widget.FrameLayout;
@@ -77,11 +82,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_receive_video_call);
 
-
-
         startSockets();
-
-
 
         initWakeup();
 
@@ -113,6 +114,44 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         audioManager.setSpeakerphoneOn(true);
     }
 
+    private void startShakeByViewAnim(View view, float scaleSmall, float scaleLarge, float shakeDegrees, long duration) {
+        if (view == null) {
+            return;
+        }
+
+        Animation scaleAnim = new ScaleAnimation(scaleSmall, scaleLarge, scaleSmall, scaleLarge);
+        final Animation scaleAnim2 = new ScaleAnimation(scaleSmall, 1 / scaleLarge, scaleSmall, 1 / scaleLarge);
+        Animation rotateAnim = new RotateAnimation(-shakeDegrees, shakeDegrees, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+
+        scaleAnim.setDuration(duration);
+        scaleAnim.setRepeatMode(Animation.REVERSE);
+        scaleAnim.setRepeatCount(Animation.INFINITE);
+
+        scaleAnim2.setDuration(duration);
+        scaleAnim2.setRepeatMode(Animation.REVERSE);
+        scaleAnim2.setRepeatCount(Animation.INFINITE);
+
+
+        rotateAnim.setDuration(duration / 10);
+        rotateAnim.setRepeatMode(Animation.REVERSE);
+        rotateAnim.setRepeatCount(Animation.INFINITE);
+
+        final AnimationSet smallAnimationSet = new AnimationSet(false);
+        smallAnimationSet.addAnimation(scaleAnim);
+        smallAnimationSet.addAnimation(rotateAnim);
+
+
+        view.startAnimation(smallAnimationSet);
+
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                smallAnimationSet.addAnimation(scaleAnim2);
+            }
+        }, 500);
+    }
+
 
     @Override
     protected void onResume() {
@@ -120,6 +159,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
         parsePacket();
         startVibrator();
+        startShakeByViewAnim(accept, 1, 1.2f, 10, 500);
         turnOnScreen();
 
     }
@@ -133,7 +173,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     private void initView() {
 
         chronometer = (Chronometer) findViewById(R.id.chronometer);
-        stopChronometer();
         accept = (Button) findViewById(R.id.buttonAccept);
         reject = (Button) findViewById(R.id.buttonReject);
         endCall = (Button) findViewById(R.id.buttonEndCall);
@@ -229,6 +268,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
         return c;
     }
+
 
     private boolean checkCameraHardware(Context context) {
         if (context.getPackageManager().hasSystemFeature(
