@@ -19,7 +19,13 @@
         android:text="@string/calling"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
-    <Space
+    <Chronometer
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="30sp"
+        android:id="@+id/chronometer"/>
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1" />
@@ -28,8 +34,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/toggleButton2"
-        android:textOff="@string/lbl_speaker_off"
-        android:textOn="@string/lbl_speaker_on"
+        android:textOff="@null"
+        android:textOn="@null"
         android:background="@drawable/toggle_background"
         android:layout_gravity="center" />
 

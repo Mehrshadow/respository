@@ -20,6 +20,11 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:layout_margin="8dp" />
 
+    <Chronometer
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="30sp"
+        android:id="@+id/chronometer"/>
 
     <LinearLayout
         android:orientation="vertical"

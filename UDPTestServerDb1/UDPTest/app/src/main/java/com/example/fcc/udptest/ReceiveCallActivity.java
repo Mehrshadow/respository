@@ -19,6 +19,7 @@ import android.view.animation.AnimationSet;
 import android.view.animation.RotateAnimation;
 import android.view.animation.ScaleAnimation;
 import android.widget.Button;
+import android.widget.Chronometer;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -53,6 +54,7 @@ public class ReceiveCallActivity extends Activity implements OnClickListener, Au
     private AudioManager m_amAudioManager;
     private Vibrator vibrator;
     private MediaPlayer mediaPlayer;
+    private Chronometer mChronometer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,6 +119,8 @@ public class ReceiveCallActivity extends Activity implements OnClickListener, Au
         // END BUTTON
         endButton.setOnClickListener(this);
 
+        mChronometer = (Chronometer) findViewById(R.id.chronometer);
+
         vibrate();
 
         startShakeByViewAnim(acceptButton, 1, 1.2f, 10, 500);
@@ -135,6 +139,9 @@ public class ReceiveCallActivity extends Activity implements OnClickListener, Au
     private void endCall() {
         // End the call and send a notification
         stopListener();
+
+        stopChronometer();
+
         if (G.IN_CALL) {
 
             call.endCall();
@@ -345,6 +352,25 @@ public class ReceiveCallActivity extends Activity implements OnClickListener, Au
         });
     }
 
+    private void startChronometer() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mChronometer.start();
+            }
+        });
+    }
+
+    private void stopChronometer() {
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mChronometer.stop();
+            }
+        });
+    }
+
     @Override
     public void onClick(View v) {
 
@@ -361,6 +387,8 @@ public class ReceiveCallActivity extends Activity implements OnClickListener, Au
                     mLinearLayout.setVisibility(View.INVISIBLE);
                     // Accepting call. Send a notification and start the call
                     sendMessage("ACC:");
+
+                    startChronometer();
 
                     cancelVibrate();
 

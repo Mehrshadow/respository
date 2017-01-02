@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.Chronometer;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,6 +38,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
     private Button endButton;
     private AudioManager mAudioManager;
     private MediaPlayer mediaPlayer;
+    private Chronometer mChronometer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +48,16 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
 
         Log.i(LOG_TAG, "MakeCallActivity started!");
 
+        initViews();
+
+        initSpeaker();
+
+        startListener();
+        makeCall();
+
+    }
+
+    private void initViews() {
         Intent intent = getIntent();
         displayName = intent.getStringExtra(G.EXTRA_DISPLAYNAME);
         contactName = intent.getStringExtra(G.EXTRA_C_Name);
@@ -56,16 +68,16 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         btnSwitch.setOnCheckedChangeListener(this);
         textView.setText(String.format(getString(R.string.calling_lbl), contactName));
 
+        mChronometer = (Chronometer) findViewById(R.id.chronometer);
+
         endButton = (Button) findViewById(R.id.buttonEndCall);
         endButton.setOnClickListener(this);
+    }
 
+    private void initSpeaker() {
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         mAudioManager.setMode(AudioManager.MODE_IN_CALL);
         mAudioManager.setSpeakerphoneOn(false);
-
-        startListener();
-        makeCall();
-
     }
 
     private void makeCall() {
@@ -78,6 +90,8 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
 
         stopPlayingTone();
         startPlayingBusyTone();
+
+        stopChronometer();
 
         stopListener();
         if (G.IN_CALL) {
@@ -121,6 +135,8 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                             if (action.equals("ACC:")) {
 
                                 stopPlayingTone();
+
+                                startChronometer();
 
                                 showToast(getString(R.string.call_accpeted));
 
@@ -282,6 +298,25 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
             @Override
             public void run() {
                 Toast.makeText(MakeCallActivity.this, message, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void startChronometer() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mChronometer.start();
+            }
+        });
+    }
+
+    private void stopChronometer() {
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mChronometer.stop();
             }
         });
     }
