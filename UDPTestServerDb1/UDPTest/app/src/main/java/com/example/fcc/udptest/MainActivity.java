@@ -10,6 +10,7 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -39,7 +40,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
     private RelativeLayout progressLayout;
     private RecyclerView rcy_contacts;
     RcyContactsAdapter adapter;
-
+    private TextView tv_serverIP;
     DatagramSocket callListenerSocket;
 
     ContactManager contactManager = new ContactManager();
@@ -62,7 +63,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
         Logger.i("MainActivity", "onCreate", "IP is >> " + getBroadcastIp());
     }
 
-    private void connectCallListenerSocket(){
+    private void connectCallListenerSocket() {
         try {
             callListenerSocket = new DatagramSocket(G.BROADCAST_PORT);
             callListenerSocket.setSoTimeout(10000);
@@ -71,7 +72,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
         }
     }
 
-    private void closeCallListenerSocket(){
+    private void closeCallListenerSocket() {
         callListenerSocket.disconnect();
         callListenerSocket.close();
     }
@@ -121,14 +122,13 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
 
         rcy_contacts = (RecyclerView) findViewById(R.id.rcy_contactslist);
         progressLayout = (RelativeLayout) findViewById(R.id.progressBarLayout);
+        tv_serverIP = (TextView) findViewById(R.id.serverIP);
+        tv_serverIP.setText(String.format(getString(R.string.serverIP), getBroadcastIp().getHostAddress())) ;
         rcy_contacts.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         adapter = new RcyContactsAdapter(G.contactsList, MainActivity.this);
         rcy_contacts.setAdapter(adapter);
         // rcy_contacts.invalidate();
         rcy_contacts.swapAdapter(adapter, true);
-        //adapter.notifyAll();
-        //refreshRcy();
-
 
         Logger.i("MainActivity", "initViews", "Done");
 
@@ -264,7 +264,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
             public void run() {
                 while (SERVER_RUNNING) {
                     Logger.i("MainActivity", "refreshContacts", "SERVER_RUNNING >> " + SERVER_RUNNING);
-                    // Looper.prepare();
+
                     Refreshing = true;
 
 //                    refreshRcy();
@@ -290,7 +290,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
 //                                e.printStackTrace();
                                 if (G.contactsList.size() != 0)
                                     Logger.i("MainActivity", "refreshContacts", "Remove  >>" + G.contactsList.get(i).getC_Ip());
-                                    G.contactsList.remove(i);
+                                G.contactsList.remove(i);
 //                                e.printStackTrace();
                             } finally {
                                 refreshRcy();
@@ -341,14 +341,12 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
             WifiInfo wifiInfo = wifiManager.getConnectionInfo();
             int ipAddress = wifiInfo.getIpAddress();
             String addressString = toBroadcastIp(ipAddress);
-            InetAddress broadcastAddress = InetAddress.getByName(addressString);
-            return broadcastAddress;
+            return InetAddress.getByName(addressString);
         } catch (UnknownHostException e) {
 
             Log.e(LOG_TAG, "UnknownHostException in getBroadcastIP: " + e);
             return null;
         }
-
     }
 
     private String toBroadcastIp(int ip) {

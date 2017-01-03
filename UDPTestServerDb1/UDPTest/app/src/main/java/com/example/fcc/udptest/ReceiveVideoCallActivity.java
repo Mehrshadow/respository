@@ -338,6 +338,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
         try {
             mReceiveSocket = new DatagramSocket(G.VIDEOCALL_LISTENER_PORT);
+            mReceiveSocket.setSoTimeout(10 * 1000);
             mSendSocket = new DatagramSocket();
             Logger.d("ReceiveVideoCallActivity", "socketStart", "Connected");
 
