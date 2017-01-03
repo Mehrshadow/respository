@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "C:\\Users\\FCC\\Desktop\\respository\\UDPTestClient\\UDPTest\\app\\build\\intermediates\\res\\merged\\debug\\raw\\busy.mp3",
+        "source": "C:\\Users\\FCC\\Desktop\\respository\\UDPTestClient\\UDPTest\\app\\src\\main\\res\\raw\\busy.mp3"
+    },
+    {
+        "merged": "C:\\Users\\FCC\\Desktop\\respository\\UDPTestClient\\UDPTest\\app\\build\\intermediates\\res\\merged\\debug\\raw\\waiting.mp3",
+        "source": "C:\\Users\\FCC\\Desktop\\respository\\UDPTestClient\\UDPTest\\app\\src\\main\\res\\raw\\waiting.mp3"
+    }
+]

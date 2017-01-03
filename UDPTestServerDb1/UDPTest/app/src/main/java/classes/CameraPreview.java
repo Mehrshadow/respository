@@ -1,3 +1,8 @@
+/*
+ * Barebones implementation of displaying camera preview.
+ *
+ * Created by lisah0 on 2012-02-24
+ */
 package classes;
 
 import android.content.Context;
@@ -8,7 +13,6 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import java.io.IOException;
-import java.util.List;
 
 /**
  * A basic Camera preview class
@@ -28,41 +32,9 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         mCamera = camera;
         previewCallback = previewCb;
         parameters = camera.getParameters();
-
-        List<int[]> supportedFrameRates = parameters.getSupportedPreviewFpsRange();
-
-
-//        int minimumFPS = supportedFrameRates.get(supportedFrameRates.size() - 1)[0];
-        int maximumFPS = supportedFrameRates.get(supportedFrameRates.size() - 1)[1];
-
-//        parameters.setPreviewFpsRange(maximumFPS, maximumFPS);
-
-        List<Camera.Size> previewSizes = parameters.getSupportedPreviewSizes();
-
-        int previewWidth, previewHeight;
-
-        // get the lowest frame size available by camera
-        if ((previewSizes.get(previewSizes.size() - 1).width) > (previewSizes.get(0)).width) {
-
-            previewWidth = previewSizes.get(previewSizes.size() / 2).width;
-            previewHeight = previewSizes.get(previewSizes.size() / 2).height;
-
-//            previewWidth = previewSizes.get(0).width;
-//            previewHeight = previewSizes.get(0).height;
-
-
-        } else {
-
-            previewWidth = previewSizes.get(previewSizes.size() / 2).width;
-            previewHeight = previewSizes.get(previewSizes.size() / 2).height;
-
-//            previewWidth = previewSizes.get(previewSizes.size()  - 1).width;
-//            previewHeight = previewSizes.get(previewSizes.size() - 1).height;
-
-        }
-
-        parameters.setPreviewSize(previewWidth, previewHeight);
-
+//        parameters.setPreviewFrameRate(1);
+        parameters.setPreviewSize(100, 100);
+        parameters.setPictureSize(100, 100);
         camera.setParameters(parameters);
 
         mHolder = getHolder();
@@ -108,6 +80,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         try {
             // Hard code camera surface rotation 90 degs to match Activity view in portrait
             mCamera.setDisplayOrientation(90);
+
             mCamera.setPreviewDisplay(mHolder);
             mCamera.setPreviewCallback(previewCallback);
             mCamera.startPreview();

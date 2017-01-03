@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">UDPchat</string>
+    <string name="app_name">VideoCall Server</string>
     <string name="action_settings">Settings</string>
     <string name="enterName">Enter a display name:</string>
     <string name="submitName">Start</string>
@@ -24,11 +24,6 @@
     <string name="VideoCall">VideoCall</string>
     <string name="enterinfo">Enter Your Name And ServerIp</string>
     <string name="waiting">Waiting for clients to connect...</string>
-    <string name="calling_lbl">Calling  %1$s</string>
-    <string name="call_accpeted">Call accepted</string>
-    <string name="call_rejected">Call rejected</string>
-    <string name="call_ended">Call ended</string>
-    <string name="cameraOpenFailure">cannot open the camera, exiting application</string>
-    <string name="audio_receive_failure_endingcall">No audio received. Ending call...</string>
-    <string name="serverIP">Server\'s IP address is: %1$s</string>
+    <string name="serverIP">Server\'s ip address is: %1$s</string>
+
 </resources>

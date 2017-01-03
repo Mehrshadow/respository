@@ -7,13 +7,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.example.fcc.udptest.G;
-import com.example.fcc.udptest.MakeCallActivity;
-import com.example.fcc.udptest.MakeVideoCallActivity;
-import com.example.fcc.udptest.R;
-
 import java.net.InetAddress;
 import java.util.List;
+
+import ir.jahanmir.videocall.G;
+import ir.jahanmir.videocall.MakeCallActivity;
+import ir.jahanmir.videocall.MakeVideoCallActivity;
+import ir.jahanmir.videocall.R;
 
 /**
  * Created by HaMiD on 12/10/2016.
@@ -66,6 +66,7 @@ public class RcyContactsAdapter extends RecyclerView.Adapter<RcyContactsHolder> 
                 }
             }
         });
+
     }
 
     @Override
@@ -91,4 +92,5 @@ public class RcyContactsAdapter extends RecyclerView.Adapter<RcyContactsHolder> 
         i.putExtra(G.EXTRA_DISPLAYNAME, "SERVER");
         context.startActivity(i);
     }
+
 }
