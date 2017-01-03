@@ -13,6 +13,8 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
+import android.os.Message;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
@@ -60,6 +62,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private FrameLayout cameraView;
     private InetAddress address;
     private boolean shouldSendVideo = false;
+    private boolean isACCReceveid = false;
     private Socket socket_sendFrameData;
     private Camera.Parameters parameters;
     private boolean LISTEN = false;
@@ -313,16 +316,16 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                 while (LISTEN) {
                     try {
 
-                        Log.i(LOG_TAG, "Listening for packets");
+                       Log.i(LOG_TAG, "Listening for packets");
                         mListenerSocket.receive(packet);
-                        mListenerSocket.setSoTimeout(10 * 1000);
 //                        mListenerSocket.setSoTimeout(10 * 1000);
                         String data = new String(buffer, 0, packet.getLength());
                         address = packet.getAddress();
                         Logger.d(LOG_TAG, "startListener", "Packet received from " + address + " with contents: " + data);
-                        String action = data.substring(0, 4);
-                        if (action.equals("ACC:")) {
+                        final String action = data.substring(0, 4);
 
+                        if (action.equals("ACC:")) {
+                            isACCReceveid = true;
                             stopPlayingTone();
 
                             Logger.d(LOG_TAG, "startListener", "video call accepted");
@@ -389,7 +392,9 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private void openListenerSocket() {
         try {
             mListenerSocket = new DatagramSocket(G.RECEIVEVIDEO_PORT);
+            mListenerSocket.setSoTimeout(10 * 1000);
         } catch (SocketException e) {
+            endCall();
             e.printStackTrace();
         }
     }
@@ -655,7 +660,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                     socket.send(mVideoPacket);
 
                 } catch (IOException e) {
-                    releaseCamera();
+                //    releaseCamera();
                     e.printStackTrace();
                 }
             }

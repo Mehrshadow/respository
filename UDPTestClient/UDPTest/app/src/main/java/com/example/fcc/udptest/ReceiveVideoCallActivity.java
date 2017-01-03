@@ -73,7 +73,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     private Camera camera = null;
     private byte[] frameData;
     private Camera.Parameters parameters;
-    private boolean shouldSendVideo = false;
+    private boolean shouldSendVideo = false,isAccepted = false;
     private InetAddress address;
     private DatagramPacket mVideoPacket;
     AudioManager audioManager;
@@ -110,6 +110,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         startCameraPreview();
 
     }
+
 
     private void initSpeaker() {
 
@@ -304,7 +305,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
         try {
             mReceiveSocket = new DatagramSocket(G.RECEIVEVIDEO_PORT);
-            mReceiveSocket.setSoTimeout(10000);
+            mReceiveSocket.setSoTimeout(10 *1000);
             mSendSocket = new DatagramSocket();
             Logger.d("ReceiveVideoCallActivity", "socketStart", "Connected");
 
@@ -450,6 +451,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.buttonAccept:
+                isAccepted = true;
                 stopAnimation(accept);
                 stopVibrator();
                 sendMessage("ACC:", G.SENDVIDEO_PORT);
@@ -727,7 +729,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                     socket.send(mVideoPacket);
 
                 } catch (IOException e) {
-                    releaseCamera();
+//                    releaseCamera();
                     e.printStackTrace();
                 }
             }

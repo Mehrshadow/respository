@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/activity_receive_video_call"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/background_oncall">
+
+    <ImageView
+        android:id="@+id/img_receive"
+        android:rotation="-90"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="top|right"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/contactName"
+            android:layout_gravity="right"
+
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:text="@string/incomingCall"
+            android:textAppearance="?android:attr/textAppearanceLarge"  />
+
+        <Chronometer
+            android:id="@+id/chronometer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:gravity="right"
+            android:textSize="30dp" />
+
+    </LinearLayout>
+
+
+    <FrameLayout
+        android:id="@+id/cameraView"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:elevation="7dp"
+        android:keepScreenOn="true" />
+
+    <Button
+        android:id="@+id/buttonEndCall"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_gravity="bottom|center"
+        android:layout_margin="20dp"
+        android:layout_marginRight="24dp"
+        android:background="@drawable/call_reject" />
+
+</FrameLayout>
