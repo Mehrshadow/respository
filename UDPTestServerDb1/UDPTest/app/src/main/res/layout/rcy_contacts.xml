@@ -9,7 +9,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         android:padding="8dp"
-        android:background="@drawable/background_contacts">
+        android:background="@drawable/background_oncall">
 
         <Button
             android:text="@string/VideoCall"

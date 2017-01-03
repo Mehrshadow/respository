@@ -13,6 +13,7 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -74,7 +75,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_make_video_call);
+        setContentView(R.layout.text_make_videocall);
 
 
         startPlayingWaitingTone();
@@ -145,6 +146,14 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
     private void previewBitmap(final byte[] data, final int packetlength) {
 
+        DisplayMetrics displaymetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
+        final int height = displaymetrics.heightPixels;
+        final int width = displaymetrics.widthPixels;
+
+        final float scaleX =(float)height/mReceiveFrameWidth;
+        final float scaleY = (float)width/mReceiveFrameHeight;
+
         Logger.d(LOG_TAG, "previewBitmap", "Start");
 
         Thread thread = new Thread(new Runnable() {
@@ -162,9 +171,12 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                     if (bitmap == null) {
                         return;
                     }
+
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            mImgReceive.setScaleX(scaleX);
+                            mImgReceive.setScaleY(scaleY);
                             mImgReceive.setImageBitmap(bitmap);
                         }
                     });

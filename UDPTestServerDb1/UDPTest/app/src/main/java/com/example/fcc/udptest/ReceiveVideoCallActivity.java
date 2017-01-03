@@ -59,7 +59,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     private byte[] buffer;
     private int mSendFrameWidth, mSendFrameHeight, mSendFrameBuffSize;
     private int mReceiveFrameWidth, mReceiveFrameHeight, mReceiveFrameBuffSize;
-    private boolean receiving = false;
+    private boolean receiving = false,isAccepted = false;
     private FrameLayout cameraView;
     private Camera camera = null;
     private CameraPreview cameraPreview;
@@ -93,10 +93,10 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         startShakeByViewAnim(accept, 1, 1.2f, 10, 500);
     }
 
+
     @Override
     protected void onResume() {
         super.onResume();
-
         parsePacket();
     }
 
@@ -484,6 +484,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.buttonAccept:
+                isAccepted = true;
                 stopAnimation(accept);
                 cancelVibrate();
 

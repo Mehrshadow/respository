@@ -6,8 +6,11 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.ImageFormat;
+import android.graphics.Matrix;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.media.AudioManager;
@@ -19,6 +22,7 @@ import android.os.PowerManager;
 import android.os.SystemClock;
 import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
@@ -49,7 +53,7 @@ import java.net.UnknownHostException;
 import classes.CameraPreview;
 import classes.Logger;
 
-public class ReceiveVideoCallActivity extends AppCompatActivity implements View.OnClickListener,AudioCall.IEndCall {
+public class ReceiveVideoCallActivity extends AppCompatActivity implements View.OnClickListener, AudioCall.IEndCall {
 
     private final static String LOG_TAG = "ReceiveVideoCall";
     private String contactIp;
@@ -80,7 +84,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_receive_video_call);
+        setContentView(R.layout.test);
 
         startSockets();
 
@@ -107,7 +111,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
     }
 
-    private void initSpeaker(){
+    private void initSpeaker() {
 
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         audioManager.setMode(AudioManager.MODE_IN_CALL);
@@ -152,6 +156,11 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         }, 500);
     }
 
+    private void stopAnimation(View view){
+
+        view.clearAnimation();
+    }
+
 
     @Override
     protected void onResume() {
@@ -192,7 +201,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-              //  chronometer.setBase(SystemClock.elapsedRealtime());
+                  chronometer.setBase(SystemClock.elapsedRealtime());
                 chronometer.start();
             }
         });
@@ -441,6 +450,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.buttonAccept:
+                stopAnimation(accept);
                 stopVibrator();
                 sendMessage("ACC:", G.SENDVIDEO_PORT);
                 //sendFrameIntroduceData();
@@ -585,6 +595,14 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
 
     private void previewBitmap(final byte[] data, final int packetlength) {
 
+        DisplayMetrics displaymetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
+        final int height = displaymetrics.heightPixels;
+        final int width = displaymetrics.widthPixels;
+
+        final float scaleX =(float)height/mReceiveFrameWidth;
+        final float scaleY = (float)width/mReceiveFrameHeight;
+
         Logger.d(LOG_TAG, "previewBitmap", "Start");
 
         Thread thread = new Thread(new Runnable() {
@@ -597,15 +615,30 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                     final byte[] bufferToSend = new byte[bufferSize];
                     System.arraycopy(data, index + 1, bufferToSend, 0, bufferSize);
 
+                    // final Bitmap bitmap = BitmapFactory.decodeByteArray(bufferToSend, 0, bufferToSend.length);
+
+
                     final Bitmap bitmap = BitmapFactory.decodeByteArray(bufferToSend, 0, bufferToSend.length);
-                    //   final Bitmap resizeBitMap = Bitmap.createScaledBitmap(bitmap, mReceiveFrameWidth, mReceiveFrameHeight, true);
+
+
+                    //   final Bitmap resizeBitMap = Bitmap.createScaledBitmap(bitmap, mReceiveFrameWidth, meceiveFrameHeight, true);
                     if (bitmap == null) {
                         return;
                     }
+
+
+                    Logger.d(LOG_TAG, "previewBitmapscale", "scaleX>>"+scaleX+" scaleY>>"+scaleY);
+                    Logger.d(LOG_TAG, "previewBitmapscale", "mReceiveFrameWidth>>"+mReceiveFrameWidth+" mReceiveFrameHeight>>"+mReceiveFrameHeight);
+                    Logger.d(LOG_TAG, "previewBitmapscale", "width>>"+width+" height>>"+height);
+
+
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            mImgReceive.setScaleX(scaleX);
+                            mImgReceive.setScaleY(scaleY);
                             mImgReceive.setImageBitmap(bitmap);
+
                         }
                     });
                 } catch (Exception e) {
