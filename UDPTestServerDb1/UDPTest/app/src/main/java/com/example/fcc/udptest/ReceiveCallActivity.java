@@ -34,6 +34,8 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 
 import classes.Logger;
+import classes.Permission;
+import classes.PermissionType;
 
 public class ReceiveCallActivity extends Activity implements OnClickListener, AudioCall.IEndCall {
 
@@ -63,24 +65,44 @@ public class ReceiveCallActivity extends Activity implements OnClickListener, Au
         setContentView(R.layout.activity_receive_call);
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
+        initView();
+
+        initSpeaker();
+
+        initWakeup();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        boolean hasPermission = new Permission().checkPermission(ReceiveCallActivity.this, PermissionType.VIDEOCALL);
+
+        if (hasPermission) {
+
+            startListener();
+
+        } else {
+            Toast.makeText(ReceiveCallActivity.this, R.string.permission_denied, Toast.LENGTH_SHORT).show();
+            cancelVibrate();
+            finish();
+        }
+    }
+
+    private void initSpeaker() {
+        m_amAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
+        m_amAudioManager.setSpeakerphoneOn(false);
+    }
+
+    private void initView() {
+
         Intent intent = getIntent();
         contactName = intent.getStringExtra(G.EXTRA_C_Name);
         contactIp = intent.getStringExtra(G.EXTRA_C_Ip);
 
-        m_amAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
-        m_amAudioManager.setSpeakerphoneOn(false);
-
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
-        initWakeup();
-
-        initView();
-        startListener();
-
-    }
-
-    private void initView() {
         Tgl_Speaker = (ToggleButton) findViewById(R.id.tgl_speaker);
         Tgl_Speaker.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {

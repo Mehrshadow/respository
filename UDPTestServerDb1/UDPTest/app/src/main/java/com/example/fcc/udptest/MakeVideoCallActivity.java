@@ -63,7 +63,6 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     private Camera.Parameters parameters;
     private Chronometer mChronometer;
     private AudioManager mAudioManager;
-    private boolean isVideoCallPermissionGranted = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,9 +73,7 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
 
         initViews();
 
-        openCamera();
 
-        startCameraPreview();
     }
 
     private void initViews() {
@@ -252,15 +249,24 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
     protected void onResume() {
         super.onResume();
 
-        new Permission().checkPermission(MakeVideoCallActivity.this, PermissionType.VIDEOCALL);
+        openSenderSocket();
+        openListenerSocket();
 
-        if (isVideoCallPermissionGranted) {
+        boolean hasPermission = new Permission().checkPermission(MakeVideoCallActivity.this, PermissionType.VIDEOCALL);
 
-            openSenderSocket();
-            openListenerSocket();
+        if (hasPermission) {
+
+            openCamera();
+            startCameraPreview();
 
             startListener();
             makeVideoCall();
+        } else {
+            Toast.makeText(MakeVideoCallActivity.this, R.string.permission_denied, Toast.LENGTH_SHORT).show();
+
+            stopPlayingTone();
+
+            finish();
         }
     }
 
@@ -762,22 +768,13 @@ public class MakeVideoCallActivity extends Activity implements View.OnClickListe
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
-                    Toast.makeText(MakeVideoCallActivity.this, "Videocall permission granted", Toast.LENGTH_SHORT).show();
-
-                    isVideoCallPermissionGranted = true;
-
                 } else {
-
-                    Toast.makeText(MakeVideoCallActivity.this, "Videocall permission Denied!", Toast.LENGTH_SHORT).show();
-
-                    isVideoCallPermissionGranted = false;
+                    finish();
                 }
                 return;
             }
-
-            // other 'case' lines to check for other
-            // permissions this app might request
         }
     }
 }
+
 

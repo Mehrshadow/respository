@@ -4,6 +4,7 @@ package com.example.fcc.udptest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -25,6 +26,9 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+
+import classes.Permission;
+import classes.PermissionType;
 
 public class MakeCallActivity extends Activity implements CompoundButton.OnCheckedChangeListener, OnClickListener, AudioCall.IEndCall {
 
@@ -51,10 +55,24 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
         initViews();
 
         initSpeaker();
+    }
 
-        startListener();
-        makeCall();
+    @Override
+    protected void onResume() {
+        super.onResume();
 
+        boolean hasPermission = new Permission().checkPermission(MakeCallActivity.this, PermissionType.VIDEOCALL);
+
+        if (hasPermission) {
+
+            startListener();
+            makeCall();
+
+        } else {
+            Toast.makeText(MakeCallActivity.this, R.string.permission_denied, Toast.LENGTH_SHORT).show();
+
+            finish();
+        }
     }
 
     private void initViews() {
@@ -329,5 +347,25 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
     @Override
     public void endAudioCall() {
         endCall();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case Permission.MY_PERMISSIONS_REQUEST_RECORD_AUDIO: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                } else {
+
+                    finish();
+                }
+                return;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
     }
 }

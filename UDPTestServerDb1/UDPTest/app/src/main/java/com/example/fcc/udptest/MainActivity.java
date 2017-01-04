@@ -57,7 +57,7 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
         initViews();
 //        contactManager.listen();
         contactManager.setRefreshRcyclerListener(MainActivity.this);
-        refreshContacts();
+
         startCallListener();
         Logger.i("MainActivity", "onCreate", "IP is >> " + getBroadcastIp());
     }
@@ -206,10 +206,12 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
 
     @Override
     protected void onResume() {
+        super.onResume();
+        SERVER_RUNNING = true;
+        refreshContacts();
         contactManager.startListening();
         startCallListener();
         Logger.i("MainActivity", "onResume", "G.contactsList.size()>> " + G.contactsList.size());
-        super.onResume();
     }
 
     @Override
@@ -250,10 +252,8 @@ public class MainActivity extends Activity implements ContactManager.IRefreshRec
         G.IN_CALL = false;
         STARTED = true;
         SERVER_RUNNING = true;
-//        contactManager.listen();
-        refreshContacts();
+//        refreshContacts();
         startCallListener();
-        // refreshContacts();
     }
 
     private void refreshContacts() {

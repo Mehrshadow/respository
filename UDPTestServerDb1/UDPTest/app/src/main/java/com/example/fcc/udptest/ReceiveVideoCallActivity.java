@@ -103,7 +103,6 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
             startCameraPreview();
             parsePacket();
 
-
         } else {
             Toast.makeText(ReceiveVideoCallActivity.this, R.string.permission_denied, Toast.LENGTH_SHORT).show();
             cancelVibrate();
@@ -775,16 +774,7 @@ public class ReceiveVideoCallActivity extends AppCompatActivity implements View.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
-                    Toast.makeText(ReceiveVideoCallActivity.this, "Videocall permission granted", Toast.LENGTH_SHORT).show();
-
-                    isVideoCallPermissionGranted = true;
-
-
                 } else {
-
-                    Toast.makeText(ReceiveVideoCallActivity.this, "Videocall permission Denied!", Toast.LENGTH_SHORT).show();
-
-                    isVideoCallPermissionGranted = false;
 
                     finish();
                 }
