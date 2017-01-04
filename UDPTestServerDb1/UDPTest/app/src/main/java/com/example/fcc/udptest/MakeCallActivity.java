@@ -1,17 +1,21 @@
-package ir.jahanmir.videocall;
+package com.example.fcc.udptest;
+
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.util.Log;
-import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.Chronometer;
 import android.widget.CompoundButton;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import java.io.IOException;
@@ -22,7 +26,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
-public class MakeCallActivity extends Activity implements CompoundButton.OnCheckedChangeListener {
+public class MakeCallActivity extends Activity implements CompoundButton.OnCheckedChangeListener, OnClickListener, AudioCall.IEndCall {
 
     private static final String LOG_TAG = "MakeCall";
     private static final int BUF_SIZE = 1024;
@@ -31,6 +35,10 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
     private String contactIp;
     private boolean LISTEN = true;
     private AudioCall call;
+    private Button endButton;
+    private AudioManager mAudioManager;
+    private MediaPlayer mediaPlayer;
+    private Chronometer mChronometer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,37 +48,51 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
 
         Log.i(LOG_TAG, "MakeCallActivity started!");
 
+        initViews();
+
+        initSpeaker();
+
+        startListener();
+        makeCall();
+
+    }
+
+    private void initViews() {
         Intent intent = getIntent();
         displayName = intent.getStringExtra(G.EXTRA_DISPLAYNAME);
         contactName = intent.getStringExtra(G.EXTRA_C_Name);
         contactIp = intent.getStringExtra(G.EXTRA_C_Ip);
 
         TextView textView = (TextView) findViewById(R.id.textViewCalling);
-        ToggleButton btnSwtich = (ToggleButton) findViewById(R.id.toggleButton2);
-        btnSwtich.setOnCheckedChangeListener(this);
-        textView.setText("Calling: " + contactName);
+        ToggleButton btnSwitch = (ToggleButton) findViewById(R.id.toggleButton2);
+        btnSwitch.setOnCheckedChangeListener(this);
+        textView.setText(String.format(getString(R.string.calling_lbl), contactName));
 
-        startListener();
-        makeCall();
+        mChronometer = (Chronometer) findViewById(R.id.chronometer);
 
-        Button endButton = (Button) findViewById(R.id.buttonEndCall);
-        endButton.setOnClickListener(new OnClickListener() {
+        endButton = (Button) findViewById(R.id.buttonEndCall);
+        endButton.setOnClickListener(this);
+    }
 
-            @Override
-            public void onClick(View v) {
-                // Button to end the call has been pressed
-                endCall();
-            }
-        });
+    private void initSpeaker() {
+        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        mAudioManager.setMode(AudioManager.MODE_IN_CALL);
+        mAudioManager.setSpeakerphoneOn(false);
     }
 
     private void makeCall() {
         // Send a request to start a call
-        sendMessage("CAL:" + displayName, 50003);
+        sendMessage("VOICECALL" + displayName, G.BROADCAST_PORT);
     }
 
     private void endCall() {
         // Ends the chat sessions
+
+        stopPlayingTone();
+        startPlayingBusyTone();
+
+        stopChronometer();
+
         stopListener();
         if (G.IN_CALL) {
 
@@ -78,6 +100,7 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
             G.IN_CALL = false;
         }
         sendMessage("END:", G.BROADCAST_PORT);
+
         finish();
     }
 
@@ -93,29 +116,45 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
 
                     Log.i(LOG_TAG, "Listener started!");
 
-                    DatagramSocket socket = new DatagramSocket(G.BROADCAST_PORT);
-                    socket.setSoTimeout(15000);
+                    DatagramSocket listenerSocket = new DatagramSocket(G.CALL_LISTENER_PORT);
+                    listenerSocket.setSoTimeout(15000);
                     byte[] buffer = new byte[BUF_SIZE];
                     DatagramPacket packet = new DatagramPacket(buffer, BUF_SIZE);
+
+                    startPlayingWaitingTone();
+
                     while (LISTEN) {
 
                         try {
 
-                            Log.i(LOG_TAG, "Listening for packets");
-                            socket.receive(packet);
+                            Log.d(LOG_TAG, "Listening for packets");
+                            listenerSocket.receive(packet);
                             String data = new String(buffer, 0, packet.getLength());
-                            Log.i(LOG_TAG, "Packet received from " + packet.getAddress() + " with contents: " + data);
+                            Log.d(LOG_TAG, "Packet received from " + packet.getAddress() + " with contents: " + data);
                             String action = data.substring(0, 4);
                             if (action.equals("ACC:")) {
+
+                                stopPlayingTone();
+
+                                startChronometer();
+
+                                showToast(getString(R.string.call_accpeted));
+
                                 // Accept notification received. Start call
                                 call = new AudioCall(packet.getAddress());
                                 call.startCall();
 
+                                call.setEndCallListener(MakeCallActivity.this);
+
                                 G.IN_CALL = true;
                             } else if (action.equals("REJ:")) {
+
+                                showToast(getString(R.string.call_rejected));
                                 // Reject notification received. End call
                                 endCall();
                             } else if (action.equals("END:")) {
+
+                                showToast(getString(R.string.call_ended));
                                 // End call notification received. End call
                                 endCall();
                             } else {
@@ -133,8 +172,8 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
                         }
                     }
                     Log.i(LOG_TAG, "Listener ending");
-                    socket.disconnect();
-                    socket.close();
+                    listenerSocket.disconnect();
+                    listenerSocket.close();
                 } catch (SocketException e) {
 
                     Log.e(LOG_TAG, "SocketException in Listener");
@@ -144,6 +183,55 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
             }
         });
         listenThread.start();
+    }
+
+    private void startPlayingWaitingTone() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mediaPlayer = MediaPlayer.create(MakeCallActivity.this, R.raw.waiting);
+                mediaPlayer.setLooping(true);
+                mediaPlayer.start();
+            }
+        });
+    }
+
+    private void startPlayingBusyTone() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                mediaPlayer = MediaPlayer.create(MakeCallActivity.this, R.raw.busy);
+                mediaPlayer.start();
+
+                CountDownTimer timer = new CountDownTimer(3000, 1000) {
+                    //
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+                    }
+
+                    @Override
+                    public void onFinish() {
+                        stopPlayingTone();
+                    }
+                };
+                timer.start();
+
+            }
+        });
+    }
+
+    private void stopPlayingTone() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                if (mediaPlayer.isPlaying()) {
+                    mediaPlayer.stop();
+//                    mediaPlayer.release();
+                }
+            }
+        });
     }
 
     private void stopListener() {
@@ -184,32 +272,62 @@ public class MakeCallActivity extends Activity implements CompoundButton.OnCheck
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.make_call, menu);
-        return true;
+    public void onCheckedChanged(CompoundButton buttonView, final boolean isChecked) {
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(LOG_TAG, "IN CALL: " + G.IN_CALL);
+                if (isChecked) {
+
+                    mAudioManager.setMode(AudioManager.MODE_IN_CALL);
+                    mAudioManager.setSpeakerphoneOn(true);
+//                    mediaPlayer.setAudioStreamType(AudioManager.STREAM_VOICE_CALL);
+
+                } else {
+                    mAudioManager.setMode(AudioManager.MODE_IN_CALL);
+                    mAudioManager.setSpeakerphoneOn(false);
+                }
+            }
+        }).start();
+
+    }
+
+    public void showToast(final String message) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MakeCallActivity.this, message, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void startChronometer() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mChronometer.start();
+            }
+        });
+    }
+
+    private void stopChronometer() {
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mChronometer.stop();
+            }
+        });
     }
 
     @Override
-    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        Log.d(LOG_TAG, "IN CALL: " + G.IN_CALL);
-        if (G.IN_CALL) {
+    public void onClick(View v) {
+        endCall();
+    }
 
-            AudioManager m_amAudioManager;
-            m_amAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-
-            if (isChecked) {
-
-                m_amAudioManager.setMode(AudioManager.MODE_IN_CALL);
-                m_amAudioManager.setSpeakerphoneOn(false);
-
-            } else {
-                m_amAudioManager.setMode(AudioManager.MODE_NORMAL);
-                m_amAudioManager.setSpeakerphoneOn(true);
-
-            }
-
-            Log.d(LOG_TAG, "Speaker changed" + " & switchStatus is: " + isChecked);
-        }
+    @Override
+    public void endAudioCall() {
+        endCall();
     }
 }

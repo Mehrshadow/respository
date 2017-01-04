@@ -1,4 +1,4 @@
-package ir.jahanmir.videocall.udptest;
+package com.example.fcc.udptest;
 
 import org.junit.Test;
 

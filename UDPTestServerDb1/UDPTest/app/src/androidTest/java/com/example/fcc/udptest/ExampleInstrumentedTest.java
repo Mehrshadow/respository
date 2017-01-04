@@ -1,4 +1,4 @@
-package ir.jahanmir.videocall.udptest;
+package com.example.fcc.udptest;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

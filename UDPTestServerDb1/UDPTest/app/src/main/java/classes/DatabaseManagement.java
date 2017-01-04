@@ -4,7 +4,7 @@ package classes;
  * Created by HaMiD on 12/14/2016.
  */
 
-import ir.jahanmir.videocall.G;
+import com.example.fcc.udptest.G;
 
 import java.net.InetAddress;
 

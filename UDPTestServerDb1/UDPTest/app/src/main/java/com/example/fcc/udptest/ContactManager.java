@@ -1,4 +1,4 @@
-package ir.jahanmir.videocall;
+package com.example.fcc.udptest;
 
 import android.util.Log;
 
@@ -124,7 +124,7 @@ public class ContactManager {
 
                     if (action.equals("ADD:")) {
                         // Add notification received. Attempt to add contact
-                        Logger.d("ContactManager", "listen | listen", "Listener received ADD request from >> " + packet.getAddress());
+                        Logger.d("ContactManager", "listen | listen", "Listener received ADD request from >> " + packet.getAddress()  + " name: " + name);
                         addContact(name, packet.getAddress());
 
                         iRefreshRecycler.OnRefresh();

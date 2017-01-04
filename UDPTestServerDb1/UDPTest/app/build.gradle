@@ -5,7 +5,7 @@ android {
     compileSdkVersion 24
     buildToolsVersion "24.0.2"
     defaultConfig {
-        applicationId "ir.jahanmir.videocall"
+        applicationId "com.example.fcc.udptest"
         minSdkVersion 17
         targetSdkVersion 24
         versionCode 1
@@ -19,11 +19,6 @@ android {
         }
     }
     productFlavors {
-    }
-
-    lintOptions {
-        checkReleaseBuilds false
-        abortOnError false
     }
 }
 

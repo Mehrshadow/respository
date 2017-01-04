@@ -5,7 +5,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import ir.jahanmir.videocall.R;
+import com.example.fcc.udptest.R;
 
 /**
  * Created by HaMiD on 12/10/2016.
