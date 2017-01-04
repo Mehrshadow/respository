@@ -8,11 +8,27 @@
         "source": "C:\\Users\\FCC\\Desktop\\respository\\UDPTestClient\\UDPTest\\app\\src\\main\\res\\menu\\receive_call.xml"
     },
     {
+        "merged": "D:\\Android\\Jahanmir\\GitRepository\\respository\\respository\\UDPTestClient\\UDPTest\\app\\build\\intermediates\\res\\merged\\debug\\menu\\main.xml",
+        "source": "D:\\Android\\Jahanmir\\GitRepository\\respository\\respository\\UDPTestClient\\UDPTest\\app\\src\\main\\res\\menu\\main.xml"
+    },
+    {
         "merged": "C:\\Users\\FCC\\Desktop\\respository\\UDPTestClient\\UDPTest\\app\\build\\intermediates\\res\\merged\\debug\\menu\\make_call.xml",
         "source": "C:\\Users\\FCC\\Desktop\\respository\\UDPTestClient\\UDPTest\\app\\src\\main\\res\\menu\\make_call.xml"
     },
     {
+        "merged": "D:\\Android\\Jahanmir\\GitRepository\\respository\\respository\\UDPTestClient\\UDPTest\\app\\build\\intermediates\\res\\merged\\debug\\menu\\call.xml",
+        "source": "D:\\Android\\Jahanmir\\GitRepository\\respository\\respository\\UDPTestClient\\UDPTest\\app\\src\\main\\res\\menu\\call.xml"
+    },
+    {
+        "merged": "D:\\Android\\Jahanmir\\GitRepository\\respository\\respository\\UDPTestClient\\UDPTest\\app\\build\\intermediates\\res\\merged\\debug\\menu\\make_call.xml",
+        "source": "D:\\Android\\Jahanmir\\GitRepository\\respository\\respository\\UDPTestClient\\UDPTest\\app\\src\\main\\res\\menu\\make_call.xml"
+    },
+    {
         "merged": "C:\\Users\\FCC\\Desktop\\respository\\UDPTestClient\\UDPTest\\app\\build\\intermediates\\res\\merged\\debug\\menu\\main.xml",
         "source": "C:\\Users\\FCC\\Desktop\\respository\\UDPTestClient\\UDPTest\\app\\src\\main\\res\\menu\\main.xml"
+    },
+    {
+        "merged": "D:\\Android\\Jahanmir\\GitRepository\\respository\\respository\\UDPTestClient\\UDPTest\\app\\build\\intermediates\\res\\merged\\debug\\menu\\receive_call.xml",
+        "source": "D:\\Android\\Jahanmir\\GitRepository\\respository\\respository\\UDPTestClient\\UDPTest\\app\\src\\main\\res\\menu\\receive_call.xml"
     }
 ]

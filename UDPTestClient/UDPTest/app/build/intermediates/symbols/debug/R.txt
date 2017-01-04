@@ -664,6 +664,7 @@ int layout select_dialog_multichoice_material 0x7f040029
 int layout select_dialog_singlechoice_material 0x7f04002a
 int layout support_simple_spinner_dropdown_item 0x7f04002b
 int layout test 0x7f04002c
+int layout text_make_videocall 0x7f04002d
 int menu call 0x7f0e0000
 int menu main 0x7f0e0001
 int menu make_call 0x7f0e0002
@@ -1328,12 +1329,13 @@ int styleable PopupWindow_android_popupBackground 0
 int styleable PopupWindow_overlapAnchor 1
 int[] styleable PopupWindowBackgroundState { 0x7f0100b0 }
 int styleable PopupWindowBackgroundState_state_above_anchor 0
-int[] styleable RecyclerView { 0x010100c4, 0x7f0100b1, 0x7f0100b2, 0x7f0100b3, 0x7f0100b4 }
+int[] styleable RecyclerView { 0x010100c4, 0x010100f1, 0x7f0100b1, 0x7f0100b2, 0x7f0100b3, 0x7f0100b4 }
+int styleable RecyclerView_android_descendantFocusability 1
 int styleable RecyclerView_android_orientation 0
-int styleable RecyclerView_layoutManager 1
-int styleable RecyclerView_reverseLayout 3
-int styleable RecyclerView_spanCount 2
-int styleable RecyclerView_stackFromEnd 4
+int styleable RecyclerView_layoutManager 2
+int styleable RecyclerView_reverseLayout 4
+int styleable RecyclerView_spanCount 3
+int styleable RecyclerView_stackFromEnd 5
 int[] styleable SearchView { 0x010100da, 0x0101011f, 0x01010220, 0x01010264, 0x7f0100b5, 0x7f0100b6, 0x7f0100b7, 0x7f0100b8, 0x7f0100b9, 0x7f0100ba, 0x7f0100bb, 0x7f0100bc, 0x7f0100bd, 0x7f0100be, 0x7f0100bf, 0x7f0100c0, 0x7f0100c1 }
 int styleable SearchView_android_focusable 0
 int styleable SearchView_android_imeOptions 3

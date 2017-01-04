@@ -6,96 +6,77 @@
     android:layout_height="match_parent"
     android:background="@drawable/background_oncall"
     android:orientation="vertical"
-
     tools:context=".ReceiveCallActivity">
 
-    <TextView
-        android:id="@+id/textViewIncomingCall"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_margin="8dp"
-        android:text="@string/incomingCall"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
-    <Chronometer
-        android:layout_margin="8dp"
-        android:gravity="right"
-        android:textSize="30dp"
-        android:layout_gravity="top"
-        android:id="@+id/chronometer"
+    <ImageView
+        android:id="@+id/img_receive"
+        android:rotation="-90"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-
-
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <ImageView
-                android:adjustViewBounds="true"
-                android:id="@+id/img_receive"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                app:srcCompat="@drawable/background_oncall" />
-
-            <FrameLayout
-                android:layout_margin="4dp"
-                android:id="@+id/cameraView"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:layout_marginBottom="10dp"
-                android:elevation="7dp"
-                android:keepScreenOn="true" />
-
-        </FrameLayout>
-
-
+        android:layout_height="match_parent"/>
 
     <LinearLayout
-        android:layout_gravity="bottom"
-        android:id="@+id/layout_call"
+        android:orientation="vertical"
+        android:layout_gravity="top|right"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:gravity="center_horizontal">
-
-        <Button
-            android:id="@+id/buttonAccept"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:layout_margin="20dp"
-            android:background="@drawable/call_accept" />
-
-        <LinearLayout
+        android:layout_height="match_parent">
+        <TextView
+            android:layout_gravity="right"
+            android:id="@+id/textViewIncomingCall"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            android:layout_margin="8dp"
+            android:text="@string/incomingCall"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
 
-        <Button
-            android:id="@+id/buttonReject"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:layout_margin="20dp"
-            android:layout_marginRight="24dp"
-            android:background="@drawable/call_reject" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_gravity="bottom"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_horizontal">
-
-        <Button
-            android:id="@+id/buttonEndCall"
+        <Chronometer
+            android:id="@+id/chronometer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/call_end_call"
-            android:padding="16dp"
-            android:text="@string/endCall"
-            android:visibility="invisible" />
+            android:layout_margin="8dp"
+            android:gravity="right"
+            android:textSize="30dp" />
 
     </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/cameraView"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_margin="4dp"
+        android:layout_marginBottom="10dp"
+        android:elevation="7dp"
+        android:keepScreenOn="true" />
+
+
+    <Button
+
+        android:id="@+id/buttonAccept"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_gravity="bottom|left"
+        android:layout_margin="20dp"
+        android:background="@drawable/call_accept" />
+
+
+    <Button
+        android:id="@+id/buttonReject"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_gravity="bottom|right"
+        android:layout_margin="20dp"
+        android:layout_marginRight="24dp"
+        android:background="@drawable/call_reject" />
+
+
+    <Button
+        android:id="@+id/buttonEndCall"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_gravity="bottom|center"
+        android:layout_margin="20dp"
+        android:layout_marginRight="24dp"
+        android:background="@drawable/call_reject"
+        android:visibility="invisible"/>
+
 
 </FrameLayout>

@@ -8,10 +8,7 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-<<<<<<< HEAD
-=======
             <option value="$PROJECT_DIR$/app" />
->>>>>>> udpBranch
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

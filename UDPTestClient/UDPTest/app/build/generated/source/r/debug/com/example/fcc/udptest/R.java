@@ -1927,6 +1927,7 @@ containing a value of this type.
         public static final int select_dialog_singlechoice_material=0x7f04002a;
         public static final int support_simple_spinner_dropdown_item=0x7f04002b;
         public static final int test=0x7f04002c;
+        public static final int text_make_videocall=0x7f04002d;
     }
     public static final class menu {
         public static final int call=0x7f0e0000;
@@ -2018,7 +2019,15 @@ containing a value of this type.
         public static final int AlertDialog_AppCompat_Light=0x7f09008b;
         public static final int Animation_AppCompat_Dialog=0x7f09008c;
         public static final int Animation_AppCompat_DropDownUp=0x7f09008d;
+        /** 
+            Theme customizations available in newer API levels can go in
+            res/values-vXX/styles.xml, while customizations related to
+            backward-compatibility can go here.
+        
+         */
         public static final int AppBaseTheme=0x7f09008e;
+        /**  All customizations that are NOT specific to a particular API-level can go here. 
+         */
         public static final int AppTheme=0x7f09008f;
         public static final int Base_AlertDialog_AppCompat=0x7f090090;
         public static final int Base_AlertDialog_AppCompat_Light=0x7f090091;
@@ -5643,12 +5652,14 @@ containing a value of this type.
            <colgroup align="left" />
            <colgroup align="left" />
            <tr><th>Attribute</th><th>Description</th></tr>
+           <tr><td><code>{@link #RecyclerView_android_descendantFocusability android:descendantFocusability}</code></td><td></td></tr>
            <tr><td><code>{@link #RecyclerView_android_orientation android:orientation}</code></td><td></td></tr>
            <tr><td><code>{@link #RecyclerView_layoutManager com.example.fcc.udptest:layoutManager}</code></td><td></td></tr>
            <tr><td><code>{@link #RecyclerView_reverseLayout com.example.fcc.udptest:reverseLayout}</code></td><td></td></tr>
            <tr><td><code>{@link #RecyclerView_spanCount com.example.fcc.udptest:spanCount}</code></td><td></td></tr>
            <tr><td><code>{@link #RecyclerView_stackFromEnd com.example.fcc.udptest:stackFromEnd}</code></td><td></td></tr>
            </table>
+           @see #RecyclerView_android_descendantFocusability
            @see #RecyclerView_android_orientation
            @see #RecyclerView_layoutManager
            @see #RecyclerView_reverseLayout
@@ -5656,9 +5667,15 @@ containing a value of this type.
            @see #RecyclerView_stackFromEnd
          */
         public static final int[] RecyclerView = {
-            0x010100c4, 0x7f0100b1, 0x7f0100b2, 0x7f0100b3,
-            0x7f0100b4
+            0x010100c4, 0x010100f1, 0x7f0100b1, 0x7f0100b2,
+            0x7f0100b3, 0x7f0100b4
         };
+        /**
+          <p>This symbol is the offset where the {@link android.R.attr#descendantFocusability}
+          attribute's value can be found in the {@link #RecyclerView} array.
+          @attr name android:descendantFocusability
+        */
+        public static final int RecyclerView_android_descendantFocusability = 1;
         /**
           <p>This symbol is the offset where the {@link android.R.attr#orientation}
           attribute's value can be found in the {@link #RecyclerView} array.
@@ -5678,7 +5695,7 @@ theme attribute (in the form
 containing a value of this type.
           @attr name com.example.fcc.udptest:layoutManager
         */
-        public static final int RecyclerView_layoutManager = 1;
+        public static final int RecyclerView_layoutManager = 2;
         /**
           <p>This symbol is the offset where the {@link com.example.fcc.udptest.R.attr#reverseLayout}
           attribute's value can be found in the {@link #RecyclerView} array.
@@ -5692,7 +5709,7 @@ theme attribute (in the form
 containing a value of this type.
           @attr name com.example.fcc.udptest:reverseLayout
         */
-        public static final int RecyclerView_reverseLayout = 3;
+        public static final int RecyclerView_reverseLayout = 4;
         /**
           <p>This symbol is the offset where the {@link com.example.fcc.udptest.R.attr#spanCount}
           attribute's value can be found in the {@link #RecyclerView} array.
@@ -5706,7 +5723,7 @@ theme attribute (in the form
 containing a value of this type.
           @attr name com.example.fcc.udptest:spanCount
         */
-        public static final int RecyclerView_spanCount = 2;
+        public static final int RecyclerView_spanCount = 3;
         /**
           <p>This symbol is the offset where the {@link com.example.fcc.udptest.R.attr#stackFromEnd}
           attribute's value can be found in the {@link #RecyclerView} array.
@@ -5720,7 +5737,7 @@ theme attribute (in the form
 containing a value of this type.
           @attr name com.example.fcc.udptest:stackFromEnd
         */
-        public static final int RecyclerView_stackFromEnd = 4;
+        public static final int RecyclerView_stackFromEnd = 5;
         /** Attributes that can be used with a SearchView.
            <p>Includes the following attributes:</p>
            <table>
